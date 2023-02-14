@@ -1,51 +1,39 @@
 import { exit } from "process";
 
-const { PublicKey, PrivateKey, Jub } = require('babyjubjub');
+const { buildBabyjub } = require('circomlibjs');
 
+// node_modules/circomlibjs/src/babyjub.js
 
 async function jub_test() {
-    let sk = PrivateKey.getRandObj().field;
-    console.log("sk : ", sk.n)
-    let privKey = new PrivateKey(sk);
-    console.log("privKey : ", privKey)
-    let pubKey = PublicKey.fromPrivate(privKey)
-    console.log("pubKey : ", pubKey.p)
-
-    let message = ["97","98","99"];
-    let random = "12314121";
-    let cipher = Jub.encrypt(message, pubKey, random);
-    console.log("encrypt : ", cipher);
-    let decrypted = Jub.decrypt(cipher, sk);
-    console.log("decrypted : ", decrypted);
-    exit(0)
+    const jub = await buildBabyjub()
+    console.log("jub : ", jub)
+    return jub
 }
 
 async function main(
 ) {
-    await jub_test()
+    const jub = await jub_test()
+    // exit(0)
 
     const V = [1, 2, 3, 4, 5]        // voting power per user
 
     // 1. Key Generation (Committee)
     const N_COM = 3
     const t = 2
-    let a = []
-    let C = []
+    let a = []  // [][]
+    let C = []  // [][][2]
     for (let i = 0; i < N_COM; i++) {
         a.push([])
         C.push([])
         for (let j = 0; j < t; j++) {
-            const sk = PrivateKey.getRandObj().field
-            const pk = PublicKey.importPrivate(sk)
+            const sk = Math.floor(Math.random() * 10000) // TODO: * jub.order)
+            const pk = jub.mulPointEscalar(jub.Generator, sk)
             a[i].push(sk)
             C[i].push(pk)
         }
     }
 
-    // proof(C) : jubjub circom circuit
-    // node_modules/circomlib/circuits/babyjub.circom
-    // TODO :
-    // 1. node_modules/babyjubjub/lib/Point.js , using same generator as circom
+    // generate zkp(C), on-chain
 
 
     const PK = 1                     // sk * G
