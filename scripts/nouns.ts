@@ -1,8 +1,7 @@
 import { exit } from "process";
 
 const { buildBabyjub } = require('circomlibjs');
-
-// node_modules/circomlibjs/src/babyjub.js
+const polyval = require( 'compute-polynomial' );
 
 async function jub_test() {
     const jub = await buildBabyjub()
@@ -12,12 +11,14 @@ async function jub_test() {
 
 async function main(
 ) {
+    // var vals = polyval( [ 4, 2, 6, -17 ], [ 10, -3 ] )
+    // console.log("vals : ", vals)
     const jub = await jub_test()
-    // exit(0)
 
     const V = [1, 2, 3, 4, 5]        // voting power per user
+    const N_USER = V.length
 
-    // 1. Key Generation (Committee)
+    // 1. Key Generation Round 1 (Committee)
     const N_COM = 3
     const t = 2
     let a = []  // [][]
@@ -36,8 +37,15 @@ async function main(
     // generate zkp(C), on-chain
 
 
+    // 2. Key Generation Round 2 (Committee)
+
+    for (let i = 0; i < N_USER; i++) {
+        // fi(x)
+    }
+
+
+
     const PK = 1                     // sk * G
-    const n_user = V.length
 
 
     // Private Input
