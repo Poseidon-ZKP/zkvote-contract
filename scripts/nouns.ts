@@ -64,21 +64,36 @@ async function main(
 
 
     // 3. User Voting
-    // Private Input
-    const o = [0b100 /* yes */, 0b010 /* no */, 0b001 /* abstain */, 0b100, 0b010]
-    const r = [1, 2, 3, 4, 5]        // random Fr per user
+    let o = []
+    let r = []        // random Fr per user
+    let R = []
+    let R_SUM = jub.Base8
+    let M = []
+    for (let i = 0; i < N_USER; i++) {
+        r.push(Math.floor(Math.random() * 10000)) // TODO: * jub.order)
+        R.push(jub.mulPointEscalar(jub.Generator, r))
+        R_SUM = jub.addPoint(R_SUM, R[i])
 
-    // Public Input
-    const R = []                     // r*G
-    const M = [                      
-        []                           // M[i][k] = (o[i][k] * V[i]) * G + r[i] * PK
-    ]
+        const m = jub.mulPointEscalar(PK, r[i])
+        const vm = jub.addPoint(m, jub.mulPointEscalar(jub.Generator, V[i]))
 
-
-    const D = []
-
+        if (i % 3 == 0) {
+          o.push(0b100)  // yes
+          M.push([m, m, vm]);
+        } else if (i % 3 == 1) {
+          o.push(0b010)  // no
+          M.push([m, vm, m]);
+        } else {
+          o.push(0b001)  // abstain
+          M.push([m, m, vm]);
+        }
+    }
 
     // 4. Tally
+    const D = []
+    for (let i = 0; i < N_COM; i++) {
+        D.push(jub.mulPointEscalar(R_SUM, sk[i]))
+    }
 
 
     // 5. Reveal
