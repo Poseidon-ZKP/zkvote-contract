@@ -15,5 +15,6 @@ template JubCommitments(t) {
     }
 }
 
-// component main {public [signalHash, externalNullifier]} = JubCommitments();
+// TODO : Posideon Encrypt
+
 component main {public [C]} = JubCommitments();

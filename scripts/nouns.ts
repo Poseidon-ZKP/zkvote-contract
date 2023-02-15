@@ -1,5 +1,3 @@
-import { exit } from "process";
-
 const { buildBabyjub } = require('circomlibjs');
 const polyval = require( 'compute-polynomial' );
 
@@ -11,8 +9,6 @@ async function jub_test() {
 
 async function main(
 ) {
-    // var vals = polyval( [ 4, 2, 6, -17 ], [ 10, -3 ] )
-    // console.log("vals : ", vals)
     const jub = await jub_test()
 
     const V = [1, 2, 3, 4, 5]        // voting power per user
@@ -27,10 +23,10 @@ async function main(
         a.push([])
         C.push([])
         for (let j = 0; j < t; j++) {
-            const sk = Math.floor(Math.random() * 10000) // TODO: * jub.order)
-            const pk = jub.mulPointEscalar(jub.Generator, sk)
-            a[i].push(sk)
-            C[i].push(pk)
+            const r = Math.floor(Math.random() * 10000) // TODO: * jub.order)
+            const c = jub.mulPointEscalar(jub.Generator, r)
+            a[i].push(r)
+            C[i].push(c)
         }
     }
 
@@ -38,16 +34,36 @@ async function main(
 
 
     // 2. Key Generation Round 2 (Committee)
+    let f = []
+    for (let i = 0; i < N_COM; i++) {
+        f.push([])
 
-    for (let i = 0; i < N_USER; i++) {
-        // fi(x)
+        for (let l = 0; l < N_COM; l++) {
+          f[i].push(polyval(a[i].reverse(), l))
+        }
+    }
+
+    let sk = []
+    for (let i = 0; i < N_COM; i++) {
+        sk.push(0)
+        for (let l = 0; l < N_COM; l++) {
+            sk[i] += f[l][i]
+        }
+    }
+
+    let PK = jub.Base8  // TODO : ZERO Point
+    for (let i = 0; i < N_COM; i++) {
+        PK = jub.addPoint(PK, C[i][0])
     }
 
 
+    // Posideon Encrypt : why encrypt? when decrypt?
+    // P xor P = 0 --> M = P xor P + M ?
+    
+    // ZKP for ... and Posideon Encrypt
 
-    const PK = 1                     // sk * G
 
-
+    // 3. User Voting
     // Private Input
     const o = [0b100 /* yes */, 0b010 /* no */, 0b001 /* abstain */, 0b100, 0b010]
     const r = [1, 2, 3, 4, 5]        // random Fr per user
@@ -59,10 +75,13 @@ async function main(
     ]
 
 
-    // 2. User's ZKP
     const D = []
 
-    // 3. Committe's ZKP
+
+    // 4. Tally
+
+
+    // 5. Reveal
 
 
     // Performance Profile
