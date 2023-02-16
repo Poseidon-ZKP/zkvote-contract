@@ -30,7 +30,7 @@ async function main(
         }
     }
 
-    // generate zkp(C), on-chain
+    // generate zkp(C), on-chain verify. why? C need be on jubjub curve. 
 
 
     // 2. Key Generation Round 2 (Committee)

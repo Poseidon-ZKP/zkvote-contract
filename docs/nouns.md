@@ -22,6 +22,19 @@ Suppose n_com = 21, t = 10, and jubjub scalar_mul = ~1000
 # Profile
 
 
+# Refine Tips
+
+1. no need ZKP in Round 1?
+
+ZKP(Round 1) only prove "the C points is on jubjub curve", which seems also been proved in Round 2
+
+2. Also have Same concern for the  tally ZKP
+
+suppose if 1 committee give wrong Di, there is no way to identify, and  reveal fail. 
+
+3. why Enc ? when Decrypt ?  using poseidon or EI-Gamma
+
+if no decrypt, just 1 poseidon hash ?
 
 
 # Reference

@@ -23,6 +23,7 @@ contract Nouns {
     uint[2] R;
 
     uint[2] PK;
+    uint[][][2] C;
 
     mapping(address => uint) public committee;
     uint public tally_threshold;
@@ -51,25 +52,34 @@ contract Nouns {
         // setup lookup table : jubjub sclar mul
     }
 
-    function round1() public {
+    function round1(
+        uint[][2] memory C
+    ) public {
+        // ZKP ?
 
+        // Last Committee, PK = Sum(Ci0)
     }
 
     function round2() public {
     }
 
     function vote(
-        uint[2] RI
+        uint[2] RI,
+        uint[][2] memory MI,
     ) public {
         require(votePower[msg.sender]>0, "invalid voter!");
         require(!voted[msg.sender], "already vote!");
 
         // R = R + RI, Jubjub point add
 
+        // M = M + MI, Jubjub point add
+
         // Jubjub point add
     }
 
-    function reveal() internal {
+    function reveal(
+        uint[2] DI
+    ) internal {
         // Jubjub scalar mul
 
         // Jubjub point sub
