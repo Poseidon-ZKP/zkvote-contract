@@ -12,10 +12,18 @@ Suppose n_com = 21, t = 10, and jubjub scalar_mul = ~1000
 4. ～20W fixed growth16 verification gas, 6K extra for each public input.
 5. The estimation don't include basic circuit overhead(~6K) and contract decrypt/reveal logic cost.
 
-|Stage| add/mul/exp.| Scalar mul(jubjub). | posedion enc | Constraints | Public Input | Verify Gas |
+|Stage| mul/xor/exp.| Scalar mul(jubjub). | posedion hash | Constraints | Public Input | Verify Gas |
 | --- | ---- | --- | ---- | --- | --- | --- |
-|  Round1|                 |    t   |              | 10 K| 2t | 32w |
-|  Round2 | (n_com - 1)*t | (n_com - 1)*t|n_com - 1  |200K+           | 2t+1 | 32.6w |
-|  Voting  |                 |    5   |              |  5K | 10 |26w |
-|  Tally   |                 |    1   |              | 1K | 4 |22.4w|
+|  Round1|                 |    t   |              | 10 K| 2t | 320K |
+|  Round2 | (n_com-1)*t | (n_com-1)*t|(n_com-1)*4  |200K+           | 2t+1 | 326K |
+|  Voting  |                 |    5   |              |  5K | 10 |260K|
+|  Tally   |                 |    1   |              | 1K | 4 |224K|
 
+# Profile
+
+
+
+
+# Reference
+
+1. [Baby Jubjub Library(Circom/js/sol)](https://eips.ethereum.org/EIPS/eip-2494)
