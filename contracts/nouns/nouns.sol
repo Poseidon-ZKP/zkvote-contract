@@ -2,15 +2,7 @@
 pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-
-interface IVerifier {
-    function verifyProof(
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        uint256[2] memory input
-    ) external view;
-}
+import "./babyjubjub/CurveBabyJubJub.sol";
 
 contract Nouns {
 

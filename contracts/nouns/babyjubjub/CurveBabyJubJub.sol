@@ -1,5 +1,4 @@
-pragma solidity ^0.4.24;
-
+pragma solidity 0.8.4;
 
 library CurveBabyJubJub {
     // Curve parameters
