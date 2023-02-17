@@ -28,6 +28,8 @@ Suppose n_com = 21, t = 10, and jubjub scalar_mul = ~1000
 
 ZKP(Round 1) only prove "the C points is on jubjub curve", which seems also been proved in Round 2
 
+Can be replaced by onchain "isOnCurve" instead.
+
 2. Also have Same concern for the  tally ZKP
 
 suppose if 1 committee give wrong Di, there is no way to identify, and  reveal fail. 
