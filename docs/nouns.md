@@ -26,18 +26,19 @@ Suppose n_com = 21, t = 10, and jubjub scalar_mul = ~1000
 
 1. no need ZKP in Round 1?
 
-ZKP(Round 1) only prove "the C points is on jubjub curve", which seems also been proved in Round 2
+    ZKP(Round 1) only prove "the C points is on jubjub curve", which seems also been proved in Round 2
 
-Can be replaced by onchain "isOnCurve" instead.
+    Can be replaced by onchain "isOnCurve" instead.
 
 2. Also have Same concern for the  tally ZKP
 
-suppose if 1 committee give wrong Di, there is no way to identify, and  reveal fail. 
+    suppose if 1 committee give wrong Di, there is no way to identify, and  reveal fail.
 
-3. why Enc ? when Decrypt ?  using poseidon or EI-Gamma
+    doesn't provide any semantic for binding secret key.
 
-if no decrypt, just 1 poseidon hash ?
+3. why Poseidon Enc ? when Decrypt ?
 
+    if no decrypt, 1 poseidon hash i
 
 # Reference
 
