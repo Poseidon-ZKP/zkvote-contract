@@ -1,13 +1,13 @@
 pragma circom 2.0.0;
 
-include "../../node_modules/circomlib/circuits/babyjub.circom";
+include "./babyjubExtend.circom";
 
 // C = a * G
 template JubCommitments(t) {
     signal input a[t];
     signal output C[t][2];
 
-    component pk = BabyPbk();
+    component pk = BabyScaleGenerator();
     for (var i = 0; i < t; i++) {
         pk.in <== a[i];
         C[i][0] <== pk.Ax;
