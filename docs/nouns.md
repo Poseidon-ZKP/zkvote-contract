@@ -45,7 +45,12 @@ Suppose n_com = 21, t = 10, and jubjub scalar_mul = ~1000
 
 3. why Poseidon Enc ? when Decrypt ?
 
-    if no decrypt, 1 poseidon hash i
+    (1) "the correctness of f(i)" is proved by ZKP.
+    (2) "each participants have secrte f(i)", so public can't guess sk.
+
+    for higher security level (need known some backgroud..) ? 
+
+    if no need decrypt, using 1 poseidon hash.
 
 # Reference
 

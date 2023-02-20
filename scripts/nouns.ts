@@ -47,12 +47,13 @@ async function main(
     await zkp_test()
     const jub = await jub_test()
 
+    // Parameters
     const V = [1, 2, 3, 4, 5]        // voting power per user
     const N_USER = V.length
-
-    // 1. Key Generation Round 1 (Committee)
     const N_COM = 3
     const t = 2
+
+    // 1. Key Generation Round 1 (Committee)
     let a = []  // [][]
     let C = []  // [][][2]
     for (let i = 0; i < N_COM; i++) {
