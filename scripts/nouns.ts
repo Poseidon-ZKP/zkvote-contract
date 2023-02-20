@@ -1,5 +1,6 @@
 const { buildBabyjub } = require('circomlibjs');
 const polyval = require( 'compute-polynomial' );
+import { expect } from "chai";
 import { exit } from "process";
 import * as snarkjs from "snarkjs"
 
@@ -16,17 +17,26 @@ async function zkp_test() {
   const FILE_WASM = CIRCUIT_TGT_DIR + CUR_CIRCUIT + "_js/" + CUR_CIRCUIT + ".wasm"
   const FILE_ZKEY = CIRCUIT_TGT_DIR + "zkey.16"
 
-  const res = await snarkjs.groth16.fullProve(
+  const { proof, publicSignals } = await snarkjs.groth16.fullProve(
       {
-          a : [1]
+          a : [8]
       },
       FILE_WASM,
       FILE_ZKEY
   )
 
-  console.log("prover res : ", res)
+  console.log("prover publicSignals : ", publicSignals)
+  const vKey = await snarkjs.zKey.exportVerificationKey(FILE_ZKEY);
+  // expect(publicSignals.equal(jub.Base8))
+  expect(await snarkjs.groth16.verify(
+    vKey,
+    [
+        publicSignals[0],   // B = 8 * G
+        publicSignals[1]
+    ],
+    proof
+  )).eq(true)
   exit(0)
-
 }
 
 async function main(
