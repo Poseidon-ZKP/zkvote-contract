@@ -1,3 +1,4 @@
+//SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
 library CurveBabyJubJub {
@@ -118,7 +119,7 @@ library CurveBabyJubJub {
             mstore(add(memPtr, 0xa0), _m) // Modulus _m
 
             // The bigModExp precompile is at 0x05
-            let success := staticcall(gas, 0x05, memPtr, 0xc0, memPtr, 0x20)
+            let success := staticcall(gas(), 0x05, memPtr, 0xc0, memPtr, 0x20)
             switch success
             case 0 {
                 revert(0x0, 0x0)
