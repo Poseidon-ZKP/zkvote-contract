@@ -1,6 +1,7 @@
 pragma circom 2.0.0;
 
 include "../../node_modules/circomlib/circuits/escalarmulany.circom";
+include "../../node_modules/circomlib/circuits/comparators.circom";
 include "./babyjubExtend.circom";
 
 // C[t] = a[t] * G
@@ -17,7 +18,7 @@ template JubCommitments(t) {
     }
 }
 
-// sum(l^k * C[k])
+// Round2 : f(l)*G == sum(l^k * C[k])
 template SumScaleMul(t) {
     signal input f_l;    // f(l)
     signal input l;
@@ -51,6 +52,13 @@ template SumScaleMul(t) {
         out[0] <== babyAdd[k].xout;
         out[1] <== babyAdd[k].yout;
     }
+
+    component scaleMulG = BabyScaleGenerator();
+    scaleMulG.in <== f_l;
+
+    component equal = IsEqual();
+    equal.in[0] <== scaleMulG.Ax;
+    equal.in[1] <== scaleMulG.Ay;
 }
 
 // TODO : Did we need Encrypt (Poseidon enc) ? 
