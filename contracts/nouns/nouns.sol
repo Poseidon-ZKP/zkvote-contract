@@ -21,12 +21,12 @@ contract Nouns {
     mapping(address => uint) public votePower;
     mapping(address => bool) public voted;
     uint[2] R;
-    uint[3][2] M;
-    uint[][2] DI;
+    uint[2][3] M;
+    uint[2][] DI;
     uint[] tally_cid;
 
     uint[2] PK;
-    uint[][][2] C;
+    uint[2][][] C;
 
     mapping(address => uint) public committee;
     uint public n_comm;
@@ -45,7 +45,7 @@ contract Nouns {
         uint _tally_threshold,
         uint VOTE_POWER_TOTAL
     ) {
-        require(_verifiler.length == 3, "invalid verifiers!");
+        require(_verifiers.length == 3, "invalid verifiers!");
         round2_verifier = _verifiers[0];
         vote_verifier   = _verifiers[1];
         tally_verifier  = _verifiers[2];
@@ -66,7 +66,7 @@ contract Nouns {
     }
 
     function round1(
-        uint[][2] memory CI
+        uint[2][] memory CI
     ) public {
         // TODO : SM check msg.sender in committee, haven't run round1
         uint cid = committee[msg.sender] - 1;
@@ -74,14 +74,14 @@ contract Nouns {
 
         for (uint256 t = 0; t < tally_threshold; t++) {
             require(CurveBabyJubJub.isOnCurve(CI[t][0], CI[t][1]), "invalid point");
-            C[cid][t].push(CI[t][0], CI[t][1]);
+            C[cid][t] = [CI[t][0], CI[t][1]];
         }
 
         // Last Committee, PK = Sum(Ci0)
         if (cid == n_comm) {
             PK = C[0][0];
             for (uint256 i = 0; i < n_comm; i++) {
-                PK = CurveBabyJubJub.pointAdd(PK[0], PK[1], C[i][0][0], C[i][0][1]);
+                (PK[0], PK[1]) = CurveBabyJubJub.pointAdd(PK[0], PK[1], C[i][0][0], C[i][0][1]);
             }
         }
     }
@@ -95,8 +95,8 @@ contract Nouns {
     }
 
     function vote(
-        uint[2] RI,
-        uint[3][2] memory MI
+        uint[2] calldata RI,
+        uint[2][3] calldata MI
     ) public {
         require(votePower[msg.sender]>0, "invalid voter!");
         require(!voted[msg.sender], "already vote!");
@@ -105,11 +105,11 @@ contract Nouns {
         (R[0], R[1]) = CurveBabyJubJub.pointAdd(RI[0], RI[1], R[0], R[1]);
 
         // M = M + MI
-        if (M[0] == 0 && M[1][0] == 0 && M[2][0] == 0) {
+        if (M[0][0] == 0 && M[1][0] == 0 && M[2][0] == 0) {
             M = MI;
         } else {
             for (uint256 i = 0; i < M.length; i++) {
-                M[i] = CurveBabyJubJub.pointAdd(M[i][0], M[i][1], MI[i][0], MI[i][1]);
+                (M[i][0], M[i][1]) = CurveBabyJubJub.pointAdd(M[i][0], M[i][1], MI[i][0], MI[i][1]);
             }
         }
     }
@@ -127,16 +127,17 @@ contract Nouns {
 
     function reveal(
     ) internal {
-        uint[2] D;
+        uint[2] memory D;
         for (uint256 t = 0; t < tally_threshold; t++) {
             uint cid = tally_cid[t];
             uint lamda = Lagrange_coeff(cid);
 
-            uint[2] d = CurveBabyJubJub.pointMul(DI[t][0], DI[t][1], lamda);
+            uint[2] memory d;
+            (d[0], d[1]) = CurveBabyJubJub.pointMul(DI[t][0], DI[t][1], lamda);
             if (D[0] == 0) {
                 D = d;
             } else {
-                D = CurveBabyJubJub.pointMul(D[0], D[1], d[0], d[1]);
+                (D[0], D[1]) = CurveBabyJubJub.pointAdd(D[0], D[1], d[0], d[1]);
             }
         }
 
@@ -146,7 +147,7 @@ contract Nouns {
     }
 
     function tally(
-        uint[2] _DI
+        uint[2] calldata _DI
     ) public {
         // Verify ZKP ??
 
