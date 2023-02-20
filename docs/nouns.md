@@ -1,5 +1,11 @@
 Impl the idea in https://hackmd.io/6ZFxxxnKT0iH-GJHUxKekw
 
+# Setup
+```shell
+    ts-node scripts/build-circuit.ts nouns
+```
+
+
 # Estimation
 
 A quick draft estimation on ZKP constraints and Gas Cost, Pls check whether it make sense to you.

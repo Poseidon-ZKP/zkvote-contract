@@ -1,5 +1,7 @@
 const { buildBabyjub } = require('circomlibjs');
 const polyval = require( 'compute-polynomial' );
+import { exit } from "process";
+import * as snarkjs from "snarkjs"
 
 async function jub_test() {
     const jub = await buildBabyjub()
@@ -7,8 +9,29 @@ async function jub_test() {
     return jub
 }
 
+async function zkp_test() {
+  const DIR = process.cwd()
+  const CUR_CIRCUIT = "nouns"
+  const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
+  const FILE_WASM = CIRCUIT_TGT_DIR + CUR_CIRCUIT + "_js/" + CUR_CIRCUIT + ".wasm"
+  const FILE_ZKEY = CIRCUIT_TGT_DIR + "zkey.16"
+
+  const res = await snarkjs.groth16.fullProve(
+      {
+          a : [1]
+      },
+      FILE_WASM,
+      FILE_ZKEY
+  )
+
+  console.log("prover res : ", res)
+  exit(0)
+
+}
+
 async function main(
 ) {
+    await zkp_test()
     const jub = await jub_test()
 
     const V = [1, 2, 3, 4, 5]        // voting power per user
