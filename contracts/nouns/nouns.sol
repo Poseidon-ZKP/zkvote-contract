@@ -26,7 +26,7 @@ contract Nouns {
     uint[2][] DI;
     uint[] tally_cid;
 
-    uint[2] PK;
+    uint[2] public PK;
     //uint[2][][] C;
     mapping(uint => mapping(uint => mapping(uint => uint))) C;   // uint[2][][]
 

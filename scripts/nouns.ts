@@ -71,6 +71,7 @@ async function main(
     let a = []  // [][]
     let C = []  // [][][2]
     const edwards_twist_C = []  // [][][2]
+    let PK = [jub.F.e("0"), jub.F.e("1")]
     for (let i = 0; i < N_COM; i++) {
         a.push([])
         C.push([])
@@ -90,20 +91,27 @@ async function main(
         
         // submit C on-chain.
         await (await nc.connect(COMMITEE[i]).round1(edwards_twist_C[i])).wait()
+        
+        PK = jub.addPoint(PK, C[i][0])
     }
-    exit(0)
-
-
+    expect(jub.F.toString(PK[0])).equal(await nc.PK(0))
 
     // 2. Key Generation Round 2 (Committee)
     let f = []
     for (let i = 0; i < N_COM; i++) {
         f.push([])
-
         for (let l = 0; l < N_COM; l++) {
           f[i].push(polyval(a[i].reverse(), l))
         }
     }
+
+    console.log("f : ", f)
+
+    // TODO : Posideon Encrypt : why encrypt? when decrypt?
+    // Now Using public on-chain ? instead of encrypt/decrypt
+    // P xor P = 0 --> M = P xor P + M ?
+    // ZKP for ... and (Posideon Encrypt)
+
 
     let sk = []
     for (let i = 0; i < N_COM; i++) {
@@ -112,17 +120,11 @@ async function main(
             sk[i] += f[l][i]
         }
     }
-
-    let PK = jub.Base8  // TODO : ZERO Point
-    for (let i = 0; i < N_COM; i++) {
-        PK = jub.addPoint(PK, C[i][0])
-    }
+    console.log("sk : ", sk)
 
 
-    // Posideon Encrypt : why encrypt? when decrypt?
-    // P xor P = 0 --> M = P xor P + M ?
-    
-    // ZKP for ... and Posideon Encrypt
+    exit(0)
+
 
 
     // 3. User Voting
