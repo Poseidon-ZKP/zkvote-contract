@@ -134,7 +134,7 @@ contract Nouns {
 
             uint[2] memory d;
             (d[0], d[1]) = CurveBabyJubJub.pointMul(DI[t][0], DI[t][1], lamda);
-            if (D[0] == 0) {
+            if (D[0] == 0) {        // TODO : [0, 1] as zero point
                 D = d;
             } else {
                 (D[0], D[1]) = CurveBabyJubJub.pointAdd(D[0], D[1], d[0], d[1]);

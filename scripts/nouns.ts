@@ -6,7 +6,6 @@ import * as snarkjs from "snarkjs"
 
 async function jub_test() {
     const jub = await buildBabyjub()
-    console.log("jub : ", jub)
     return jub
 }
 
@@ -44,7 +43,7 @@ async function zkp_test() {
 
 async function main(
 ) {
-    await zkp_test()
+    // await zkp_test()
     const jub = await jub_test()
 
     // Parameters
@@ -60,14 +59,17 @@ async function main(
         a.push([])
         C.push([])
         for (let j = 0; j < t; j++) {
-            const r = Math.floor(Math.random() * 10000) // TODO: * jub.order)
+            //const r = Math.floor(Math.random() * 10000) // TODO: * jub.order)
+            const r = 8
             const c = jub.mulPointEscalar(jub.Generator, r)
             a[i].push(r)
             C[i].push(c)
         }
     }
+    expect(jub.F.toString(C[0][0][0])).equal(jub.F.toString(jub.Base8[0]))
+    exit(0)
 
-    // generate zkp(C), on-chain verify. why? C need be on jubjub curve. 
+    // submit C on-chain. 
 
 
     // 2. Key Generation Round 2 (Committee)
@@ -146,4 +148,3 @@ main()
   console.error(error);
   process.exit(1);
 });
-
