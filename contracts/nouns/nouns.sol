@@ -3,6 +3,7 @@ pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./babyjubjub/CurveBabyJubJub.sol";
+import "hardhat/console.sol";
 
 enum CommitteeState {
     Init,
@@ -26,12 +27,15 @@ contract Nouns {
     uint[] tally_cid;
 
     uint[2] PK;
-    uint[2][][] C;
+    //uint[2][][] C;
+    mapping(uint => mapping(uint => mapping(uint => uint))) C;   // uint[2][][]
 
     mapping(address => uint) public committee;
     uint public n_comm;
     uint public tally_threshold;
     uint public tallied_committee;
+    mapping(address => bool) public round1_done;
+    uint round1_total;
 
     mapping(uint => mapping(uint => uint)) public lookup_table;
 
@@ -45,10 +49,10 @@ contract Nouns {
         uint _tally_threshold,
         uint VOTE_POWER_TOTAL
     ) {
-        require(_verifiers.length == 3, "invalid verifiers!");
-        round2_verifier = _verifiers[0];
-        vote_verifier   = _verifiers[1];
-        tally_verifier  = _verifiers[2];
+        // require(_verifiers.length == 3, "invalid verifiers!");
+        // round2_verifier = _verifiers[0];
+        // vote_verifier   = _verifiers[1];
+        // tally_verifier  = _verifiers[2];
 
         n_comm = _committee.length;
         for (uint i=0; i < _committee.length; ++i) {
@@ -68,21 +72,26 @@ contract Nouns {
     function round1(
         uint[2][] memory CI
     ) public {
-        // TODO : SM check msg.sender in committee, haven't run round1
+        require(!round1_done[msg.sender], "round 1 already done!");
         uint cid = committee[msg.sender] - 1;
         require(cid >= 0);
 
         for (uint256 t = 0; t < tally_threshold; t++) {
             require(CurveBabyJubJub.isOnCurve(CI[t][0], CI[t][1]), "invalid point");
-            C[cid][t] = [CI[t][0], CI[t][1]];
+            C[cid][t][0] = CI[t][0];
+            C[cid][t][1] = CI[t][1];
         }
 
+        round1_done[msg.sender] = true;
+        round1_total++;
+
         // Last Committee, PK = Sum(Ci0)
-        if (cid == n_comm) {
-            PK = C[0][0];
-            for (uint256 i = 0; i < n_comm; i++) {
+        if (round1_total == n_comm) {
+            PK = [C[0][0][0], C[0][0][1]];
+            for (uint256 i = 1; i < n_comm; i++) {
                 (PK[0], PK[1]) = CurveBabyJubJub.pointAdd(PK[0], PK[1], C[i][0][0], C[i][0][1]);
             }
+            console.log("sol PK : ", PK[0]);
         }
     }
 

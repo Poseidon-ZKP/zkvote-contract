@@ -1,8 +1,11 @@
 const { buildBabyjub } = require('circomlibjs');
 const polyval = require( 'compute-polynomial' );
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
+import { ethers } from "hardhat";
 import { exit } from "process";
 import * as snarkjs from "snarkjs"
+import { Nouns__factory } from "./types";
 
 async function jub_test() {
     const jub = await buildBabyjub()
@@ -43,33 +46,53 @@ async function zkp_test() {
 
 async function main(
 ) {
+    // init
     // await zkp_test()
     const jub = await jub_test()
+    const owners = await ethers.getSigners()
+    let owner : SignerWithAddress = owners[0]
 
     // Parameters
     const V = [1, 2, 3, 4, 5]        // voting power per user
     const N_USER = V.length
-    const N_COM = 3
+    const COMMITEE = [owners[0], owners[1], owners[2]]
+    const N_COM = COMMITEE.length
     const t = 2
+
+    const verifiers = []
+    const nc = await (new Nouns__factory(owner)).deploy(
+        verifiers,
+        COMMITEE.map((e) => e.address),
+        t,
+        V.reduce((a,b)=>a+b)
+    )
 
     // 1. Key Generation Round 1 (Committee)
     let a = []  // [][]
     let C = []  // [][][2]
+    const edwards_twist_C = []  // [][][2]
     for (let i = 0; i < N_COM; i++) {
         a.push([])
         C.push([])
+        edwards_twist_C.push([])
         for (let j = 0; j < t; j++) {
             //const r = Math.floor(Math.random() * 10000) // TODO: * jub.order)
             const r = 8
             const c = jub.mulPointEscalar(jub.Generator, r)
             a[i].push(r)
             C[i].push(c)
+            edwards_twist_C[i].push([])
+            edwards_twist_C[i][j].push(jub.F.toString(c[0]))
+            edwards_twist_C[i][j].push(jub.F.toString(c[1]))
         }
+        console.log("edwards_twist_C[i] : ", edwards_twist_C[i])
+        expect(edwards_twist_C[i][0][0]).equal(jub.F.toString(jub.Base8[0]))
+        
+        // submit C on-chain.
+        await (await nc.connect(COMMITEE[i]).round1(edwards_twist_C[i])).wait()
     }
-    expect(jub.F.toString(C[0][0][0])).equal(jub.F.toString(jub.Base8[0]))
     exit(0)
 
-    // submit C on-chain. 
 
 
     // 2. Key Generation Round 2 (Committee)
