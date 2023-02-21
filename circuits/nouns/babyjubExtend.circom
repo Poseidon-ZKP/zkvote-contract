@@ -46,5 +46,5 @@ template JubScalarMulAny() {
     mulAny.p[1] <== p[1];
 
     out[0] <== mulAny.out[0];
-    out[1] <== mulAny.out[0];
+    out[1] <== mulAny.out[1];
 }

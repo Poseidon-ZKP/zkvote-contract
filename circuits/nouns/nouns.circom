@@ -16,4 +16,5 @@ template JubCommitments(t) {
     }
 }
 
-component main = JubCommitments(2);
+//component main = JubCommitments(2);
+component main {public [in, p]} = JubScalarMulAny();

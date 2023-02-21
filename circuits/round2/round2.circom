@@ -11,15 +11,12 @@ template SumScaleMul(t) {
 
     signal res[t][2];
     signal output out[2];
-    signal output cmp[2];
 
-    var lk = 1;
+    var lk = 1; // 0^0 = 1
     component mulAny[t];
     component pvkBits[t];
     component babyAdd[t];
     for (var k = 0; k < t; k++) {
-        lk = lk * l;
-
         mulAny[k] = JubScalarMulAny();
         mulAny[k].in <== lk;
         mulAny[k].p[0] <== C[k][0];
@@ -37,6 +34,8 @@ template SumScaleMul(t) {
             res[k][0] <== babyAdd[k].xout;
             res[k][1] <== babyAdd[k].yout;
         }
+
+        lk = lk * l;
     }
 
     out[0] <== res[t-1][0];
@@ -44,19 +43,9 @@ template SumScaleMul(t) {
 
     component scaleMulG = BabyScaleGenerator();
     scaleMulG.in <== f_l;
-    cmp[0] <== scaleMulG.Ax;
-    cmp[1] <== scaleMulG.Ay;
 
-    // scaleMulG.Ax === out[0];
-    // scaleMulG.Ay === out[1];
-
-    // component equal[2];
-    // equal[0] = IsEqual();
-    // equal[0].in[0] <== scaleMulG.Ax;
-    // equal[0].in[1] <== out[0];
-    // equal[1] = IsEqual();
-    // equal[1].in[0] <== scaleMulG.Ay;
-    // equal[1].in[1] <== out[0];      // TODO : keep a bug for test
+    scaleMulG.Ax === out[0];
+    scaleMulG.Ay === out[1];
 }
 
 // TODO : Did we need Encrypt (Poseidon enc) ? 

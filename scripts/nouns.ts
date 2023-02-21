@@ -21,13 +21,18 @@ async function zkp_test() {
 
   const { proof, publicSignals } = await snarkjs.groth16.fullProve(
       {
-          a : [1, 8]
+          in : 8,
+          p : [
+            '995203441582195749578291179787384436505546430278305826713579947235728471134',
+            '5472060717959818805561601436314318772137091100104008585924551046643952123905'
+          ],
       },
       FILE_WASM,
       FILE_ZKEY
   )
 
   console.log("prover publicSignals : ", publicSignals)
+  exit(0)
   const vKey = await snarkjs.zKey.exportVerificationKey(FILE_ZKEY);
   // expect([publicSignals[0], [publicSignals[1]].equal(jub.Generator))
   // expect([publicSignals[2], [publicSignals[3]].equal(jub.Generator))
@@ -72,7 +77,6 @@ async function zkp_round2() {
   )
 
   console.log("prover publicSignals : ", publicSignals)
-  exit(0)
   expect(await snarkjs.groth16.verify(
     vKey,
     [
