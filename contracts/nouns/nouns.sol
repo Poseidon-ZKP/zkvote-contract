@@ -96,6 +96,7 @@ contract Nouns {
     }
 
     function round2(
+        // f(l)
         // ENC Data
     ) public {
         // Verify ZKP

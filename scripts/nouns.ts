@@ -44,10 +44,58 @@ async function zkp_test() {
   exit(0)
 }
 
+async function zkp_round2() {
+  const DIR = process.cwd()
+  const CUR_CIRCUIT = "round2"
+  const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
+  const FILE_WASM = CIRCUIT_TGT_DIR + CUR_CIRCUIT + "_js/" + CUR_CIRCUIT + ".wasm"
+  const FILE_ZKEY = CIRCUIT_TGT_DIR + "zkey.16"
+  const vKey = await snarkjs.zKey.exportVerificationKey(FILE_ZKEY);
+
+  const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+      {
+          f_l : 8,
+          l : 0,
+          C : [
+            [
+              '5299619240641551281634865583518297030282874472190772894086521144482721001553',
+              '16950150798460657717958625567821834550301663161624707787222815936182638968203'
+            ],
+            [
+              '5299619240641551281634865583518297030282874472190772894086521144482721001553',
+              '16950150798460657717958625567821834550301663161624707787222815936182638968203'
+            ]
+          ]
+      },
+      FILE_WASM,
+      FILE_ZKEY
+  )
+
+  console.log("prover publicSignals : ", publicSignals)
+  exit(0)
+  expect(await snarkjs.groth16.verify(
+    vKey,
+    [
+        publicSignals[0],   // out
+        publicSignals[1],
+        publicSignals[2],   // f_l
+        publicSignals[3],   // l
+        publicSignals[4],   // C[t][2]
+        publicSignals[5],
+        publicSignals[6],
+        publicSignals[7]
+    ],
+    proof
+  )).eq(true)
+  exit(0)
+}
+
+
 async function main(
 ) {
     // init
     // await zkp_test()
+    await zkp_round2()
     const jub = await jub_test()
     const owners = await ethers.getSigners()
     let owner : SignerWithAddress = owners[0]
