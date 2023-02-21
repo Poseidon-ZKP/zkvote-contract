@@ -3,7 +3,7 @@ Impl the idea in https://hackmd.io/6ZFxxxnKT0iH-GJHUxKekw
 # Setup
 ```shell
     ts-node scripts/build-circuit.ts nouns
-    npx hardhat run scripts/nouns.ts 
+    npx hardhat run scripts/nouns/nouns.ts 
 ```
 
 
