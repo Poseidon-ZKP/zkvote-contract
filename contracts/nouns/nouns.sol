@@ -22,10 +22,19 @@ interface IVerifierRound2 {
     ) external view;
 }
 
+interface IVerifierNvote {
+    function verifyProof(
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        uint256[11] memory input
+    ) external view;
+}
+
 contract Nouns {
 
     IVerifierRound2 round2_verifier;
-    address vote_verifier;
+    IVerifierNvote  nvote_verifier;
     address tally_verifier;
 
     mapping(address => uint) public votePower;
@@ -55,17 +64,24 @@ contract Nouns {
     constructor(
         address[] memory _verifiers,
         address[] memory _committee,
-        uint _tally_threshold,
-        uint VOTE_POWER_TOTAL
+        address[] memory _user,
+        uint[] memory _votePower,
+        uint _tally_threshold
     ) {
         // require(_verifiers.length == 3, "invalid verifiers!");
         round2_verifier = IVerifierRound2(_verifiers[0]);
-        // vote_verifier   = _verifiers[1];
+        nvote_verifier   = IVerifierNvote(_verifiers[1]);
         // tally_verifier  = _verifiers[2];
 
         n_comm = _committee.length;
         for (uint i=0; i < _committee.length; ++i) {
             committee[_committee[i]] = i + 1;
+        }
+
+        uint VOTE_POWER_TOTAL = 0;
+        for (uint i=0; i < _user.length; ++i) {
+            votePower[_user[i]] = _votePower[i];
+            VOTE_POWER_TOTAL += _votePower[i];
         }
 
         tally_threshold = _tally_threshold;
@@ -127,10 +143,13 @@ contract Nouns {
 
     function vote(
         uint[2] calldata RI,
-        uint[2][3] calldata MI
+        uint[2][3] calldata MI,
+        uint[8] calldata proof
     ) public {
         require(votePower[msg.sender]>0, "invalid voter!");
         require(!voted[msg.sender], "already vote!");
+        uint cid = committee[msg.sender] - 1;
+        require(cid >= 0);
 
         // R = R + RI
         (R[0], R[1]) = CurveBabyJubJub.pointAdd(RI[0], RI[1], R[0], R[1]);
@@ -143,6 +162,14 @@ contract Nouns {
                 (M[i][0], M[i][1]) = CurveBabyJubJub.pointAdd(M[i][0], M[i][1], MI[i][0], MI[i][1]);
             }
         }
+        // Verify ZKP
+        nvote_verifier.verifyProof(
+            [proof[0], proof[1]],
+            [[proof[2], proof[3]], [proof[4], proof[5]]],
+            [proof[6], proof[7]],
+            [ RI[0], RI[1], MI[0][0], MI[0][1], MI[1][0], MI[1][1], MI[2][0], MI[2][1],
+             PK[0], PK[1], votePower[msg.sender]]
+        );
     }
 
     function Lagrange_coeff(

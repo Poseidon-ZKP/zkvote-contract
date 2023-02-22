@@ -142,33 +142,39 @@ export async function generate_zkp_nvote(
       FILE_ZKEY
   )
 
-  console.log("prover proof : ", proof)
-  console.log("prover publicSignals : ", publicSignals)
-  exit(0)
+  // console.log("prover proof : ", proof)
+  // console.log("prover publicSignals : ", publicSignals)
   expect(await snarkjs.groth16.verify(
     vKey,
     [
-        publicSignals[0],   // out
+        publicSignals[0],   // R
         publicSignals[1],
-        publicSignals[2],   // f_l
-        publicSignals[3],   // l
-        publicSignals[4],   // C[t][2]
+        publicSignals[2],   // M
+        publicSignals[3],
+        publicSignals[4],
         publicSignals[5],
         publicSignals[6],
-        publicSignals[7]
+        publicSignals[7],
+        publicSignals[8],   // PK
+        publicSignals[9],
+        publicSignals[10]   // vote power
     ],
     proof
   )).eq(true)
 
-  console.log("round2 prover done!")
+  console.log("nvote prover done!")
 
   return {
     proof : packToSolidityProof(proof),
     publicSignals: {
-      f_l : f_l,
-      l : l,
-      C : C,
-      out : [publicSignals[0], publicSignals[1]]
+      pk : pk,
+      votePower : v,
+      R : [publicSignals[0], publicSignals[1]],
+      M : [
+        [publicSignals[2], publicSignals[3]],
+        [publicSignals[4], publicSignals[5]],
+        [publicSignals[6], publicSignals[7]],
+      ]
     }
   }
 }

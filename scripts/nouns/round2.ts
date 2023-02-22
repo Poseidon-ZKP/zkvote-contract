@@ -41,5 +41,14 @@ export async function round2(
       }
     }
     console.log("round 2 done!!")
-    return f
+
+    let sk = []
+    for (let i = 0; i < N_COM; i++) {
+        sk.push(0)
+        for (let l = 0; l < N_COM; l++) {
+            sk[i] += f[l][i]
+        }
+    }
+    console.log("sk : ", sk)
+    return sk
 }

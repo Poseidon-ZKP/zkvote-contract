@@ -33,6 +33,7 @@ export async function round1(
         
         PK = jub.addPoint(PK, C[i][0])
     }
+
     expect(jub.F.toString(PK[0])).equal(await nc.PK(0))
     console.log("round 1 done!")
     return {
