@@ -1,6 +1,7 @@
 const { buildBabyjub } = require('circomlibjs');
 const polyval = require( 'compute-polynomial' );
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { equal } from "assert";
 import { expect } from "chai";
 import { BigNumberish } from "ethers";
 import { ethers } from "hardhat";
@@ -47,21 +48,26 @@ async function main(
     const edwards_twist_PK = [jub.F.toString(PK[0]), jub.F.toString(PK[1])]
 
     // 2. Key Generation Round 2 (Committee)
-    //const sk = await round2(COMMITEE, a, edwards_twist_C, nc)
+    const sk = await round2(COMMITEE, a, edwards_twist_C, nc)
+    console.log("sk : ", sk)
 
     // 3. User Voting
     let o = []
     let r = []
     let R = []
-    let R_SUM = jub.Base8
+    let R_SUM = [jub.F.e("0"), jub.F.e("1")]
     let M = []
     for (let i = 0; i < N_USER; i++) {
         r.push(Math.floor(Math.random() * 10000)) // TODO: * jub.order)
         R.push(jub.mulPointEscalar(jub.Generator, r[i]))
         R_SUM = jub.addPoint(R_SUM, R[i])
 
-        const m = jub.mulPointEscalar(PK, r[i])
-        const vm = jub.addPoint(m, jub.mulPointEscalar(jub.Generator, V[i]))
+        let m = jub.mulPointEscalar(PK, r[i])
+        let vm = jub.addPoint(m, jub.mulPointEscalar(jub.Generator, V[i]))
+        m = [jub.F.toString(m[0]), jub.F.toString(m[1])]
+        vm = [jub.F.toString(vm[0]), jub.F.toString(vm[1])]
+        console.log("m : ", m)
+        console.log("vm : ", vm)
 
         if (i % 3 == 0) {
           o.push(0b100)  // yes
@@ -71,7 +77,7 @@ async function main(
           M.push([m, vm, m]);
         } else {
           o.push(0b001)  // abstain
-          M.push([m, m, vm]);
+          M.push([vm, m, m]);
         }
         
         const {proof, publicSignals} = await generate_zkp_nvote(edwards_twist_PK, V[i], r[i], o[i])
@@ -85,21 +91,27 @@ async function main(
           ],
             proof
         )).wait()
+        expect(M[i][0][0]).equal(publicSignals.M[0][0]);
+        expect(M[i][1][0]).equal(publicSignals.M[1][0]);
+        expect(M[i][2][0]).equal(publicSignals.M[2][0]);
         console.log("nvote on-chain verify done!!")
     }
-    exit(0)
+    console.log("jub.F.toString(R_SUM[0]) : ", jub.F.toString(R_SUM[0]))
+    console.log("await nc.R(0) : ", await nc.R(0))
+    expect(jub.F.toString(R_SUM[0])).equal(await nc.R(0))
+    expect(jub.F.toString(R_SUM[1])).equal(await nc.R(1))
 
-    // 4. Tally
+    // 4. Tally & Reveal
     const D = []
     for (let i = 0; i < N_COM; i++) {
         D.push(jub.mulPointEscalar(R_SUM, sk[i]))
+        await nc.tally([jub.F.toString(D[i][0]), jub.F.toString(D[i][1])])
     }
 
-
-    // 5. Reveal
-
-
-    // Performance Profile
+    console.log("Reveal Results : ")
+    console.log("Yes : ", await nc.voteStats(0))
+    console.log("No : ", await nc.voteStats(1))
+    console.log("Abstain : ", await nc.voteStats(2))
 }
 
 

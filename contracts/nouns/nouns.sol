@@ -39,8 +39,9 @@ contract Nouns {
 
     mapping(address => uint) public votePower;
     mapping(address => bool) public voted;
-    uint[2] R;
-    uint[2][3] M;
+    uint[3] public voteStats;
+    uint[2] public R;
+    uint[2][3] public M;
     uint[2][] DI;
     uint[] tally_cid;
 
@@ -86,6 +87,12 @@ contract Nouns {
 
         tally_threshold = _tally_threshold;
         tallied_committee = 0;
+        R[0] = 0;
+        R[1] = 1;
+        for (uint256 i = 0; i < 3; i++) {
+            M[i][0] = 0;
+            M[i][1] = 1;
+        }
 
         // TODO : Grained discrete lookup table
         for (uint i = 0; i < VOTE_POWER_TOTAL; i++) {
@@ -155,13 +162,10 @@ contract Nouns {
         (R[0], R[1]) = CurveBabyJubJub.pointAdd(RI[0], RI[1], R[0], R[1]);
 
         // M = M + MI
-        if (M[0][0] == 0 && M[1][0] == 0 && M[2][0] == 0) {
-            M = MI;
-        } else {
-            for (uint256 i = 0; i < M.length; i++) {
-                (M[i][0], M[i][1]) = CurveBabyJubJub.pointAdd(M[i][0], M[i][1], MI[i][0], MI[i][1]);
-            }
+        for (uint256 i = 0; i < 3; i++) {
+            (M[i][0], M[i][1]) = CurveBabyJubJub.pointAdd(M[i][0], M[i][1], MI[i][0], MI[i][1]);
         }
+
         // Verify ZKP
         nvote_verifier.verifyProof(
             [proof[0], proof[1]],
@@ -174,7 +178,7 @@ contract Nouns {
 
     function Lagrange_coeff(
         uint i
-    ) internal returns (uint lamda) {
+    ) internal view returns (uint lamda) {
         lamda = 1;
         for (uint256 t = 0; t < tally_threshold; t++) {
             uint j = tally_cid[t];
@@ -186,31 +190,34 @@ contract Nouns {
     function reveal(
     ) internal {
         uint[2] memory D;
+        D[0] = 0;
+        D[1] = 1;
+
         for (uint256 t = 0; t < tally_threshold; t++) {
             uint cid = tally_cid[t];
             uint lamda = Lagrange_coeff(cid);
 
             uint[2] memory d;
             (d[0], d[1]) = CurveBabyJubJub.pointMul(DI[t][0], DI[t][1], lamda);
-            if (D[0] == 0) {        // TODO : [0, 1] as zero point
-                D = d;
-            } else {
-                (D[0], D[1]) = CurveBabyJubJub.pointAdd(D[0], D[1], d[0], d[1]);
-            }
+            (D[0], D[1]) = CurveBabyJubJub.pointAdd(D[0], D[1], d[0], d[1]);
         }
 
         // Jubjub point sub
-
-        // Lookup total voting power
+        uint[2][3] memory VG;
+        for (uint256 i = 0; i < 3; i++) {
+            (VG[i][0], VG[i][1]) = CurveBabyJubJub.pointAdd(M[i][0], M[i][1], D[0], CurveBabyJubJub.submod(0, D[1], CurveBabyJubJub.Q));
+            // Lookup total voting power
+            voteStats[i] = lookup_table[VG[i][0]][VG[i][1]];
+        }
     }
 
     function tally(
         uint[2] calldata _DI
     ) public {
         // Verify ZKP ??
-
         uint cid = committee[msg.sender] - 1;
         require(cid >= 0);
+
         tally_cid.push(cid);
         DI.push(_DI);
 
