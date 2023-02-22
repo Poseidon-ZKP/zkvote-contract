@@ -102,7 +102,7 @@ async function main(
         const {proof, publicSignals} = await generate_zkp_round2(
           f[i][l],
           l,
-          C[i]
+          edwards_twist_C[i]
         )
 
         await (await nc.connect(COMMITEE[i]).round2(
