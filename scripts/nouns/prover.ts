@@ -120,3 +120,55 @@ export async function generate_zkp_round2(
     }
   }
 }
+
+export async function generate_zkp_nvote(
+  pk,v,r,o
+) {
+  const DIR = process.cwd()
+  const CUR_CIRCUIT = "nvote"
+  const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
+  const FILE_WASM = CIRCUIT_TGT_DIR + CUR_CIRCUIT + "_js/" + CUR_CIRCUIT + ".wasm"
+  const FILE_ZKEY = CIRCUIT_TGT_DIR + "zkey.16"
+  const vKey = await snarkjs.zKey.exportVerificationKey(FILE_ZKEY);
+
+  const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+      {
+          pk : pk,
+          votePower : v,
+          r : r,
+          o : o
+      },
+      FILE_WASM,
+      FILE_ZKEY
+  )
+
+  console.log("prover proof : ", proof)
+  console.log("prover publicSignals : ", publicSignals)
+  exit(0)
+  expect(await snarkjs.groth16.verify(
+    vKey,
+    [
+        publicSignals[0],   // out
+        publicSignals[1],
+        publicSignals[2],   // f_l
+        publicSignals[3],   // l
+        publicSignals[4],   // C[t][2]
+        publicSignals[5],
+        publicSignals[6],
+        publicSignals[7]
+    ],
+    proof
+  )).eq(true)
+
+  console.log("round2 prover done!")
+
+  return {
+    proof : packToSolidityProof(proof),
+    publicSignals: {
+      f_l : f_l,
+      l : l,
+      C : C,
+      out : [publicSignals[0], publicSignals[1]]
+    }
+  }
+}
