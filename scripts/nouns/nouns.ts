@@ -106,8 +106,9 @@ async function main(
         )
 
         await (await nc.connect(COMMITEE[i]).round2(
-          f[i][l], l, [publicSignals[0], publicSignals[1]], proof
+          f[i][l], l, [publicSignals.out[0], publicSignals.out[1]], proof
         )).wait()
+        console.log("round 2 on-chain verify done!!")
       }
     }
     console.log("round 2 done!!")

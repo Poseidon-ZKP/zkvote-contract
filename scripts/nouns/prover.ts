@@ -78,9 +78,9 @@ export async function generate_zkp_round2(
   const FILE_ZKEY = CIRCUIT_TGT_DIR + "zkey.16"
   const vKey = await snarkjs.zKey.exportVerificationKey(FILE_ZKEY);
 
-  console.log("f_l : ", f_l)
-  console.log("l : ", l)
-  console.log("C : ", C)
+  // console.log("f_l : ", f_l)
+  // console.log("l : ", l)
+  // console.log("C : ", C)
   const { proof, publicSignals } = await snarkjs.groth16.fullProve(
       {
           f_l : f_l,
@@ -92,7 +92,7 @@ export async function generate_zkp_round2(
   )
 
   // console.log("prover proof : ", proof)
-  console.log("prover publicSignals : ", publicSignals)
+  // console.log("prover publicSignals : ", publicSignals)
   expect(await snarkjs.groth16.verify(
     vKey,
     [
@@ -115,7 +115,8 @@ export async function generate_zkp_round2(
     publicSignals: {
       f_l : f_l,
       l : l,
-      C : C
+      C : C,
+      out : [publicSignals[0], publicSignals[1]]
     }
   }
 }
