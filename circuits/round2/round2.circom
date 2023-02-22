@@ -11,6 +11,7 @@ template SumScaleMul(t) {
 
     signal res[t][2];
     signal output out[2];
+    signal output cmp[2];
 
     var lk = 1; // 0^0 = 1
     component mulAny[t];
@@ -44,8 +45,11 @@ template SumScaleMul(t) {
     component scaleMulG = BabyScaleGenerator();
     scaleMulG.in <== f_l;
 
-    scaleMulG.Ax === out[0];
-    scaleMulG.Ay === out[1];
+    cmp[0] <== scaleMulG.Ax;
+    cmp[1] <== scaleMulG.Ax;
+
+    // scaleMulG.Ax === out[0];
+    // scaleMulG.Ay === out[1];
 }
 
 // TODO : Did we need Encrypt (Poseidon enc) ? 

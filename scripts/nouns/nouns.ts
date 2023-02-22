@@ -3,7 +3,9 @@ const polyval = require( 'compute-polynomial' );
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { Nouns__factory } from "../types";
+import { exit } from "process";
+import { Nouns__factory, Round2Verifier__factory } from "../types";
+import { generate_zkp_round2 } from "./prover";
 
 async function jub_test() {
     const jub = await buildBabyjub()
@@ -12,6 +14,21 @@ async function jub_test() {
 
 async function main(
 ) {
+    // await generate_zkp_round2(
+    //   8,
+    //   0,
+    //   [
+    //     [
+    //       '5299619240641551281634865583518297030282874472190772894086521144482721001553',
+    //       '16950150798460657717958625567821834550301663161624707787222815936182638968203'
+    //     ],
+    //     [
+    //       '5299619240641551281634865583518297030282874472190772894086521144482721001553',
+    //       '16950150798460657717958625567821834550301663161624707787222815936182638968203'
+    //     ]
+    //   ]
+    // )
+
     // init
     const jub = await jub_test()
     const owners = await ethers.getSigners()
@@ -24,7 +41,8 @@ async function main(
     const N_COM = COMMITEE.length
     const t = 2
 
-    const verifiers = []
+    const r2v = await (new Round2Verifier__factory(owner)).deploy()
+    const verifiers = [r2v.address]
     const nc = await (new Nouns__factory(owner)).deploy(
         verifiers,
         COMMITEE.map((e) => e.address),
@@ -76,6 +94,24 @@ async function main(
     // Now Using public on-chain ? instead of encrypt/decrypt
     // P xor P = 0 --> M = P xor P + M ?
     // ZKP for ... and (Posideon Encrypt)
+    for (let i = 0; i < N_COM; i++) {
+      for (let l = 0; l < N_COM; l++) {
+        if (i == l) continue;
+
+        console.log(" i : ", i, ", l : ", l)
+        const {proof, publicSignals} = await generate_zkp_round2(
+          f[i][l],
+          l,
+          C[i]
+        )
+
+        await (await nc.connect(COMMITEE[i]).round2(
+          f[i][l], l, [publicSignals[0], publicSignals[1]], proof
+        )).wait()
+      }
+    }
+    console.log("round 2 done!!")
+    exit(0)
 
 
     let sk = []

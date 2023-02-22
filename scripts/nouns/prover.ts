@@ -1,6 +1,32 @@
 import { expect } from "chai";
+import { BigNumberish } from "ethers";
 import { exit } from "process";
 import * as snarkjs from "snarkjs"
+
+export type SolidityProof = [
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish,
+  BigNumberish
+]
+
+
+export default function packToSolidityProof(proof): SolidityProof {
+  return [
+      proof.pi_a[0],
+      proof.pi_a[1],
+      proof.pi_b[0][1],
+      proof.pi_b[0][0],
+      proof.pi_b[1][1],
+      proof.pi_b[1][0],
+      proof.pi_c[0],
+      proof.pi_c[1]
+  ]
+}
 
 async function zkp_test() {
   const DIR = process.cwd()
@@ -21,6 +47,7 @@ async function zkp_test() {
       FILE_ZKEY
   )
 
+  console.log("prover proof : ", proof)
   console.log("prover publicSignals : ", publicSignals)
   exit(0)
   const vKey = await snarkjs.zKey.exportVerificationKey(FILE_ZKEY);
@@ -39,7 +66,7 @@ async function zkp_test() {
   exit(0)
 }
 
-export async function generate_round2_zkp(
+export async function generate_zkp_round2(
   f_l,
   l,
   C
@@ -53,23 +80,15 @@ export async function generate_round2_zkp(
 
   const { proof, publicSignals } = await snarkjs.groth16.fullProve(
       {
-          f_l : 8,
-          l : 0,
-          C : [
-            [
-              '5299619240641551281634865583518297030282874472190772894086521144482721001553',
-              '16950150798460657717958625567821834550301663161624707787222815936182638968203'
-            ],
-            [
-              '5299619240641551281634865583518297030282874472190772894086521144482721001553',
-              '16950150798460657717958625567821834550301663161624707787222815936182638968203'
-            ]
-          ]
+          f_l : f_l,
+          l : l,
+          C : C
       },
       FILE_WASM,
       FILE_ZKEY
   )
 
+  console.log("prover proof : ", proof)
   console.log("prover publicSignals : ", publicSignals)
   expect(await snarkjs.groth16.verify(
     vKey,
@@ -86,5 +105,12 @@ export async function generate_round2_zkp(
     proof
   )).eq(true)
 
-  return {proof, publicSignals}
+  return {
+    proof : packToSolidityProof(proof),
+    publicSignals: {
+      f_l : f_l,
+      l : l,
+      C : C
+    }
+  }
 }

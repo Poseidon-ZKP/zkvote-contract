@@ -13,9 +13,18 @@ enum CommitteeState {
     Ended
 }
 
+interface IVerifierRound2 {
+    function verifyProof(
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        uint256[8] memory input
+    ) external view;
+}
+
 contract Nouns {
 
-    address round2_verifier;
+    IVerifierRound2 round2_verifier;
     address vote_verifier;
     address tally_verifier;
 
@@ -50,7 +59,7 @@ contract Nouns {
         uint VOTE_POWER_TOTAL
     ) {
         // require(_verifiers.length == 3, "invalid verifiers!");
-        // round2_verifier = _verifiers[0];
+        round2_verifier = IVerifierRound2(_verifiers[0]);
         // vote_verifier   = _verifiers[1];
         // tally_verifier  = _verifiers[2];
 
@@ -96,12 +105,24 @@ contract Nouns {
     }
 
     function round2(
-        // f(l)
-        // ENC Data
+        uint f_l,
+        uint l,
+        uint[2] calldata out,
+        uint[8] calldata proof
+        // ENC Data ?
     ) public {
-        // Verify ZKP
+        uint cid = committee[msg.sender] - 1;
+        require(cid >= 0);
 
-        //
+        // Verify ZKP
+        round2_verifier.verifyProof(
+            [proof[0], proof[1]],
+            [[proof[2], proof[3]], [proof[4], proof[5]]],
+            [proof[6], proof[7]],
+            [out[0], out[1], f_l, l, C[cid][0][0], C[cid][0][1], C[cid][1][0], C[cid][1][1]]
+        );
+
+        // store f
     }
 
     function vote(
