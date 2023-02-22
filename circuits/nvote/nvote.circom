@@ -37,8 +37,8 @@ template Vote() {
         mulG[i].in <== ov;
 
         babyAdd[i] = BabyAdd();
-        babyAdd[i].x1 <== mulG.out[0];
-        babyAdd[i].y1 <== mulG.out[1];
+        babyAdd[i].x1 <== mulG[i].Ax;
+        babyAdd[i].y1 <== mulG[i].Ay;
         babyAdd[i].x2 <== rpk[0];
         babyAdd[i].y2 <== rpk[1];
         M[i][0] <== babyAdd[i].xout;
@@ -46,4 +46,4 @@ template Vote() {
     }
 }
 
-component main {public [pk, votePower, R, M]} = Vote();
+component main {public [pk, votePower]} = Vote();
