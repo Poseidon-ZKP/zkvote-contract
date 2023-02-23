@@ -112,9 +112,10 @@ async function main(
 
     // 4. Tally & Reveal
     const D = []
-    for (let i = 0; i < N_COM; i++) {
+    for (let i = 0; i < t; i++) {
         D.push(jub.mulPointEscalar(R_SUM, sk[i]))
-        await nc.tally([jub.F.toString(D[i][0]), jub.F.toString(D[i][1])])
+        console.log("jub.F.toString(D[i][0]) : ", jub.F.toString(D[i][0]))
+        await (await nc.connect(COMMITEE[i]).tally([jub.F.toString(D[i][0]), jub.F.toString(D[i][1])])).wait()
     }
 
     console.log("Reveal Results : ")

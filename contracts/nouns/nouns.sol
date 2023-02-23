@@ -183,11 +183,11 @@ contract Nouns {
     }
 
     function Lagrange_coeff(
-        uint i
-    ) internal view returns (uint lamda) {
+        int i
+    ) internal view returns (int lamda) {
         lamda = 1;
         for (uint256 t = 0; t < tally_threshold; t++) {
-            uint j = tally_cid[t];
+            int j = int(tally_cid[t] + 1);
             if (i == j) continue;
             lamda *= (j / (j - i));
         }
@@ -201,11 +201,19 @@ contract Nouns {
 
         for (uint256 t = 0; t < tally_threshold; t++) {
             uint cid = tally_cid[t];
-            uint lamda = Lagrange_coeff(cid);
+            int lamda = Lagrange_coeff(int(cid) + 1);
+            console.log("lamda : ");
+            console.logInt(lamda);
+            console.log("DI[t][0] : ", DI[t][0]);
 
             uint[2] memory d;
-            (d[0], d[1]) = CurveBabyJubJub.pointMul(DI[t][0], DI[t][1], lamda);
-            (D[0], D[1]) = CurveBabyJubJub.pointAdd(D[0], D[1], d[0], d[1]);
+            if (lamda < 0) {
+                (d[0], d[1]) = CurveBabyJubJub.pointMul(DI[t][0], DI[t][1], uint(0 - lamda));
+                (D[0], D[1]) = CurveBabyJubJub.pointSub(D[0], D[1], d[0], d[1]);
+            } else {
+                (d[0], d[1]) = CurveBabyJubJub.pointMul(DI[t][0], DI[t][1], uint(lamda));
+                (D[0], D[1]) = CurveBabyJubJub.pointAdd(D[0], D[1], d[0], d[1]);
+            }
         }
 
         // Jubjub point sub
@@ -226,6 +234,7 @@ contract Nouns {
         uint cid = committee[msg.sender] - 1;
         require(cid >= 0);
 
+        console.log("cid : ", cid);
         tally_cid.push(cid);
         DI.push(_DI);
 
