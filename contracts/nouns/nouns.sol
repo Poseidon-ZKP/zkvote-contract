@@ -104,6 +104,9 @@ contract Nouns {
             console.log("y ", y);
         }
     }
+    function pointSub(uint256 _x1, uint256 _y1, uint256 _x2, uint256 _y2) public view returns (uint256 x3, uint256 y3) {
+        return CurveBabyJubJub.pointSub(_x1, _y1, _x2, _y2);
+    }
 
     function round1(
         uint[2][] memory CI
@@ -186,7 +189,7 @@ contract Nouns {
         for (uint256 t = 0; t < tally_threshold; t++) {
             uint j = tally_cid[t];
             if (i == j) continue;
-            lamda *= j / (j - i);
+            lamda *= (j / (j - i));
         }
     }
 
@@ -208,7 +211,7 @@ contract Nouns {
         // Jubjub point sub
         uint[2][3] memory VG;
         for (uint256 i = 0; i < 3; i++) {
-            (VG[i][0], VG[i][1]) = CurveBabyJubJub.pointAdd(M[i][0], M[i][1], D[0], CurveBabyJubJub.submod(0, D[1], CurveBabyJubJub.Q));
+            (VG[i][0], VG[i][1]) = CurveBabyJubJub.pointSub(M[i][0], M[i][1], D[0], D[1]);
             console.log("VG[0] : ", VG[i][0]);
             console.log("VG[1] : ", VG[i][1]);
             // Lookup total voting power

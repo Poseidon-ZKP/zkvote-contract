@@ -1,9 +1,7 @@
 const { buildBabyjub } = require('circomlibjs');
-const polyval = require( 'compute-polynomial' );
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { equal } from "assert";
 import { expect } from "chai";
-import { BigNumberish } from "ethers";
 import { ethers } from "hardhat";
 import { exit } from "process";
 import { Nouns__factory, NvoteVerifier__factory, Round2Verifier__factory } from "../types";
@@ -41,6 +39,12 @@ async function main(
         t
         // V.reduce((a,b)=>a+b)
     )
+
+    const G7SOL =  await nc.pointSub(
+      jub.F.toString(jub.Base8[0]), jub.F.toString(jub.Base8[1]),
+      jub.F.toString(jub.Generator[0]), jub.F.toString(jub.Generator[1]))
+    const G7JS = jub.mulPointEscalar(jub.Generator, 7)
+    expect(jub.F.toString(G7JS[0])).equal(G7SOL[0])
 
     // 1. Key Generation Round 1 (Committee)
     const {a, C, edwards_twist_C, PK} = await round1(COMMITEE, t, jub, nc)

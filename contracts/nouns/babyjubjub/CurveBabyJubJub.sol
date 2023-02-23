@@ -96,6 +96,11 @@ library CurveBabyJubJub {
         return addmod(aNN - _b, 0, _mod);
     }
 
+    // see page4 (l5) https://iden3-docs.readthedocs.io/en/latest/_downloads/33717d75ab84e11313cc0d8a090b636f/Baby-Jubjub.pdf
+    function pointSub(uint256 _x1, uint256 _y1, uint256 _x2, uint256 _y2) internal view returns (uint256 x3, uint256 y3) {
+        return pointAdd(_x1, _y1, submod(0, _x2, Q), _y2);
+    }
+
     /**
      * @dev Compute modular inverse of a number
      */
