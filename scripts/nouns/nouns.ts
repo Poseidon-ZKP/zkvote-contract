@@ -57,6 +57,11 @@ async function main(
     let R = []
     let R_SUM = [jub.F.e("0"), jub.F.e("1")]
     let M = []
+    let M_SUM = [
+      [jub.F.e("0"), jub.F.e("1")],
+      [jub.F.e("0"), jub.F.e("1")],
+      [jub.F.e("0"), jub.F.e("1")]
+    ]
     for (let i = 0; i < N_USER; i++) {
         r.push(Math.floor(Math.random() * 10000)) // TODO: * jub.order)
         R.push(jub.mulPointEscalar(jub.Generator, r[i]))
@@ -64,10 +69,8 @@ async function main(
 
         let m = jub.mulPointEscalar(PK, r[i])
         let vm = jub.addPoint(m, jub.mulPointEscalar(jub.Generator, V[i]))
-        m = [jub.F.toString(m[0]), jub.F.toString(m[1])]
-        vm = [jub.F.toString(vm[0]), jub.F.toString(vm[1])]
-        console.log("m : ", m)
-        console.log("vm : ", vm)
+        // m = [jub.F.toString(m[0]), jub.F.toString(m[1])]
+        // vm = [jub.F.toString(vm[0]), jub.F.toString(vm[1])]
 
         if (i % 3 == 0) {
           o.push(0b100)  // yes
@@ -91,15 +94,17 @@ async function main(
           ],
             proof
         )).wait()
-        expect(M[i][0][0]).equal(publicSignals.M[0][0]);
-        expect(M[i][1][0]).equal(publicSignals.M[1][0]);
-        expect(M[i][2][0]).equal(publicSignals.M[2][0]);
+
+        for (let j = 0; j < 3; j++) {
+          expect(jub.F.toString(M[i][j][0])).equal(publicSignals.M[j][0]);
+          M_SUM[j] = jub.addPoint(M_SUM[j], M[i][j])
+        }
         console.log("nvote on-chain verify done!!")
     }
-    console.log("jub.F.toString(R_SUM[0]) : ", jub.F.toString(R_SUM[0]))
-    console.log("await nc.R(0) : ", await nc.R(0))
     expect(jub.F.toString(R_SUM[0])).equal(await nc.R(0))
-    expect(jub.F.toString(R_SUM[1])).equal(await nc.R(1))
+    for (let j = 0; j < 3; j++) {
+        expect(jub.F.toString(M_SUM[j][0])).equal(await nc.M(j, 0));
+    }
 
     // 4. Tally & Reveal
     const D = []

@@ -95,9 +95,13 @@ contract Nouns {
         }
 
         // TODO : Grained discrete lookup table
-        for (uint i = 0; i < VOTE_POWER_TOTAL; i++) {
+        console.log("VOTE_POWER_TOTAL : ", VOTE_POWER_TOTAL);
+        for (uint i = 1; i <= VOTE_POWER_TOTAL; i++) {
             (uint x, uint y) = CurveBabyJubJub.pointMul(Gx, Gy, i);
             lookup_table[x][y] = i;
+            console.log("v = ", i);
+            console.log("x ", x);
+            console.log("y ", y);
         }
     }
 
@@ -145,7 +149,6 @@ contract Nouns {
             [out[0], out[1], f_l, l, C[cid][0][0], C[cid][0][1], C[cid][1][0], C[cid][1][1]]
         );
 
-        // store f
     }
 
     function vote(
@@ -206,6 +209,8 @@ contract Nouns {
         uint[2][3] memory VG;
         for (uint256 i = 0; i < 3; i++) {
             (VG[i][0], VG[i][1]) = CurveBabyJubJub.pointAdd(M[i][0], M[i][1], D[0], CurveBabyJubJub.submod(0, D[1], CurveBabyJubJub.Q));
+            console.log("VG[0] : ", VG[i][0]);
+            console.log("VG[1] : ", VG[i][1]);
             // Lookup total voting power
             voteStats[i] = lookup_table[VG[i][0]][VG[i][1]];
         }
