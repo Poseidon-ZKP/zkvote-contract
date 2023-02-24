@@ -94,14 +94,9 @@ contract Nouns {
             M[i][1] = 1;
         }
 
-        // TODO : Grained discrete lookup table
-        console.log("VOTE_POWER_TOTAL : ", VOTE_POWER_TOTAL);
         for (uint i = 1; i <= VOTE_POWER_TOTAL; i++) {
             (uint x, uint y) = CurveBabyJubJub.pointMul(Gx, Gy, i);
             lookup_table[x][y] = i;
-            console.log("v = ", i);
-            console.log("x ", x);
-            console.log("y ", y);
         }
     }
     function pointSub(uint256 _x1, uint256 _y1, uint256 _x2, uint256 _y2) public view returns (uint256 x3, uint256 y3) {
@@ -130,7 +125,6 @@ contract Nouns {
             for (uint256 i = 1; i < n_comm; i++) {
                 (PK[0], PK[1]) = CurveBabyJubJub.pointAdd(PK[0], PK[1], C[i][0][0], C[i][0][1]);
             }
-            console.log("sol PK : ", PK[0]);
         }
     }
 
@@ -187,7 +181,7 @@ contract Nouns {
     ) internal view returns (int lamda) {
         lamda = 1;
         for (uint256 t = 0; t < tally_threshold; t++) {
-            int j = int(tally_cid[t] + 1);
+            int j = int(tally_cid[t]);
             if (i == j) continue;
             lamda *= (j / (j - i));
         }
@@ -201,40 +195,31 @@ contract Nouns {
 
         for (uint256 t = 0; t < tally_threshold; t++) {
             uint cid = tally_cid[t];
-            int lamda = Lagrange_coeff(int(cid) + 1);
-            console.log("lamda : ");
-            console.logInt(lamda);
-            console.log("DI[t][0] : ", DI[t][0]);
+            int lamda = Lagrange_coeff(int(cid));
 
             uint[2] memory d;
             if (lamda < 0) {
                 (d[0], d[1]) = CurveBabyJubJub.pointMul(DI[t][0], DI[t][1], uint(0 - lamda));
                 (D[0], D[1]) = CurveBabyJubJub.pointSub(D[0], D[1], d[0], d[1]);
-            } else {
+            } else if (lamda > 0) {
                 (d[0], d[1]) = CurveBabyJubJub.pointMul(DI[t][0], DI[t][1], uint(lamda));
                 (D[0], D[1]) = CurveBabyJubJub.pointAdd(D[0], D[1], d[0], d[1]);
             }
         }
 
-        // Jubjub point sub
-        uint[2][3] memory VG;
         for (uint256 i = 0; i < 3; i++) {
-            (VG[i][0], VG[i][1]) = CurveBabyJubJub.pointSub(M[i][0], M[i][1], D[0], D[1]);
-            console.log("VG[0] : ", VG[i][0]);
-            console.log("VG[1] : ", VG[i][1]);
-            // Lookup total voting power
-            voteStats[i] = lookup_table[VG[i][0]][VG[i][1]];
+            uint[2] memory VG;
+            (VG[0], VG[1]) = CurveBabyJubJub.pointSub(M[i][0], M[i][1], D[0], D[1]);
+            voteStats[i] = lookup_table[VG[0]][VG[1]];
         }
     }
 
     function tally(
         uint[2] calldata _DI
     ) public {
-        // Verify ZKP ??
         uint cid = committee[msg.sender] - 1;
         require(cid >= 0);
 
-        console.log("cid : ", cid);
         tally_cid.push(cid);
         DI.push(_DI);
 
@@ -242,6 +227,4 @@ contract Nouns {
             reveal();
         }
     }
-
-
 }

@@ -142,8 +142,6 @@ export async function generate_zkp_nvote(
       FILE_ZKEY
   )
 
-  // console.log("prover proof : ", proof)
-  // console.log("prover publicSignals : ", publicSignals)
   expect(await snarkjs.groth16.verify(
     vKey,
     [

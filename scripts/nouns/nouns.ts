@@ -48,7 +48,7 @@ async function main(
 
     // 1. Key Generation Round 1 (Committee)
     const {a, C, edwards_twist_C, PK} = await round1(COMMITEE, t, jub, nc)
-    console.log("PK : ", PK)
+    console.log("PK : ", [jub.F.toString(PK[0]), jub.F.toString(PK[1])])
     const edwards_twist_PK = [jub.F.toString(PK[0]), jub.F.toString(PK[1])]
 
     // 2. Key Generation Round 2 (Committee)
@@ -114,7 +114,6 @@ async function main(
     const D = []
     for (let i = 0; i < t; i++) {
         D.push(jub.mulPointEscalar(R_SUM, sk[i]))
-        console.log("jub.F.toString(D[i][0]) : ", jub.F.toString(D[i][0]))
         await (await nc.connect(COMMITEE[i]).tally([jub.F.toString(D[i][0]), jub.F.toString(D[i][1])])).wait()
     }
 

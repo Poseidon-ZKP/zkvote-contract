@@ -25,7 +25,7 @@ export async function round1(
             edwards_twist_C[i][j].push(jub.F.toString(c[0]))
             edwards_twist_C[i][j].push(jub.F.toString(c[1]))
         }
-        console.log("edwards_twist_C[i] : ", edwards_twist_C[i])
+        console.log("a : ", a)
         expect(edwards_twist_C[i][0][0]).equal(jub.F.toString(jub.Base8[0]))
         
         // submit C on-chain.

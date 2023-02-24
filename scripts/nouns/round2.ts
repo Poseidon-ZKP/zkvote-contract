@@ -27,7 +27,6 @@ export async function round2(
       for (let l = 0; l < N_COM; l++) {
         if (i == l) continue;
 
-        console.log(" i : ", i, ", l : ", l)
         const {proof, publicSignals} = await generate_zkp_round2(
           f[i][l],
           l,
