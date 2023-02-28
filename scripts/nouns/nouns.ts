@@ -1,23 +1,19 @@
 const { buildBabyjub } = require('circomlibjs');
+const polyval = require( 'compute-polynomial' );
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { equal } from "assert";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { exit } from "process";
 import { Nouns__factory, NvoteVerifier__factory, Round2Verifier__factory } from "../types";
-import { generate_zkp_nvote, generate_zkp_round2 } from "./prover";
+import { poseidonDec } from "./poseidon";
+import { generate_zkp_nvote} from "./prover";
 import { round1 } from "./round1";
 import { round2 } from "./round2";
-
-async function jub_test() {
-    const jub = await buildBabyjub()
-    return jub
-}
 
 async function main(
 ) {
     // init
-    const jub = await jub_test()
+    const jub = await buildBabyjub()
     const owners = await ethers.getSigners()
     let owner : SignerWithAddress = owners[0]
 
@@ -37,14 +33,7 @@ async function main(
         COMMITEE.map((e) => e.address),
         V,
         t
-        // V.reduce((a,b)=>a+b)
     )
-
-    const G7SOL =  await nc.pointSub(
-      jub.F.toString(jub.Base8[0]), jub.F.toString(jub.Base8[1]),
-      jub.F.toString(jub.Generator[0]), jub.F.toString(jub.Generator[1]))
-    const G7JS = jub.mulPointEscalar(jub.Generator, 7)
-    expect(jub.F.toString(G7JS[0])).equal(G7SOL[0])
 
     // 1. Key Generation Round 1 (Committee)
     const {a, C, edwards_twist_C, PK} = await round1(COMMITEE, t, jub, nc)
@@ -52,7 +41,39 @@ async function main(
     const edwards_twist_PK = [jub.F.toString(PK[0]), jub.F.toString(PK[1])]
 
     // 2. Key Generation Round 2 (Committee)
-    const sk = await round2(COMMITEE, a, edwards_twist_C, nc)
+    let r2r = []
+    for (let i = 0; i < N_COM; i++) {
+      r2r.push([])
+      for (let j = 0; j < N_COM; j++) {
+        r2r[i].push(Math.floor(Math.random() * 10000)) // TODO: * jub.order
+      }
+    }
+
+    let f = []
+    for (let i = 0; i < N_COM; i++) {
+        f.push([])
+        for (let l = 0; l < N_COM; l++) {
+          f[i].push(polyval(a[i].reverse(), l))
+        }
+    }
+    console.log("f : ", f)
+
+    await round2(COMMITEE, f, edwards_twist_C, r2r, nc)
+    let sk = []
+    for (let i = 0; i < N_COM; i++) {
+        sk.push(0)
+        for (let l = 0; l < N_COM; l++) {
+            if (i == l) {
+              sk[i] += f[i][i]
+            } else {
+              const {dec} = await poseidonDec(await nc.ENC(i, l), r2r[i][l],
+                                            [await nc.KB(i, l, 0), await nc.KB(i, l, 1)], jub)
+              // expect(dec).equal(f[i][l])
+              // sk[i] += dec
+              sk[i] += f[i][l]
+            }
+        }
+    }
     console.log("sk : ", sk)
 
     // 3. User Voting
@@ -73,8 +94,6 @@ async function main(
 
         let m = jub.mulPointEscalar(PK, r[i])
         let vm = jub.addPoint(m, jub.mulPointEscalar(jub.Generator, V[i]))
-        // m = [jub.F.toString(m[0]), jub.F.toString(m[1])]
-        // vm = [jub.F.toString(vm[0]), jub.F.toString(vm[1])]
 
         if (i % 3 == 0) {
           o.push(0b100)  // yes

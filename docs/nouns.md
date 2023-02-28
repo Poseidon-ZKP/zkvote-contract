@@ -43,14 +43,7 @@ Suppose n_com = 21, t = 10, and jubjub scalar_mul = ~1000
 
     doesn't provide any semantic for binding secret key.
 
-3. why Poseidon Enc ? when Decrypt ?
-
-    (1) "the correctness of f(i)" is proved by ZKP.
-    (2) "each participants have secrte f(i)", so public can't guess sk.
-
-    for higher security level (need known some backgroud..) ? 
-
-    if no need decrypt, using 1 poseidon hash.
+3. Round2 Batch Proof of all the fi(l) in 1 transaction.
 
 # Reference
 

@@ -18,7 +18,7 @@ interface IVerifierRound2 {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c,
-        uint256[8] memory input
+        uint256[12] memory input
     ) external view;
 }
 
@@ -55,6 +55,9 @@ contract Nouns {
     uint public tallied_committee;
     mapping(address => bool) public round1_done;
     uint round1_total;
+
+    mapping(uint => mapping(uint => uint)) public ENC;
+    mapping(uint => mapping(uint => mapping(uint => uint))) public KB;
 
     mapping(uint => mapping(uint => uint)) public lookup_table;
 
@@ -129,23 +132,30 @@ contract Nouns {
     }
 
     function round2(
-        uint f_l,
         uint l,
+        uint enc,
+        uint[2] calldata kb,
         uint[2] calldata out,
         uint[8] calldata proof
-        // ENC Data ?
     ) public {
         uint cid = committee[msg.sender] - 1;
         require(cid >= 0);
 
-        // Verify ZKP
         round2_verifier.verifyProof(
             [proof[0], proof[1]],
             [[proof[2], proof[3]], [proof[4], proof[5]]],
             [proof[6], proof[7]],
-            [out[0], out[1], f_l, l, C[cid][0][0], C[cid][0][1], C[cid][1][0], C[cid][1][1]]
+            [
+                out[0], out[1],
+                enc, kb[0], kb[1], l,
+                C[cid][0][0], C[cid][0][1], C[cid][1][0], C[cid][1][1],
+                C[l][0][0], C[l][0][1]
+            ]
         );
 
+        ENC[cid][l] = enc;
+        KB[cid][l][0] = kb[0];
+        KB[cid][l][1] = kb[1];
     }
 
     function vote(

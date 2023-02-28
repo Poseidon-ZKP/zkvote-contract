@@ -69,7 +69,9 @@ async function zkp_test() {
 export async function generate_zkp_round2(
   f_l,
   l,
-  C
+  C,
+  CL0,
+  r
 ) {
   const DIR = process.cwd()
   const CUR_CIRCUIT = "round2"
@@ -85,25 +87,31 @@ export async function generate_zkp_round2(
       {
           f_l : f_l,
           l : l,
-          C : C
+          C : C,
+          CL0 : CL0,
+          r : r
       },
       FILE_WASM,
       FILE_ZKEY
   )
 
   // console.log("prover proof : ", proof)
-  // console.log("prover publicSignals : ", publicSignals)
+  console.log("prover publicSignals : ", publicSignals)
   expect(await snarkjs.groth16.verify(
     vKey,
     [
         publicSignals[0],   // out
         publicSignals[1],
-        publicSignals[2],   // f_l
-        publicSignals[3],   // l
-        publicSignals[4],   // C[t][2]
-        publicSignals[5],
-        publicSignals[6],
-        publicSignals[7]
+        publicSignals[2],   // enc
+        publicSignals[3],   // kb[2]
+        publicSignals[4],
+        publicSignals[5],   // l
+        publicSignals[6],   // C[i]
+        publicSignals[7],
+        publicSignals[8],
+        publicSignals[9],
+        publicSignals[10],  // C[L][0]
+        publicSignals[11]
     ],
     proof
   )).eq(true)
@@ -113,9 +121,11 @@ export async function generate_zkp_round2(
   return {
     proof : packToSolidityProof(proof),
     publicSignals: {
-      f_l : f_l,
       l : l,
       C : C,
+      CL0 : CL0,
+      enc : publicSignals[2],
+      kb : [publicSignals[3], publicSignals[4]],
       out : [publicSignals[0], publicSignals[1]]
     }
   }
