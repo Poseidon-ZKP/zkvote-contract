@@ -45,7 +45,8 @@ async function main(
     for (let i = 0; i < N_COM; i++) {
       r2r.push([])
       for (let j = 0; j < N_COM; j++) {
-        r2r[i].push(Math.floor(Math.random() * 10000)) // TODO: * jub.order
+        //r2r[i].push(Math.floor(Math.random() * 10000)) // TODO: * jub.order
+        r2r[i].push(1)
       }
     }
 
@@ -66,11 +67,10 @@ async function main(
             if (i == l) {
               sk[i] += f[i][i]
             } else {
-              const {dec} = await poseidonDec(await nc.ENC(i, l), r2r[i][l],
-                                            [await nc.KB(i, l, 0), await nc.KB(i, l, 1)], jub)
-              // expect(dec).equal(f[i][l])
-              // sk[i] += dec
-              sk[i] += f[i][l]
+              const {dec} = await poseidonDec(await nc.ENC(l, i), a[i][0],
+                                            [await nc.KB(l, i, 0), await nc.KB(l, i, 1)], jub)
+              expect(Number(dec)).equal(f[l][i])
+              sk[i] += Number(dec)
             }
         }
     }

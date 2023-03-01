@@ -4,24 +4,6 @@ include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../../node_modules/circomlib/circuits/poseidon.circom";
 include "../nouns/babyjubExtend.circom";
 
-// TODO : Did we need Encrypt (Poseidon enc) ? 
-// see https://github.com/Poseidon-ZKP/poseidon-zk-contracts/blob/nouns/docs/nouns.md#refine-tips
-// encrypt :
-//      KS = r * C[l][0], K = r * G
-//      M = {f[i][l]}
-//  1. S = [0, KS[0], KS[1], N]
-//  2. S = [P(0), P(KS[0]), P(KS[1]), P(N)]
-//  3. S = [P(0), P(KS[0]) + M[0], P(KS[1]), P(N)]
-//  4. C = [P(KS[0]) + M[0], P(KS[1]), P(N)]
-//  5. S = [P(P(0)), P(P(KS[0]) + M[0]), P(P(KS[1])), P(P(N))]
-//  6. C = [P(KS[0]) + M[0], P(KS[1]), P(N), P(P(KS[0]) + M[0])]
-
-// decrypt : C[l][0] = A[l][0] * G
-//      KS = A[l][0] * G
-//  1. S = [0, KS[0], KS[1], N]
-//  2. S = [P(0), P(KS[0]), P(KS[1]), P(N)]
-//  2. M = [P(KS[0]) + P(P(KS[0] + M[0]) ]
-
 template PoseidonEnc() {
     signal input base[2];
     signal input msg;

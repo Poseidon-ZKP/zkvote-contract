@@ -38,13 +38,13 @@ export async function poseidonDec(
 
 async function sanity() {
     const jub = await buildBabyjub()
-    const msgs = [1, 2, 3, 4]
-    msgs.map((a, i) => { console.log("a : ", a, ", i : ", i)})
-    console.log("reduce : ", msgs.reduce((acc, a, i) => acc + a))
+    // const msgs = [1, 2, 3, 4]
+    // msgs.map((a, i) => { console.log("a : ", a, ", i : ", i)})
+    // console.log("reduce : ", msgs.reduce((acc, a, i) => acc + a))
 
-    const msg = 1234
-    const rA = Math.floor(Math.random() * 10000)
-    const rB = Math.floor(Math.random() * 10000)
+    const msg = 16
+    const rA = 8 // Math.floor(Math.random() * 10000)
+    const rB = 1 // Math.floor(Math.random() * 10000)
     const rAG = jub.mulPointEscalar(jub.Generator, rA)
     const KA = [jub.F.toString(rAG[0]), jub.F.toString(rAG[1])]
 
