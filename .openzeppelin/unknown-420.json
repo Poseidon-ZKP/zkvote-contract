@@ -1,0 +1,3890 @@
+{
+  "manifestVersion": "3.2",
+  "admin": {
+    "address": "0x0c4471deDaE2dB1e53a4927ca598A9236A9cD773",
+    "txHash": "0xeaf7481d9df511de2deea8417bd92ceaa6e1168b30ddaac59328fb82541b110b"
+  },
+  "proxies": [
+    {
+      "address": "0xd9402769415035d59dE98733Dd166c4e903B4f8C",
+      "txHash": "0x58eede7fb3a4a4de1c371f7c174694d99b246dbb9e8d21f5e91ebc13c5dfcee1",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x48F8e25562EB57c9Fb1b12145d34f09b1b8bd1D6",
+      "txHash": "0x43481f2cccc734da27abde016e9d6327f090c6db39a009ff7909645ef3e560ca",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x07766aD370370af9d2564A2B44f34be626d3E2e0",
+      "txHash": "0x555b8ef3e027c6a653857cbfe824bd8cf6bf9f3bf54fa41fa701e09aea60b23a",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xabEc9277CBC275131b61c41081cc5b5a08C267a3",
+      "txHash": "0xb16c54f24d4c9088c50b09df1f6c35ba0bcc3bee45599a6bc93e7d669f479625",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xcC9a29f1C7EFF7F21B2ebee2ea5039c7b507f30a",
+      "txHash": "0x44ee024fe1a2cb412d942bc27ad878d42d24a82ec80c0469ce7541b4ac4da8a1",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xbFF54DEA53D243E35389e3f2C7F9c148b0113104",
+      "txHash": "0x5842779c25d870d7d20a27a8322c7cefb44e847dc8df5fcbdc5162131fa18bb8",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "6611d51309ccf3219c411ebd55d9590ed9f846f3fa2026bcf97087b021fd3ca0": {
+      "address": "0xAc670013Ab51C58581d36F5bae8D2350C9D366A8",
+      "txHash": "0x9780a23d8f473a4aac18cf678ed7fc5b02890109be13ce1903cf6695d347e9c3",
+      "layout": {
+        "solcVersion": "0.8.12",
+        "storage": [],
+        "types": {}
+      }
+    },
+    "912f8ba971201a9ce3d4e8a88a03d2ebcbb01820faf6a3fc8aef279c5d417e78": {
+      "address": "0x432D0AF948bab85e65D6672de68D20B2cE13E1a6",
+      "txHash": "0xe2e4daecab213cae668a40c2d1a0fe2233ff34124c56b43da53466b2e625d0d9",
+      "layout": {
+        "solcVersion": "0.8.12",
+        "storage": [],
+        "types": {}
+      }
+    },
+    "f51632054a6b18ba312f200cdb67b719aec1b343b8274f537285842a2c81c894": {
+      "address": "0xDe3fFd98d7030c057b2B75913732d43ec1978408",
+      "txHash": "0x978fb63763765537a1d29ef6321b9b1cd259a5df97b44df46aba1a341dc86e31",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "group",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IGroup)1032",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:10"
+          },
+          {
+            "label": "signal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ISignal)1332",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:11"
+          },
+          {
+            "label": "voteStat",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:13"
+          },
+          {
+            "label": "GROUP_ID",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:14"
+          }
+        ],
+        "types": {
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IGroup)1032": {
+            "label": "contract IGroup",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISignal)1332": {
+            "label": "contract ISignal",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(uint256 => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "acc016faa198295b7615333dc218fcf272e9f080103eede363016b6fa52c0db3": {
+      "address": "0xF70F70A62E4876b702177D231a88F2688A22d1cB",
+      "txHash": "0x970d5d4dc5c22f0bae35c1288c0e30ba951f098717271d04d1d3a2711799460d",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "group",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IGroup)1032",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:10"
+          },
+          {
+            "label": "signal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ISignal)1053",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:11"
+          },
+          {
+            "label": "voteStat",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:13"
+          },
+          {
+            "label": "GROUP_ID",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:14"
+          },
+          {
+            "label": "idInGroup",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:17"
+          }
+        ],
+        "types": {
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IGroup)1032": {
+            "label": "contract IGroup",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISignal)1053": {
+            "label": "contract ISignal",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(uint256 => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(uint256 => mapping(uint256 => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "5b3cd4bed823e7afb0671c95fe2f0f8949add266db2ad8045b51faa04bef1e6d": {
+      "address": "0xCa20da26096738fD59a3053402335f9B3992B4D4",
+      "txHash": "0xef5d1d9d1be2fdf3ef8bf456e8a268e0a075e108a34eb0de5bb6727e48afbea3",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "group",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IGroup)1032",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:10"
+          },
+          {
+            "label": "signal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ISignal)1343",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:11"
+          },
+          {
+            "label": "voteStat",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:15"
+          },
+          {
+            "label": "GROUP_ID",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:16"
+          },
+          {
+            "label": "idInGroup",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:19"
+          },
+          {
+            "label": "admins",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_uint256,t_address)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:21"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IGroup)1032": {
+            "label": "contract IGroup",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISignal)1343": {
+            "label": "contract ISignal",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(uint256 => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(uint256 => mapping(uint256 => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "b7a781afc5bef68786e9610bb2b40d60e60e6aac8bd68931d44565e71cee2d39": {
+      "address": "0xde19321Eb2BbF4902F371FE9061e3e39f45a2F36",
+      "txHash": "0x2b1cc42b4b97bf917e54baf8cbae0c21a6591899db7d8c1c3a6a6ac6a6a88202",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "group",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IGroup)1032",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:10"
+          },
+          {
+            "label": "signal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ISignal)1053",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:11"
+          },
+          {
+            "label": "voteStat",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:15"
+          },
+          {
+            "label": "GROUP_ID",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:16"
+          },
+          {
+            "label": "idInGroup",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:19"
+          },
+          {
+            "label": "admins",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_uint256,t_address)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:21"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IGroup)1032": {
+            "label": "contract IGroup",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISignal)1053": {
+            "label": "contract ISignal",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(uint256 => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(uint256 => mapping(uint256 => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "7488d6af1491b77e466671bf51a5845aac9c1bc8b6976c2c09af7d17e39bc916": {
+      "address": "0xE5399Dab783E4030e0fc3888D8d2f6C464f89965",
+      "txHash": "0x344c593b5f0b3f35ae57a636800bab67ea5147c487eb111537fa8e3750d6df49",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "group",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IGroup)1032",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:10"
+          },
+          {
+            "label": "signal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ISignal)1053",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:11"
+          },
+          {
+            "label": "voteStat",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:15"
+          },
+          {
+            "label": "GROUP_ID",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:16"
+          },
+          {
+            "label": "idInGroup",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:19"
+          },
+          {
+            "label": "admins",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_uint256,t_address)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:21"
+          },
+          {
+            "label": "groupDesc",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:27"
+          },
+          {
+            "label": "groupIcon",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:28"
+          },
+          {
+            "label": "groupPrivacy",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:29"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IGroup)1032": {
+            "label": "contract IGroup",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISignal)1053": {
+            "label": "contract ISignal",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(uint256 => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(uint256 => mapping(uint256 => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_string_storage)": {
+            "label": "mapping(uint256 => string)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "c88628d033741577bc30549f5e10306256aab8b2493d16910b626fd1d9c0a8f9": {
+      "address": "0xfdE605Ab29bB3e559b6121c6D70d7Fe2602b80e2",
+      "txHash": "0x22d0f1661fdfd27988b9d52a739606eb50157ce132ff931d3d35c7c4ee385711",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "group",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IGroup)1032",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:10"
+          },
+          {
+            "label": "signal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ISignal)1053",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:11"
+          },
+          {
+            "label": "voteStat",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:15"
+          },
+          {
+            "label": "GROUP_ID",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:16"
+          },
+          {
+            "label": "idInGroup",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:19"
+          },
+          {
+            "label": "admins",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_uint256,t_address)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:21"
+          },
+          {
+            "label": "groupDesc",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:27"
+          },
+          {
+            "label": "groupIcon",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:28"
+          },
+          {
+            "label": "groupPrivacy",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:29"
+          },
+          {
+            "label": "groupName",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:30"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IGroup)1032": {
+            "label": "contract IGroup",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISignal)1053": {
+            "label": "contract ISignal",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(uint256 => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(uint256 => mapping(uint256 => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_string_storage)": {
+            "label": "mapping(uint256 => string)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "101e19569d93fd025cc05bece2710b51da51a928ad5f950302787c4b587b198a": {
+      "address": "0x1623a18b394BfC13c01B35EBcfa0af79E481F726",
+      "txHash": "0x390a0331070806ea029b3b8707c7f8bd04bc79c0b42d034e3b0109809a2a528c",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "group",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IGroup)1160",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:12"
+          },
+          {
+            "label": "signal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ISignal)1181",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:13"
+          },
+          {
+            "label": "voteStat",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:17"
+          },
+          {
+            "label": "GROUP_ID",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:18"
+          },
+          {
+            "label": "idInGroup",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:21"
+          },
+          {
+            "label": "admins",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_uint256,t_address)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:23"
+          },
+          {
+            "label": "groupDesc",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:29"
+          },
+          {
+            "label": "groupIcon",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:30"
+          },
+          {
+            "label": "groupPrivacy",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:31"
+          },
+          {
+            "label": "groupName",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:32"
+          },
+          {
+            "label": "groups",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_mapping(t_uint256,t_struct(groupInfo)1321_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:49"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IGroup)1160": {
+            "label": "contract IGroup",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISignal)1181": {
+            "label": "contract ISignal",
+            "numberOfBytes": "20"
+          },
+          "t_enum(PRIVACY)1307": {
+            "label": "enum Vote.PRIVACY",
+            "members": [
+              "ANYONE",
+              "NFT",
+              "TOKEN"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(uint256 => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(uint256 => mapping(uint256 => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_string_storage)": {
+            "label": "mapping(uint256 => string)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(groupInfo)1321_storage)": {
+            "label": "mapping(uint256 => struct Vote.groupInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(groupInfo)1321_storage": {
+            "label": "struct Vote.groupInfo",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "desc",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "icon",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "privacy",
+                "type": "t_enum(PRIVACY)1307",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "asset",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "27f73e2b2347fd701d52b67a44388c91ae1a14b97e088987efd512a6b0a6637f": {
+      "address": "0xa8818CF59B7f161b33C727BAb98569119DAF48ba",
+      "txHash": "0xfd6f6704ecd10af23fb593e5a8d3e6b3b93346b602bfc3faf4184d1a818d7e86",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "group",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IGroup)1160",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:12"
+          },
+          {
+            "label": "signal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ISignal)1181",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:13"
+          },
+          {
+            "label": "voteStat",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:17"
+          },
+          {
+            "label": "GROUP_ID",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:18"
+          },
+          {
+            "label": "idInGroup",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:21"
+          },
+          {
+            "label": "admins",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_uint256,t_address)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:23"
+          },
+          {
+            "label": "groupDesc",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:29"
+          },
+          {
+            "label": "groupIcon",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:30"
+          },
+          {
+            "label": "groupPrivacy",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:31"
+          },
+          {
+            "label": "groupName",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:32"
+          },
+          {
+            "label": "groups",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_mapping(t_uint256,t_struct(groupInfo)1321_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:49"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IGroup)1160": {
+            "label": "contract IGroup",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISignal)1181": {
+            "label": "contract ISignal",
+            "numberOfBytes": "20"
+          },
+          "t_enum(PRIVACY)1307": {
+            "label": "enum Vote.PRIVACY",
+            "members": [
+              "ANYONE",
+              "NFT",
+              "TOKEN"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(uint256 => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(uint256 => mapping(uint256 => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_string_storage)": {
+            "label": "mapping(uint256 => string)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(groupInfo)1321_storage)": {
+            "label": "mapping(uint256 => struct Vote.groupInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(groupInfo)1321_storage": {
+            "label": "struct Vote.groupInfo",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "desc",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "icon",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "privacy",
+                "type": "t_enum(PRIVACY)1307",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "asset",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "337843bae2fe3a2be91c3b162bb4e7446add00e2eaf70c0bb33c9aa6daf55d11": {
+      "address": "0x66a8963484AFB6f222149121FE78dD04A978996d",
+      "txHash": "0xe8f68b7ef362a097c684b27dd4d77b80bbfef1214739bf49782dfff7616fcc3c",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "group",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IGroup)1160",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:26"
+          },
+          {
+            "label": "signal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ISignal)1181",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:27"
+          },
+          {
+            "label": "voteStat",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:31"
+          },
+          {
+            "label": "GROUP_ID",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:32"
+          },
+          {
+            "label": "idInGroup",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:35"
+          },
+          {
+            "label": "admins",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_uint256,t_address)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:37"
+          },
+          {
+            "label": "groupDesc",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:43"
+          },
+          {
+            "label": "groupIcon",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:44"
+          },
+          {
+            "label": "groupPrivacy",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:45"
+          },
+          {
+            "label": "groupName",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:46"
+          },
+          {
+            "label": "groups",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_mapping(t_uint256,t_struct(groupInfo)1336_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:63"
+          },
+          {
+            "label": "groupPolls",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1248_storage))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:65"
+          },
+          {
+            "label": "groupPollNum",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:66"
+          },
+          {
+            "label": "pollVoteStat",
+            "offset": 0,
+            "slot": "13",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:67"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_string_storage)dyn_storage": {
+            "label": "string[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IGroup)1160": {
+            "label": "contract IGroup",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISignal)1181": {
+            "label": "contract ISignal",
+            "numberOfBytes": "20"
+          },
+          "t_enum(PRIVACY)1322": {
+            "label": "enum Vote.PRIVACY",
+            "members": [
+              "ANYONE",
+              "NFT",
+              "TOKEN"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(PollState)1237": {
+            "label": "enum PollState",
+            "members": [
+              "Created",
+              "Ongoing",
+              "Ended"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(uint256 => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256))": {
+            "label": "mapping(uint256 => mapping(string => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(uint256 => mapping(uint256 => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))": {
+            "label": "mapping(uint256 => mapping(uint256 => mapping(string => uint256)))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1248_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => struct Poll))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_string_storage)": {
+            "label": "mapping(uint256 => string)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Poll)1248_storage)": {
+            "label": "mapping(uint256 => struct Poll)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(groupInfo)1336_storage)": {
+            "label": "mapping(uint256 => struct Vote.groupInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Poll)1248_storage": {
+            "label": "struct Poll",
+            "members": [
+              {
+                "label": "group_id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "msgs",
+                "type": "t_array(t_string_storage)dyn_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "state",
+                "type": "t_enum(PollState)1237",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_struct(groupInfo)1336_storage": {
+            "label": "struct Vote.groupInfo",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "desc",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "icon",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "privacy",
+                "type": "t_enum(PRIVACY)1322",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "asset",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "90deb0da66dd45ec83ef4a84440e61e8f72e78ff51612711230cc37af740aafb": {
+      "address": "0x3F3299DDa342E19D8635F5Dae05321CB03574566",
+      "txHash": "0xe749622e12c2c3a2ffb7934e8fb2a2bddfc45cf3cf0f3ad51efcb844d2fa087f",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "group",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IGroup)1160",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:27"
+          },
+          {
+            "label": "signal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ISignal)1181",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:28"
+          },
+          {
+            "label": "voteStat",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:32"
+          },
+          {
+            "label": "GROUP_ID",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:33"
+          },
+          {
+            "label": "idInGroup",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:36"
+          },
+          {
+            "label": "admins",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_uint256,t_address)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:38"
+          },
+          {
+            "label": "groupDesc",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:44"
+          },
+          {
+            "label": "groupIcon",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:45"
+          },
+          {
+            "label": "groupPrivacy",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:46"
+          },
+          {
+            "label": "groupName",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:47"
+          },
+          {
+            "label": "groups",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_mapping(t_uint256,t_struct(groupInfo)1338_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:64"
+          },
+          {
+            "label": "groupPolls",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1250_storage))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:66"
+          },
+          {
+            "label": "groupPollNum",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:67"
+          },
+          {
+            "label": "pollVoteStat",
+            "offset": 0,
+            "slot": "13",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:68"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_string_storage)dyn_storage": {
+            "label": "string[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IGroup)1160": {
+            "label": "contract IGroup",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISignal)1181": {
+            "label": "contract ISignal",
+            "numberOfBytes": "20"
+          },
+          "t_enum(PRIVACY)1324": {
+            "label": "enum Vote.PRIVACY",
+            "members": [
+              "ANYONE",
+              "NFT",
+              "TOKEN"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(PollState)1237": {
+            "label": "enum PollState",
+            "members": [
+              "Created",
+              "Ongoing",
+              "Ended"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(uint256 => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256))": {
+            "label": "mapping(uint256 => mapping(string => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(uint256 => mapping(uint256 => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))": {
+            "label": "mapping(uint256 => mapping(uint256 => mapping(string => uint256)))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1250_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => struct Poll))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_string_storage)": {
+            "label": "mapping(uint256 => string)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Poll)1250_storage)": {
+            "label": "mapping(uint256 => struct Poll)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(groupInfo)1338_storage)": {
+            "label": "mapping(uint256 => struct Vote.groupInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Poll)1250_storage": {
+            "label": "struct Poll",
+            "members": [
+              {
+                "label": "group_id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "msgs",
+                "type": "t_array(t_string_storage)dyn_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "state",
+                "type": "t_enum(PollState)1237",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "title",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(groupInfo)1338_storage": {
+            "label": "struct Vote.groupInfo",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "desc",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "icon",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "privacy",
+                "type": "t_enum(PRIVACY)1324",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "asset",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "0af642142de5d264fb20c003df35d4b01f8e2540579ca64498c9b053790fe0e0": {
+      "address": "0xfDe5377D61a6caCC171a7406aB77db0F271824e3",
+      "txHash": "0xd481679d2ff60c9b18d895c9ed5f28f8eb08167bdbd88b8234fc23dc0ab18d9b",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "group",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IGroup)1160",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:27"
+          },
+          {
+            "label": "signal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ISignal)1181",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:28"
+          },
+          {
+            "label": "voteStat",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:32"
+          },
+          {
+            "label": "GROUP_ID",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:33"
+          },
+          {
+            "label": "idInGroup",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:36"
+          },
+          {
+            "label": "admins",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_uint256,t_address)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:38"
+          },
+          {
+            "label": "groupDesc",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:44"
+          },
+          {
+            "label": "groupIcon",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:45"
+          },
+          {
+            "label": "groupPrivacy",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:46"
+          },
+          {
+            "label": "groupName",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:47"
+          },
+          {
+            "label": "groups",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_mapping(t_uint256,t_struct(groupInfo)1338_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:64"
+          },
+          {
+            "label": "groupPolls",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1250_storage))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:66"
+          },
+          {
+            "label": "groupPollNum",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:67"
+          },
+          {
+            "label": "pollVoteStat",
+            "offset": 0,
+            "slot": "13",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:68"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_string_storage)dyn_storage": {
+            "label": "string[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IGroup)1160": {
+            "label": "contract IGroup",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISignal)1181": {
+            "label": "contract ISignal",
+            "numberOfBytes": "20"
+          },
+          "t_enum(PRIVACY)1324": {
+            "label": "enum Vote.PRIVACY",
+            "members": [
+              "ANYONE",
+              "NFT",
+              "TOKEN"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(PollState)1237": {
+            "label": "enum PollState",
+            "members": [
+              "Created",
+              "Ongoing",
+              "Ended"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(uint256 => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256))": {
+            "label": "mapping(uint256 => mapping(string => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(uint256 => mapping(uint256 => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))": {
+            "label": "mapping(uint256 => mapping(uint256 => mapping(string => uint256)))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1250_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => struct Poll))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_string_storage)": {
+            "label": "mapping(uint256 => string)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Poll)1250_storage)": {
+            "label": "mapping(uint256 => struct Poll)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(groupInfo)1338_storage)": {
+            "label": "mapping(uint256 => struct Vote.groupInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Poll)1250_storage": {
+            "label": "struct Poll",
+            "members": [
+              {
+                "label": "group_id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "msgs",
+                "type": "t_array(t_string_storage)dyn_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "state",
+                "type": "t_enum(PollState)1237",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "title",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(groupInfo)1338_storage": {
+            "label": "struct Vote.groupInfo",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "desc",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "icon",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "privacy",
+                "type": "t_enum(PRIVACY)1324",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "asset",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "14bcafaf7864cea8f3ef8f9c4b0c83c24a00ddb3f197853a161cde6166f7e0f7": {
+      "address": "0x7F635A58b393e31f06b3282A9049Dbb7aD389132",
+      "txHash": "0x0b4c7b597be773fef6aa52f15d3865c701c02a0d1bfaf79b8be0521d4b255c1b",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "group",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IGroup)1160",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:27"
+          },
+          {
+            "label": "signal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ISignal)1181",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:28"
+          },
+          {
+            "label": "voteStat",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:32"
+          },
+          {
+            "label": "GROUP_ID",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:33"
+          },
+          {
+            "label": "idInGroup",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:36"
+          },
+          {
+            "label": "admins",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_uint256,t_address)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:38"
+          },
+          {
+            "label": "groupDesc",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:44"
+          },
+          {
+            "label": "groupIcon",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:45"
+          },
+          {
+            "label": "groupPrivacy",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:46"
+          },
+          {
+            "label": "groupName",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:47"
+          },
+          {
+            "label": "groups",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_mapping(t_uint256,t_struct(groupInfo)1338_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:64"
+          },
+          {
+            "label": "groupPolls",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1250_storage))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:66"
+          },
+          {
+            "label": "groupPollNum",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:67"
+          },
+          {
+            "label": "pollVoteStat",
+            "offset": 0,
+            "slot": "13",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:68"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_string_storage)dyn_storage": {
+            "label": "string[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IGroup)1160": {
+            "label": "contract IGroup",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISignal)1181": {
+            "label": "contract ISignal",
+            "numberOfBytes": "20"
+          },
+          "t_enum(PRIVACY)1324": {
+            "label": "enum Vote.PRIVACY",
+            "members": [
+              "ANYONE",
+              "NFT",
+              "TOKEN"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(PollState)1237": {
+            "label": "enum PollState",
+            "members": [
+              "Created",
+              "Ongoing",
+              "Ended"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(uint256 => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256))": {
+            "label": "mapping(uint256 => mapping(string => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(uint256 => mapping(uint256 => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))": {
+            "label": "mapping(uint256 => mapping(uint256 => mapping(string => uint256)))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1250_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => struct Poll))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_string_storage)": {
+            "label": "mapping(uint256 => string)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Poll)1250_storage)": {
+            "label": "mapping(uint256 => struct Poll)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(groupInfo)1338_storage)": {
+            "label": "mapping(uint256 => struct Vote.groupInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Poll)1250_storage": {
+            "label": "struct Poll",
+            "members": [
+              {
+                "label": "group_id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "msgs",
+                "type": "t_array(t_string_storage)dyn_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "state",
+                "type": "t_enum(PollState)1237",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "title",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(groupInfo)1338_storage": {
+            "label": "struct Vote.groupInfo",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "desc",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "icon",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "privacy",
+                "type": "t_enum(PRIVACY)1324",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "asset",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "4837501f315400cad89ba015173afa12c99d37d25e64c6d9ddda38836adf8dc7": {
+      "address": "0x35198842EcFB7938D2Ee122a3f488dE060C88d20",
+      "txHash": "0x2ad7a8e75b30f082c706f876abec2fcf0a68b3a70261f252a4bd7f61b51c2714",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "group",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IGroup)1160",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:27"
+          },
+          {
+            "label": "signal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ISignal)1181",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:28"
+          },
+          {
+            "label": "voteStat",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:32"
+          },
+          {
+            "label": "GROUP_ID",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:33"
+          },
+          {
+            "label": "idInGroup",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:36"
+          },
+          {
+            "label": "admins",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_uint256,t_address)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:38"
+          },
+          {
+            "label": "groupDesc",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:44"
+          },
+          {
+            "label": "groupIcon",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:45"
+          },
+          {
+            "label": "groupPrivacy",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:46"
+          },
+          {
+            "label": "groupName",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:47"
+          },
+          {
+            "label": "groups",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_mapping(t_uint256,t_struct(groupInfo)1338_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:73"
+          },
+          {
+            "label": "groupPolls",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1250_storage))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:75"
+          },
+          {
+            "label": "groupPollNum",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:76"
+          },
+          {
+            "label": "pollVoteStat",
+            "offset": 0,
+            "slot": "13",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:77"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_string_storage)dyn_storage": {
+            "label": "string[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IGroup)1160": {
+            "label": "contract IGroup",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISignal)1181": {
+            "label": "contract ISignal",
+            "numberOfBytes": "20"
+          },
+          "t_enum(PRIVACY)1324": {
+            "label": "enum Vote.PRIVACY",
+            "members": [
+              "ANYONE",
+              "NFT",
+              "TOKEN"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(PollState)1237": {
+            "label": "enum PollState",
+            "members": [
+              "Created",
+              "Ongoing",
+              "Ended"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(uint256 => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256))": {
+            "label": "mapping(uint256 => mapping(string => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(uint256 => mapping(uint256 => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))": {
+            "label": "mapping(uint256 => mapping(uint256 => mapping(string => uint256)))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1250_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => struct Poll))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_string_storage)": {
+            "label": "mapping(uint256 => string)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Poll)1250_storage)": {
+            "label": "mapping(uint256 => struct Poll)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(groupInfo)1338_storage)": {
+            "label": "mapping(uint256 => struct Vote.groupInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Poll)1250_storage": {
+            "label": "struct Poll",
+            "members": [
+              {
+                "label": "group_id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "msgs",
+                "type": "t_array(t_string_storage)dyn_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "state",
+                "type": "t_enum(PollState)1237",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "title",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(groupInfo)1338_storage": {
+            "label": "struct Vote.groupInfo",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "desc",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "icon",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "privacy",
+                "type": "t_enum(PRIVACY)1324",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "asset",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "ce116810c0659c5830231481ccd4df7b5c475fdc8bebbcc10490daa5253c2a47": {
+      "address": "0x94cbCe4fbD5F5BE443B16f9DD4f9eB0b6802D7dC",
+      "txHash": "0xd3ae2529be02e73905615d09f5476abf9c4dbcd522b2088e12fd43367e46ea84",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "group",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IGroup)1160",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:28"
+          },
+          {
+            "label": "signal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ISignal)1181",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:29"
+          },
+          {
+            "label": "voteStat",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:33"
+          },
+          {
+            "label": "GROUP_ID",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:34"
+          },
+          {
+            "label": "idInGroup",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:37"
+          },
+          {
+            "label": "admins",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_uint256,t_address)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:39"
+          },
+          {
+            "label": "groupDesc",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:45"
+          },
+          {
+            "label": "groupIcon",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:46"
+          },
+          {
+            "label": "groupPrivacy",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:47"
+          },
+          {
+            "label": "groupName",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:48"
+          },
+          {
+            "label": "groups",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_mapping(t_uint256,t_struct(groupInfo)1340_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:74"
+          },
+          {
+            "label": "groupPolls",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1252_storage))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:76"
+          },
+          {
+            "label": "groupPollNum",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:77"
+          },
+          {
+            "label": "pollVoteStat",
+            "offset": 0,
+            "slot": "13",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:78"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_string_storage)dyn_storage": {
+            "label": "string[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IGroup)1160": {
+            "label": "contract IGroup",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISignal)1181": {
+            "label": "contract ISignal",
+            "numberOfBytes": "20"
+          },
+          "t_enum(PRIVACY)1326": {
+            "label": "enum Vote.PRIVACY",
+            "members": [
+              "ANYONE",
+              "NFT",
+              "TOKEN"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(PollState)1237": {
+            "label": "enum PollState",
+            "members": [
+              "Created",
+              "Ongoing",
+              "Ended"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(uint256 => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256))": {
+            "label": "mapping(uint256 => mapping(string => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(uint256 => mapping(uint256 => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))": {
+            "label": "mapping(uint256 => mapping(uint256 => mapping(string => uint256)))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1252_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => struct Poll))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_string_storage)": {
+            "label": "mapping(uint256 => string)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Poll)1252_storage)": {
+            "label": "mapping(uint256 => struct Poll)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(groupInfo)1340_storage)": {
+            "label": "mapping(uint256 => struct Vote.groupInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Poll)1252_storage": {
+            "label": "struct Poll",
+            "members": [
+              {
+                "label": "group_id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "msgs",
+                "type": "t_array(t_string_storage)dyn_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "state",
+                "type": "t_enum(PollState)1237",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "title",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "desc",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "5"
+              }
+            ],
+            "numberOfBytes": "192"
+          },
+          "t_struct(groupInfo)1340_storage": {
+            "label": "struct Vote.groupInfo",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "desc",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "icon",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "privacy",
+                "type": "t_enum(PRIVACY)1326",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "asset",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "d8baccbbc22f700d2f295fafc818ffbb35b79fc4257f5c48b906c59302006326": {
+      "address": "0x193f894d027275c43793bD80f2d0012E5215a114",
+      "txHash": "0x63c325343545932efd95cd47384e08f75fb077ae721134126bfa8e846f6479f8",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "group",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IGroup)1160",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:28"
+          },
+          {
+            "label": "signal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ISignal)1181",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:29"
+          },
+          {
+            "label": "voteStat",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:33"
+          },
+          {
+            "label": "GROUP_ID",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:34"
+          },
+          {
+            "label": "idInGroup",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:37"
+          },
+          {
+            "label": "admins",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_uint256,t_address)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:39"
+          },
+          {
+            "label": "groupDesc",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:45"
+          },
+          {
+            "label": "groupIcon",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:46"
+          },
+          {
+            "label": "groupPrivacy",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:47"
+          },
+          {
+            "label": "groupName",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:48"
+          },
+          {
+            "label": "groups",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_mapping(t_uint256,t_struct(groupInfo)1340_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:74"
+          },
+          {
+            "label": "groupPolls",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1252_storage))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:76"
+          },
+          {
+            "label": "groupPollNum",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:77"
+          },
+          {
+            "label": "pollVoteStat",
+            "offset": 0,
+            "slot": "13",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:78"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_string_storage)dyn_storage": {
+            "label": "string[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IGroup)1160": {
+            "label": "contract IGroup",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISignal)1181": {
+            "label": "contract ISignal",
+            "numberOfBytes": "20"
+          },
+          "t_enum(PRIVACY)1326": {
+            "label": "enum Vote.PRIVACY",
+            "members": [
+              "ANYONE",
+              "NFT",
+              "TOKEN"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(PollState)1237": {
+            "label": "enum PollState",
+            "members": [
+              "Created",
+              "Ongoing",
+              "Ended"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(uint256 => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256))": {
+            "label": "mapping(uint256 => mapping(string => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(uint256 => mapping(uint256 => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))": {
+            "label": "mapping(uint256 => mapping(uint256 => mapping(string => uint256)))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1252_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => struct Poll))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_string_storage)": {
+            "label": "mapping(uint256 => string)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Poll)1252_storage)": {
+            "label": "mapping(uint256 => struct Poll)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(groupInfo)1340_storage)": {
+            "label": "mapping(uint256 => struct Vote.groupInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Poll)1252_storage": {
+            "label": "struct Poll",
+            "members": [
+              {
+                "label": "group_id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "msgs",
+                "type": "t_array(t_string_storage)dyn_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "state",
+                "type": "t_enum(PollState)1237",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "title",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "desc",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "5"
+              }
+            ],
+            "numberOfBytes": "192"
+          },
+          "t_struct(groupInfo)1340_storage": {
+            "label": "struct Vote.groupInfo",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "desc",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "icon",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "privacy",
+                "type": "t_enum(PRIVACY)1326",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "asset",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "afebce4ce258b92895791c7a8096f55adb44812d81aafd053277c3b434395b3a": {
+      "address": "0xC9B46f710258C3A35F652e3590ed6e4Ec8E9F3e0",
+      "txHash": "0x9a8d2d8dfc7807e7340ed2bc7f791bef1d51fcdbe643a3f0ef53a8ce8e231553",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "group",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IGroup)1160",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:28"
+          },
+          {
+            "label": "signal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ISignal)1181",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:29"
+          },
+          {
+            "label": "voteStat",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:33"
+          },
+          {
+            "label": "GROUP_ID",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:34"
+          },
+          {
+            "label": "idInGroup",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:37"
+          },
+          {
+            "label": "admins",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_uint256,t_address)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:39"
+          },
+          {
+            "label": "groupDesc",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:45"
+          },
+          {
+            "label": "groupIcon",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:46"
+          },
+          {
+            "label": "groupPrivacy",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:47"
+          },
+          {
+            "label": "groupName",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:48"
+          },
+          {
+            "label": "groups",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_mapping(t_uint256,t_struct(groupInfo)1340_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:74"
+          },
+          {
+            "label": "groupPolls",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1252_storage))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:76"
+          },
+          {
+            "label": "groupPollNum",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:77"
+          },
+          {
+            "label": "pollVoteStat",
+            "offset": 0,
+            "slot": "13",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:78"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_string_storage)dyn_storage": {
+            "label": "string[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IGroup)1160": {
+            "label": "contract IGroup",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISignal)1181": {
+            "label": "contract ISignal",
+            "numberOfBytes": "20"
+          },
+          "t_enum(PRIVACY)1326": {
+            "label": "enum Vote.PRIVACY",
+            "members": [
+              "ANYONE",
+              "NFT",
+              "TOKEN"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(PollState)1237": {
+            "label": "enum PollState",
+            "members": [
+              "Created",
+              "Ongoing",
+              "Ended"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(uint256 => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256))": {
+            "label": "mapping(uint256 => mapping(string => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(uint256 => mapping(uint256 => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))": {
+            "label": "mapping(uint256 => mapping(uint256 => mapping(string => uint256)))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1252_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => struct Poll))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_string_storage)": {
+            "label": "mapping(uint256 => string)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Poll)1252_storage)": {
+            "label": "mapping(uint256 => struct Poll)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(groupInfo)1340_storage)": {
+            "label": "mapping(uint256 => struct Vote.groupInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Poll)1252_storage": {
+            "label": "struct Poll",
+            "members": [
+              {
+                "label": "group_id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "msgs",
+                "type": "t_array(t_string_storage)dyn_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "state",
+                "type": "t_enum(PollState)1237",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "title",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "desc",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "5"
+              }
+            ],
+            "numberOfBytes": "192"
+          },
+          "t_struct(groupInfo)1340_storage": {
+            "label": "struct Vote.groupInfo",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "desc",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "icon",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "privacy",
+                "type": "t_enum(PRIVACY)1326",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "asset",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "79207eaa1b85ef32beb5cf98bb59ca16917603691d7c1a7066760f4f112d0258": {
+      "address": "0x5F39C4101ab3261fd0A433Bd99b67989Ed303eFA",
+      "txHash": "0xb01f57736c85904b6771ae9fecc1e0f2be3f5ec5a4f31b90772a6fb338de04af",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "group",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IGroup)1160",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:28"
+          },
+          {
+            "label": "signal",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(ISignal)1181",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:29"
+          },
+          {
+            "label": "voteStat",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:33"
+          },
+          {
+            "label": "GROUP_ID",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:34"
+          },
+          {
+            "label": "idInGroup",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:37"
+          },
+          {
+            "label": "admins",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_uint256,t_address)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:39"
+          },
+          {
+            "label": "groupDesc",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:45"
+          },
+          {
+            "label": "groupIcon",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:46"
+          },
+          {
+            "label": "groupPrivacy",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:47"
+          },
+          {
+            "label": "groupName",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_mapping(t_uint256,t_string_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:48"
+          },
+          {
+            "label": "groups",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_mapping(t_uint256,t_struct(groupInfo)1340_storage)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:74"
+          },
+          {
+            "label": "groupPolls",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1252_storage))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:76"
+          },
+          {
+            "label": "groupPollNum",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:77"
+          },
+          {
+            "label": "pollVoteStat",
+            "offset": 0,
+            "slot": "13",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))",
+            "contract": "Vote",
+            "src": "contracts/voting/vote.sol:78"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_string_storage)dyn_storage": {
+            "label": "string[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IGroup)1160": {
+            "label": "contract IGroup",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISignal)1181": {
+            "label": "contract ISignal",
+            "numberOfBytes": "20"
+          },
+          "t_enum(PRIVACY)1326": {
+            "label": "enum Vote.PRIVACY",
+            "members": [
+              "ANYONE",
+              "NFT",
+              "TOKEN"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(PollState)1237": {
+            "label": "enum PollState",
+            "members": [
+              "Created",
+              "Ongoing",
+              "Ended"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(uint256 => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256))": {
+            "label": "mapping(uint256 => mapping(string => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(uint256 => mapping(uint256 => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_mapping(t_string_memory_ptr,t_uint256)))": {
+            "label": "mapping(uint256 => mapping(uint256 => mapping(string => uint256)))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Poll)1252_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => struct Poll))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_string_storage)": {
+            "label": "mapping(uint256 => string)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Poll)1252_storage)": {
+            "label": "mapping(uint256 => struct Poll)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(groupInfo)1340_storage)": {
+            "label": "mapping(uint256 => struct Vote.groupInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Poll)1252_storage": {
+            "label": "struct Poll",
+            "members": [
+              {
+                "label": "group_id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "msgs",
+                "type": "t_array(t_string_storage)dyn_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "state",
+                "type": "t_enum(PollState)1237",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "title",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "desc",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "5"
+              }
+            ],
+            "numberOfBytes": "192"
+          },
+          "t_struct(groupInfo)1340_storage": {
+            "label": "struct Vote.groupInfo",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "desc",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "icon",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "privacy",
+                "type": "t_enum(PRIVACY)1326",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "asset",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    }
+  }
+}
