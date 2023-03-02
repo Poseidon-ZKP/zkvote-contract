@@ -45,6 +45,10 @@ Suppose n_com = 21, t = 10, and jubjub scalar_mul = ~1000
 
 3. Round2 Batch Proof of all the fi(l) in 1 transaction.
 
+4. reveal lookup table design?
+
+5. MPC Round 2 too heavy? do we really need all N*N 1->1 communication? maybe there are some easy way, like "map-reduce" style?
+
 # Reference
 
 1. [Baby Jubjub Library(Circom/js/sol)](https://eips.ethereum.org/EIPS/eip-2494)
