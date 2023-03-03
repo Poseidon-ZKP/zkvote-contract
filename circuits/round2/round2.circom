@@ -42,13 +42,19 @@ template SumScaleMul(t) {
     signal output out[2];
     // signal output cmp[2];
 
-    var lk = 1; // 0^0 = 1
+    var lk[t];
+    lk[0] = 1;// 0^0 = 1
     component mulAny[t];
     component pvkBits[t];
     component babyAdd[t];
     for (var k = 0; k < t; k++) {
+        if (k < t - 1) {
+            lk[k+1] = lk[k] * l;    // TODO : Non quadratic constraints
+        }
+    }
+    for (var k = 0; k < t; k++) {
         mulAny[k] = JubScalarMulAny();
-        mulAny[k].in <== lk;
+        mulAny[k].in <== lk[k];
         mulAny[k].p[0] <== C[k][0];
         mulAny[k].p[1] <== C[k][1];
 
@@ -64,8 +70,6 @@ template SumScaleMul(t) {
             res[k][0] <== babyAdd[k].xout;
             res[k][1] <== babyAdd[k].yout;
         }
-
-        lk = lk * l;
     }
 
     out[0] <== res[t-1][0];
@@ -89,7 +93,7 @@ template Round2(t) {
     signal output enc;
     signal output kb[2];
 
-    component S = SumScaleMul(2);
+    component S = SumScaleMul(t);
     S.f_l <== f_l;
     S.l <== l;
     for (var i = 0; i < t; i++) {

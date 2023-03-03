@@ -9,6 +9,7 @@ import { poseidonDec, poseidonEnc } from "./poseidon";
 import { generate_zkp_nvote} from "./prover";
 import { round1 } from "./round1";
 import { round2 } from "./round2";
+const hre = require('hardhat');
 
 async function main(
 ) {
@@ -16,13 +17,23 @@ async function main(
     const jub = await buildBabyjub()
     const owners = await ethers.getSigners()
     let owner : SignerWithAddress = owners[0]
+    console.log("owners : ", owners.length)
+
+    // const accounts: any = hre.config.networks.hardhat.accounts;
+    // for (let index = 0; index < owners.length; index++) {
+    //   const wallet = ethers.Wallet.fromMnemonic(accounts.mnemonic, accounts.path + `/${index}`);
+    //   console.log("`", wallet.privateKey + "`,")
+    // }
 
     // Parameters
     const V = [1, 2, 3]        // voting power per user
     const N_USER = V.length
-    const COMMITEE = [owners[0], owners[1], owners[2]]
-    const N_COM = COMMITEE.length
+    const N_COM = 3
     const t = 2
+    let COMMITEE = []
+    for (let i = 0; i < N_COM; i++) {
+        COMMITEE.push(owners[i])
+    }
 
     const r2v = await (new Round2Verifier__factory(owner)).deploy()
     const nvv = await (new NvoteVerifier__factory(owner)).deploy()
@@ -46,7 +57,6 @@ async function main(
       r2r.push([])
       for (let j = 0; j < N_COM; j++) {
         r2r[i].push(Math.floor(Math.random() * 10)) // TODO: * jub.order
-        //r2r[i].push(1)
       }
     }
 

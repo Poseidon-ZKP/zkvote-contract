@@ -38,7 +38,6 @@ sequenceDiagram
 
 # Setup
 ```shell
-    ts-node scripts/build-circuit.ts nouns
     npx hardhat run scripts/nouns/nouns.ts 
 ```
 
