@@ -85,6 +85,8 @@ Suppose n_com = 21, t = 10, and jubjub scalar_mul = ~1000
 
 5. MPC Round 2 too heavy? do we really need all N*N 1->1 communication? maybe there are some easy way, like "map-reduce" style?
 
+6. round2 r using a[i][j]? any security loss?
+
 # Reference
 
 1. [Baby Jubjub Library(Circom/js/sol)](https://eips.ethereum.org/EIPS/eip-2494)

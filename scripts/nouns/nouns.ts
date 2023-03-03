@@ -45,8 +45,8 @@ async function main(
     for (let i = 0; i < N_COM; i++) {
       r2r.push([])
       for (let j = 0; j < N_COM; j++) {
-        //r2r[i].push(Math.floor(Math.random() * 10000)) // TODO: * jub.order
-        r2r[i].push(1)
+        r2r[i].push(Math.floor(Math.random() * 10)) // TODO: * jub.order
+        //r2r[i].push(1)
       }
     }
 
