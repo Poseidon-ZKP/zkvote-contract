@@ -16,8 +16,7 @@ export async function round1(
         C.push([])
         edwards_twist_C.push([])
         for (let j = 0; j < t; j++) {
-            //const r = Math.floor(Math.random() * 10000) // TODO: * jub.order)
-            const r = 8
+            const r = Math.floor(Math.random() * 10) // TODO: * jub.order)
             const c = jub.mulPointEscalar(jub.Generator, r)
             a[i].push(r)
             C[i].push(c)
@@ -25,8 +24,6 @@ export async function round1(
             edwards_twist_C[i][j].push(jub.F.toString(c[0]))
             edwards_twist_C[i][j].push(jub.F.toString(c[1]))
         }
-        console.log("a : ", a)
-        expect(edwards_twist_C[i][0][0]).equal(jub.F.toString(jub.Base8[0]))
         
         // submit C on-chain.
         await (await nc.connect(COMMITEE[i]).round1(edwards_twist_C[i])).wait()

@@ -5,7 +5,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { exit } from "process";
 import { Nouns__factory, NvoteVerifier__factory, Round2Verifier__factory } from "../types";
-import { poseidonDec } from "./poseidon";
+import { poseidonDec, poseidonEnc } from "./poseidon";
 import { generate_zkp_nvote} from "./prover";
 import { round1 } from "./round1";
 import { round2 } from "./round2";
@@ -41,7 +41,7 @@ async function main(
     const edwards_twist_PK = [jub.F.toString(PK[0]), jub.F.toString(PK[1])]
 
     // 2. Key Generation Round 2 (Committee)
-    let r2r = []
+    let r2r = []  // TODO : using a[i][j] directorly
     for (let i = 0; i < N_COM; i++) {
       r2r.push([])
       for (let j = 0; j < N_COM; j++) {
@@ -54,12 +54,12 @@ async function main(
     for (let i = 0; i < N_COM; i++) {
         f.push([])
         for (let l = 0; l < N_COM; l++) {
-          f[i].push(polyval(a[i].reverse(), l))
+          f[i].push(polyval([...a[i]].reverse(), l))  // reverse copy(a)
         }
     }
     console.log("f : ", f)
 
-    await round2(COMMITEE, f, edwards_twist_C, r2r, nc)
+    await round2(COMMITEE, a, f, edwards_twist_C, r2r, nc, jub)
     let sk = []
     for (let i = 0; i < N_COM; i++) {
         sk.push(0)
@@ -140,6 +140,7 @@ async function main(
     console.log("Yes : ", await nc.voteStats(0))
     console.log("No : ", await nc.voteStats(1))
     console.log("Abstain : ", await nc.voteStats(2))
+    // expect(await nc.voteStats(0)).equal(V[0])
 }
 
 

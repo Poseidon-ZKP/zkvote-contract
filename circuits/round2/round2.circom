@@ -28,6 +28,8 @@ template PoseidonEnc() {
     component pos = Poseidon(1);
     pos.inputs[0] <== KS[0];
     out <== pos.out + msg;
+
+    // TODO : complete poseidon enc (C.last == S[1]) to protect from "Tampering"
 }
 
 // Round2 : f(l)*G == sum(l^k * C[k])

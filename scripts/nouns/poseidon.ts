@@ -14,7 +14,6 @@ export async function poseidonEnc(
 
     const posRef = await buildPoseidonReference();
     const enc = BigInt(posRef.F.toString(await posRef([KS[0]]))) + BigInt(msg)
-    console.log("enc : ", enc)
 
     return {
       KB : KB,
