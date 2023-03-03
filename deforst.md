@@ -27,7 +27,7 @@ Crypto: Investor since 2014. Founder of [NFTR](https://nftr.name),  building Nou
 **Sam Hu** 
 *Background*: B.S. CS @ Tianjin University, S.M. CS @ Fudan University.
 *Pre-Crypto*: Maintainer @ Linux Kernel Network, Compiler Engineer, Hardware Designer.
-*Crypto*: Four zk-based projects from scratch including spot/perpetual zk-rollup dexs and zk-privacy social/gaming.
+*Crypto*: Building IEEE 802.11i for wireless chip, Four zk-based projects from scratch including spot/perpetual zk-rollup dexs and zk-privacy social/gaming.
 
 *[DigitalOil](https://twitter.com/0xDigitalOil) and [Poseidon](https://pdn.xyz) come together for this proposal, merging good understanding of the Nouns ecosystem, culture and its necessities with a cutting-edge ZK research team.*
 
@@ -42,7 +42,7 @@ This demo is deployed on Optimism Goerli / Consensys zkEVM Goerli:
 * Demo video: https://www.youtube.com/watch?v=cS_YX8UHk74&t=1s
 * Code: 
     * Frontend: https://github.com/Poseidon-ZKP/zkVote-web
-    * Contract: https://github.com/Poseidon-ZKP/poseidon-zk-contracts/tree/zkvote
+    * Contract:  https://github.com/Poseidon-ZKP/zkvote-contract
     * Snap/Prover: https://github.com/Poseidon-ZKP/zkVote-snap
     * Subgraph: https://github.com/Poseidon-ZKP/zkvote-subgraph
     * Relayer: https://github.com/Poseidon-ZKP/zkvote-relayer 
@@ -189,9 +189,14 @@ Second, Governance contracts can use DeFROST to build optional private vote very
 
 Vote tally requires only $t$ out of $n_{com}$ committee members to participate, denoted as $I\subset \{1,2,\cdots, n_{com}\}$. Committee members communicate with the governance contract and do not require secure p2p communication channels.
 
-During vote tally, each committee member queries $R$ from the contract and sends a message $(i, D_i)$ to the contract along with a ZKP proving that:
+During vote tally, each committee member queries $R$ from the contract and sends a message $(i, D_i)$ to the contract along 
+with a ZKP proving that decryption valid and generate sk correctly:
 
-$$D_i = sk_i \cdot R$$
+- $f_l(i) = decrypt(encrypt(f_l(i)), k_l(i)$
+- $sk_i = \sum_{l=1}^{n_{com}} f_l(i)$
+- $D_i = sk_i \cdot R$
+
+public input : $R$, $D_i$, encrypt($f_l(i)$), $k_l(i)$  
 
 The contract 
 - verifies the proof
@@ -261,11 +266,11 @@ Suppose $n_{com} = 21$, $t = 10$, and jubjub $scalar_{mul} =$ ~$1000$，posedion
 3. ～$200$k fixed Groth16 verification gas, $6$k more gas for each public input
 4. The estimate doesn't include basic circuit overhead (~$6$k) and contract decrypt / reveal logic cost
 
-|Stage| add/mul/exp| Scalar mul (jubjub) | Posedion hash | Constraints | Public Input | Verify Gas |
+|Stage| add/mul/exp| Scalar mul (jubjub) | Posedion hash | Constraint | Public Input | Verify Gas |
 | --- | ---- | --- | ---- | --- | --- | --- |
-|  Round2 | $(n_{com}-1)*t$ | $(n_{com}-1)*t$|(n_com-1)*4  | $224$k           | $2t+1$ | $326$k |
+|  Round2 | $(n-1)*t$ | $(n-1)*t$|$(n-1)*4$  | $224$k           | $2t+1$ | $326$k |
 |  Voting  |                 |    $5$   |              |  $5$k | $10$ |260k |
-|  Tally   |                 |    $1$   |              | $1$k | $4$ |224k|
+|  Tally & Reveal   |      $(n-1)$           |    $1$   |        $(n-1)*4$      | $2$k | $2*n+2$ |464k|
 
 ### Further Reducing Gas Cost
 
