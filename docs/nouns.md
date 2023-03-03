@@ -1,5 +1,41 @@
 Impl the idea in https://hackmd.io/6ZFxxxnKT0iH-GJHUxKekw
 
+# Workflow
+
+```mermaid
+sequenceDiagram
+    participant U	as User
+    participant CC 	as Contract
+    participant C 	as Committee
+    
+    rect rgba(0, 220, 220, .3)
+        C -->> C  : a[N_COM] as secret
+        C -->> C  : f[N_COM] = langrange-poly(a)
+        C -->> C  : C = a * G
+        C -->> CC : C[N_COM] as public Commitments
+        CC -->> CC : PK += C[0]
+    end
+    
+    rect rgba(0, 110, 220, .3)
+        C -->> CC : (proof, enc(f0[1])) = zkp(r0, f0[1], C1[0])
+        CC -->> C : f1[0] = dec(enc(f1[0]), C0[0])
+        C -->> C : sk0 = f0[0] + f1[0]
+    end
+    
+    rect rgba(0, 220, 110, .3)
+        U -->> CC : (proof, R, M, v) = zkp(r, o, v, PK)
+        CC -->> CC : check user using valid vote power
+        CC -->> CC : R_sum += R, M_sum += M
+    end
+    
+    rect rgba(0, 110, 110, .3)
+        C -->> CC : D = sk * R_SUM
+        CC -->> CC : D_SUM += D
+        CC -->> CC : reveal v by lookup v * G = M_SUM - D_SUM
+    end
+```
+
+
 # Setup
 ```shell
     ts-node scripts/build-circuit.ts nouns
