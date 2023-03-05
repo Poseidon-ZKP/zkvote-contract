@@ -22,6 +22,7 @@ export const REVERT_REASON_ALREADY_SIGNAL = REVERT_REASON_HEADER + "\'" + "alrea
 
 export async function compile_circom (fileName, options) {    
     var flags = "--wasm ";
+    // flags += "--inspect ";
     if (options.sym) flags += "--sym ";
     if (options.r1cs) flags += "--r1cs ";
     if (options.json) flags += "--json ";
