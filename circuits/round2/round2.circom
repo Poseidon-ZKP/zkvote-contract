@@ -54,7 +54,7 @@ template SumScaleMul(t) {
     }
     for (var k = 0; k < t; k++) {
         mulAny[k] = JubScalarMulAny();
-        mulAny[k].in <== lk[k];
+        mulAny[k].in <-- lk[k];     // TODO : Need Constraints here ? or just witness
         mulAny[k].p[0] <== C[k][0];
         mulAny[k].p[1] <== C[k][1];
 
