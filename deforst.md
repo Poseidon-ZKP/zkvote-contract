@@ -1,4 +1,4 @@
-# DeFROST: Poseidon <> Nouns DAO
+# DeFROST: Poseidon 🤝 ⌐◨-◨
 
 ## Team
 
@@ -42,7 +42,7 @@ This demo is deployed on Optimism Goerli / Consensys zkEVM Goerli:
 * Demo video: https://www.youtube.com/watch?v=cS_YX8UHk74&t=1s
 * Code: 
     * Frontend: https://github.com/Poseidon-ZKP/zkVote-web
-    * Contract:  https://github.com/Poseidon-ZKP/zkvote-contract
+    * Contract: https://github.com/Poseidon-ZKP/zkvote-contract
     * Snap/Prover: https://github.com/Poseidon-ZKP/zkVote-snap
     * Subgraph: https://github.com/Poseidon-ZKP/zkvote-subgraph
     * Relayer: https://github.com/Poseidon-ZKP/zkvote-relayer 
@@ -125,7 +125,7 @@ We consider the Baby JubJub curve $\mathbb{G}$, its scalar field $\mathbb{F}_r$,
 - Every participant computes a public commitment:
     - $\vec{C_i} = \langle C_{i,0}, \cdots, C_{i,t-1}\rangle$, where $C_{i,j} = a_{i,j}\cdot G, 0 \leq j \leq t-1$,
 
-    and submit this public committment on-chain for the contract to verify all the points are on Baby Jubjub curve. 
+    and submits this public committment on-chain for the contract to verify that all points are on the Baby Jubjub curve. 
 
 
 **Round 2**
@@ -156,17 +156,17 @@ The governance contract takes a snapshot at the block number when the proposer s
 
 Users use the shared public key $Pk$ for private voting protected by ZKP and Threshold Homomorphic Encryption. 
 
-During voting, users only need to send 1 message to the governance contract. Suppose each user has voting power $v_i$ according to the snapshot. In particular, a user $i$ samples a random number $r_i \in \mathbb{F_r}$ and calls the governance contract signing a transaction containing $(R_i, \vec{M_i})$ + a ZKP such that:
-- public input: $Pk$, $v_i$, $R_i$, $\vec{M_i}$
-- proving knowledge of $r_i$ such that $R_i = r_i \cdot G$
-- proving knowledge of vote $o_i$ in 1-hot encoding where $100$ means yes, $010$ means no, and $001$ means abstain. $M_{i,k}=(o_{i,k}*v_i)\cdot G + r_i \cdot Pk$, and $k$ is the index of the bit in the 1-hot encoded vote.
+During voting, users only need to send 1 message to the governance contract. Suppose each user has voting power $v_i$ according to the snapshot. In particular, a user $i$ samples a vector of random numbers $\vec{r_i} \in \mathbb{F_r}$ and calls the governance contract signing a transaction containing $(\vec{R_i}, \vec{M_i})$ + a ZKP such that:
+- public input: $Pk$, $v_i$, $\vec{R_i}$, $\vec{M_i}$
+- proving knowledge of $\vec{r_i}$ such that $\vec{R_i} = \vec{r_i} \cdot G$
+- proving knowledge of vote $o_i$ in 1-hot encoding where $100$ means yes, $010$ means no, and $001$ means abstain. $M_{i,k}=(o_{i,k}*v_i)\cdot G + r_{i,k} \cdot Pk$, and $k$ is the index of the bit in the 1-hot encoded vote.
 
 The contract receives the message and 
 - verifies the proofs
-- checks the account hasn't voted for the proposal before
-- accumulates $R = \sum_{i=1}^{n_{u}} R_{i}$, $\vec{M} = \sum_{i=1}^{n_{u}} \vec{M_i}$
+- checks the account has not voted for the proposal before
+- accumulates $\vec{R} = \sum_{i=1}^{n_{u}} \vec{R_{i}}$, $\vec{M} = \sum_{i=1}^{n_{u}} \vec{M_i}$
 
-Denoting $r = \sum_{i=1}^{n_{u}} r_i, \vec{v} = \sum_{i=1}^{n_{u}} v_i * \vec{o_i}$, we have $R = r\cdot G \in \mathbb{G}$ and $\vec{M} = \vec{v}\cdot G + r\cdot Pk  \in \mathbb{G}$. During vote tally, committee member will reveal $\vec{v}$ as the result.
+Denoting $\vec{r} = \sum_{i=1}^{n_{u}} \vec{r_i}, \vec{v} = \sum_{i=1}^{n_{u}} v_i * \vec{o_i}$, we have $\vec{R} = \vec{r}\cdot G \in \mathbb{G}$ and $\vec{M} = \vec{v}\cdot G + \vec{r}\cdot Pk  \in \mathbb{G}$. During vote tally, committee member will reveal $\vec{v}$ as the result.
 
 
 > Note: Any number of users could participate in voting by using the same $Pk$.
@@ -189,20 +189,19 @@ Second, Governance contracts can use DeFROST to build optional private vote very
 
 Vote tally requires only $t$ out of $n_{com}$ committee members to participate, denoted as $I\subset \{1,2,\cdots, n_{com}\}$. Committee members communicate with the governance contract and do not require secure p2p communication channels.
 
-During vote tally, each committee member queries $R$ from the contract and sends a message $(i, D_i)$ to the contract along 
-with a ZKP proving that decryption valid and generate sk correctly:
+During vote tally, each committee member queries $\vec{R}$ from the contract and sends a message $(i, \vec{D_i})$ to the contract along with a ZKP proving that decryption valid and generate sk correctly:
+
 
 - $f_l(i) = decrypt(encrypt(f_l(i)), k_l(i)$
 - $sk_i = \sum_{l=1}^{n_{com}} f_l(i)$
-- $D_i = sk_i \cdot R$
+- $\vec{D_i} = sk_i \cdot \vec{R}$
 
-public input : $R$, $D_i$, encrypt($f_l(i)$), $k_l(i)$  
 
 The contract 
 - verifies the proof
 - receives and accumulates the first $t$ messages from the commitee, i.e. $|I| = t$. 
-$D = \sum_{i \in I} \lambda_i \cdot D_i$ where $\lambda_i = \prod_{j\in I, j\neq i}\frac{j}{j-i}$ is the Lagrange coefficient
-- reveals $\vec{v}\cdot G = \vec{M} - D$
+$\vec{D} = \sum_{i \in I} \lambda_i \cdot \vec{D_i}$ where $\lambda_i = \prod_{j\in I, j\neq i}\frac{j}{j-i}$ is the Lagrange coefficient
+- reveals $\vec{v}\cdot G = \vec{M} - \vec{D}$
 - uses a lookup table to extract $\vec{v}$ from $\vec{v} \cdot G$
 
 > Note 1: Order matters! $i\in I$ must be the same index used during Distributed Key Generation.
