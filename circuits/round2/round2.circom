@@ -1,4 +1,5 @@
-pragma circom 2.0.0;
+pragma circom 2.0.8;
+pragma custom_templates;    // TODO : proof of plonk's custom gate
 
 include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../../node_modules/circomlib/circuits/poseidon.circom";
@@ -48,7 +49,7 @@ template SumScaleMul(t) {
     component pvkBits[t];
     component babyAdd[t];
     for (var k = 0; k < t; k++) {
-        mulAny[k] = JubScalarMulAny();
+        mulAny[k] = parallel JubScalarMulAny();
         mulAny[k].in <-- lk;     // Do not need Constraints here, just witness
         mulAny[k].p[0] <== C[k][0];
         mulAny[k].p[1] <== C[k][1];
@@ -108,6 +109,7 @@ template Round2(t) {
     enc <== E.out;
     kb[0] <== E.kb[0];
     kb[1] <== E.kb[1];
+    log("round 2 circuit out[0] ", out[0]);
 }
 
 component main {public [l, C, CL0]} = Round2(2);
