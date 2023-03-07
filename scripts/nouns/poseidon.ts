@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { exit } from "process";
 
 const { buildPoseidonOpt, buildPoseidon, buildPoseidonReference} = require('circomlibjs');
 const { buildBabyjub } = require('circomlibjs');

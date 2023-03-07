@@ -1,6 +1,7 @@
 import { expect } from "chai";
+import { exit } from "process";
 import { poseidonDec, poseidonEnc } from "./poseidon";
-import { generate_zkp_round2 } from "./prover";
+import { generate_plonk_zkp_round2, generate_zkp_round2 } from "./prover";
 
 export async function round2(
   COMMITEE,
@@ -16,7 +17,7 @@ export async function round2(
       for (let l = 0; l < N_COM; l++) {
         if (i == l) continue;
 
-        const {proof, publicSignals} = await generate_zkp_round2(
+        const {proof, publicSignals} = await generate_plonk_zkp_round2(
           f[i][l],
           l,
           edwards_twist_C[i],

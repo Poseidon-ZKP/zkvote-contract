@@ -5,6 +5,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { exit } from "process";
 import { Nouns__factory, NvoteVerifier__factory, Round2Verifier__factory } from "../types";
+import { Round2PlonkVerifier__factory } from "../types/factories/contracts/round2/round2_plonk_verifier.sol";
 import { poseidonDec, poseidonEnc } from "./poseidon";
 import { generate_zkp_nvote} from "./prover";
 import { round1 } from "./round1";
@@ -35,7 +36,7 @@ async function main(
         COMMITEE.push(owners[i])
     }
 
-    const r2v = await (new Round2Verifier__factory(owner)).deploy()
+    const r2v = await (new Round2PlonkVerifier__factory(owner)).deploy()
     const nvv = await (new NvoteVerifier__factory(owner)).deploy()
     const verifiers = [r2v.address, nvv.address]
     const nc = await (new Nouns__factory(owner)).deploy(

@@ -109,10 +109,71 @@ export async function generate_zkp_round2(
     proof
   )).eq(true)
 
-  console.log("round2 prover done!")
+  console.log("round2 growth16 prover done!")
 
   return {
     proof : packToSolidityProof(proof),
+    publicSignals: {
+      l : l,
+      C : C,
+      CL0 : CL0,
+      enc : publicSignals[2],
+      kb : [publicSignals[3], publicSignals[4]],
+      out : [publicSignals[0], publicSignals[1]]
+    }
+  }
+}
+
+export async function generate_plonk_zkp_round2(
+  f_l,
+  l,
+  C,
+  CL0,
+  r
+) {
+  const DIR = process.cwd()
+  const CUR_CIRCUIT = "round2"
+  const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
+  const FILE_WASM = CIRCUIT_TGT_DIR + CUR_CIRCUIT + "_js/" + CUR_CIRCUIT + ".wasm"
+  const FILE_ZKEY = CIRCUIT_TGT_DIR + "zkey.plonk.16"
+  const vKey = await snarkjs.zKey.exportVerificationKey(FILE_ZKEY);
+
+  const { proof, publicSignals } = await snarkjs.plonk.fullProve(
+      {
+          f_l : f_l,
+          l : l,
+          C : C,
+          CL0 : CL0,
+          r : r
+      },
+      FILE_WASM,
+      FILE_ZKEY
+  )
+
+  expect(await snarkjs.plonk.verify(
+    vKey,
+    [
+        publicSignals[0],   // out
+        publicSignals[1],
+        publicSignals[2],   // enc
+        publicSignals[3],   // kb[2]
+        publicSignals[4],
+        publicSignals[5],   // l
+        publicSignals[6],   // C[i]
+        publicSignals[7],
+        publicSignals[8],
+        publicSignals[9],
+        publicSignals[10],  // C[L][0]
+        publicSignals[11]
+    ],
+    proof
+  )).eq(true)
+
+  console.log("round2 plonk prover done!")
+  
+  const input_pub = await snarkjs.plonk.exportSolidityCallData(proof, publicSignals)
+  return {
+    proof : input_pub.split(",[")[0],
     publicSignals: {
       l : l,
       C : C,

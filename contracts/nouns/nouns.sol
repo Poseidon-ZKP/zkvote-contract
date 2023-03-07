@@ -15,10 +15,8 @@ enum CommitteeState {
 
 interface IVerifierRound2 {
     function verifyProof(
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        uint256[12] memory input
+        bytes memory proof,
+        uint[] memory pubSignals
     ) external view;
 }
 
@@ -136,22 +134,26 @@ contract Nouns {
         uint enc,
         uint[2] calldata kb,
         uint[2] calldata out,
-        uint[8] calldata proof
+        bytes calldata proof
     ) public {
         uint cid = committee[msg.sender] - 1;
         require(cid >= 0);
 
-        round2_verifier.verifyProof(
-            [proof[0], proof[1]],
-            [[proof[2], proof[3]], [proof[4], proof[5]]],
-            [proof[6], proof[7]],
-            [
-                out[0], out[1],
-                enc, kb[0], kb[1], l,
-                C[cid][0][0], C[cid][0][1], C[cid][1][0], C[cid][1][1],
-                C[l][0][0], C[l][0][1]
-            ]
-        );
+        uint[] memory pub = new uint[](12);
+        pub[0] = out[0];
+        pub[1] = out[1];
+        pub[2] = enc;
+        pub[3] = kb[0];
+        pub[4] = kb[1];
+        pub[5] = l;
+        pub[6] = C[cid][0][0];
+        pub[7] = C[cid][0][1];
+        pub[8] = C[cid][1][0];
+        pub[9] = C[cid][1][1];
+        pub[10] = C[l][0][0];
+        pub[11] = C[l][0][1];
+
+        round2_verifier.verifyProof(proof, pub);
 
         ENC[cid][l] = enc;
         KB[cid][l][0] = kb[0];

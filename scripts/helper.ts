@@ -107,7 +107,11 @@ export function get_circuit_zkey_file(
     console.log("WORK DIR : ", DIR)
     const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
     const FILE_ZKEY_FINAL = CIRCUIT_TGT_DIR + "zkey.16"
-    return FILE_ZKEY_FINAL
+    const FILE_ZKEY_PLONK = CIRCUIT_TGT_DIR + "zkey.plonk.16"
+    return {
+        growth16 : FILE_ZKEY_FINAL,
+        plonk : FILE_ZKEY_PLONK
+    }
 }
 
 export async function build_circuit(
@@ -152,5 +156,16 @@ export async function build_circuit(
 	verifierCode = verifierCode.replace(new RegExp("Pairing", "g"), CUR_CIRCUIT + "Pairing")
 	fs.writeFileSync(DIR + "/contracts/" + CUR_CIRCUIT + "/" + CUR_CIRCUIT + "_verifier.sol", verifierCode, "utf-8");
 
-    // TODO : should re-compile the contract
+    // Plonk
+    const zkey_plonk = {type: "mem", data : undefined};
+    const FILE_ZKEY_PLONK = CIRCUIT_TGT_DIR + "zkey.plonk.16"
+    await snarkjs.plonk.setup(FILE_R1CS, ptau_final, zkey_plonk);
+	fs.writeFileSync(FILE_ZKEY_PLONK, Buffer.from(zkey_plonk.data))
+    console.log(new Date().toUTCString() + " zkey plonk generated...")
+    const plonk_templates = {plonk : undefined}
+	plonk_templates.plonk = await fs.promises.readFile(DIR + "/snarkjs-templates/verifier_plonk.sol.ejs", "utf8");
+	verifierCode = await snarkjs.zKey.exportSolidityVerifier(zkey_plonk, plonk_templates)
+	verifierCode = verifierCode.replace("PlonkVerifier", CUR_CIRCUIT + "PlonkVerifier")
+	fs.writeFileSync(DIR + "/contracts/" + CUR_CIRCUIT + "/" + CUR_CIRCUIT + "_plonk_verifier.sol", verifierCode, "utf-8");
+
 }

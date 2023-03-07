@@ -86,6 +86,17 @@ Suppose n_com = 21, t = 10, and jubjub scalar_mul = ~1000
 
 6. round2 r using a[i][j]? any security loss?
 
+# Proof Aggregation
+
+1. [groth16 circuit](https://0xparc.org/blog/groth16-recursion) ~20M constraints still too larger for browser, but it's ok for batch relayer.
+
+2. round2 plonk zkey > 200MB, too big in browser ?
+
+3. [snarkjs roadmap](https://blog.iden3.io/circom-snarkjs-plonk.html)
+    - Custom constraints
+    - Plookup
+    - Recursive plonk
+
 # Reference
 
 1. [Baby Jubjub Library(Circom/js/sol)](https://eips.ethereum.org/EIPS/eip-2494)
