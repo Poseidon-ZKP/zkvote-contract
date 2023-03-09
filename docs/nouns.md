@@ -38,6 +38,8 @@ sequenceDiagram
 
 # Setup
 ```shell
+    % cd rust
+    % wasm-pack build --target nodejs
     npx hardhat run scripts/nouns/nouns.ts 
 ```
 
@@ -96,6 +98,18 @@ Suppose n_com = 21, t = 10, and jubjub scalar_mul = ~1000
     - Custom constraints
     - Plookup
     - Recursive plonk
+
+4. No circom plonk aggregation now.
+
+5. Using Rust Plonk Aggregation:
+    - [PSE maze](https://github.com/privacy-scaling-explorations/maze) supprot circom 2, need snarkjs setupmaze
+    - [Matter-labs recursive_aggregation_circuit](https://github.com/matter-labs/recursive_aggregation_circuit) support circom 1
+
+6. Using [Rust in Nodejs](https://fulcrum.rocks/blog/rust-tutorial)
+    ```shell
+        cd rust
+        wasm-pack build --target nodejs
+    ```
 
 # Reference
 

@@ -37,5 +37,8 @@ export async function round2(
         console.log("round 2 on-chain verify done!!")
       }
     }
+
+    // TODO : verify (recursive) aggregate plonk proof
+
     console.log("round 2 done!!")
 }
