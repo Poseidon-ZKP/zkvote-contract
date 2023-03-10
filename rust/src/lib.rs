@@ -22,3 +22,9 @@ pub fn main_js() -> Result<(), JsValue> {
 
     Ok(())
 }
+
+#[test]
+fn sanity() {
+    println!("sanity test!!");
+}
+
