@@ -40,6 +40,9 @@ sequenceDiagram
 ```shell
     % cd rust
     % wasm-pack build --target nodejs
+    % rustup install nightly
+    % rustup default nightly-2022-08-23-x86_64-apple-darwin
+    % cargo t
     npx hardhat run scripts/nouns/nouns.ts 
 ```
 

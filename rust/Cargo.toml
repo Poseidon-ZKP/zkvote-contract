@@ -2,36 +2,38 @@
 name = "rust"
 version = "0.1.0"
 authors = ["sam <geeksam820@gmail.com>"]
-edition = "2018"
-
-[lib]
-crate-type = ["cdylib", "rlib"]
-doctest = false
-
-[features]
-default = ["console_error_panic_hook"]
+edition = "2021"
+license = "MIT"
+description = "zkvote proof aggregate circuit"
+readme = "README.md"
+keywords = ["aggregation", "plonk", "halo2", "circom"]
 
 [dependencies]
-wasm-bindgen = "0.2.63"
+clap = "4.0.8"
+rand = "0.8"
+rand_chacha = "0.3.1"
+itertools = "0.10.3"
+serde = { version = "1.0", features = ["derive"]}
+serde_json = { version = "1.0.85" }
+anyhow = { version = "1.0.65" }
+colored = "2.0.0"
 
-# The `console_error_panic_hook` crate provides better debugging of panics by
-# logging them with `console.error`. This is great for development, but requires
-# all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
-# code size when deploying.
-console_error_panic_hook = { version = "0.1.6", optional = true }
+ethereum_types = { package = "ethereum-types", version = "0.14.1", default-features = false, features = ["std"]}
+sha3 = { version = "0.10.1" }
 
-# `wee_alloc` is a tiny allocator for wasm that is only ~1K in code size
-# compared to the default allocator's ~10K. It is slower than the default
-# allocator, however.
-wee_alloc = { version = "0.4.5", optional = true }
+foundry_evm = { git = "https://github.com/foundry-rs/foundry", package = "foundry-evm", rev = "e53c0d2338e447bb2468d2c2b183fd21df6b3494" }
+crossterm = { version = "0.22.1" }
+tui = { version = "0.16.0", default-features = false, features = ["crossterm"] }
 
-[dev-dependencies]
-wasm-bindgen-test = "0.3.13"
+plonk_verifier = {git = "https://github.com/Janmajayamall/plonk-verifier.git", branch="feature/system-circom-cli"}
 
-[profile.release]
-# Tell `rustc` to optimize for small code size.
-opt-level = "s"
+halo2_curves = { git = "https://github.com/privacy-scaling-explorations/halo2curves", tag = "0.2.1", package = "halo2curves" }
 
-[dependencies.web-sys]
-version = "0.3.22"
-features = ["console"]
+halo2_proofs = { git = "https://github.com/privacy-scaling-explorations/halo2", tag = "v2022_09_10" }
+
+
+halo2_wrong_ecc = { git = "https://github.com/privacy-scaling-explorations/halo2wrong", tag = "v2022_09_09", package = "ecc" }
+halo2_wrong_transcript = { git = "https://github.com/privacy-scaling-explorations/halo2wrong", tag = "v2022_09_09", package = "transcript"}
+poseidon = { git = "https://github.com/privacy-scaling-explorations/poseidon", branch = "padding" }
+
+halo2_kzg_srs = { git = "https://github.com/han0110/halo2-kzg-srs", rev="ff65429" }
