@@ -1,5 +1,4 @@
 use anyhow::Context;
-use clap::{Parser, Subcommand};
 use colored::Colorize;
 
 use ethereum_types::Address;
@@ -88,19 +87,7 @@ type Plonk = verifier::Plonk<Pcs, LimbsEncoding<LIMBS, BITS>>;
 type BaseFieldEccChip = halo2_wrong_ecc::BaseFieldEccChip<G1Affine, LIMBS, BITS>;
 type Halo2Loader<'a> = halo2::Halo2Loader<'a, G1Affine, Fr, BaseFieldEccChip>;
 type PoseidonTranscript<L, S, B> = system::circom::transcript::halo2::PoseidonTranscript<
-    G1Affine,
-    Fr,
-    NativeRepresentation,
-    L,
-    S,
-    B,
-    LIMBS,
-    BITS,
-    T,
-    RATE,
-    R_F,
-    R_P,
->;
+    G1Affine, Fr, NativeRepresentation, L, S, B, LIMBS, BITS, T, RATE, R_F, R_P,>;
 
 #[derive(Clone)]
 pub struct MainGateWithRangeConfig {
@@ -585,58 +572,8 @@ fn prepare_public_signals(path: PathBuf) -> anyhow::Result<Vec<PublicSignals<Fr>
     Ok(public_signals)
 }
 
-#[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-#[command(next_line_help = true)]
-struct Cli {
-    #[command(subcommand)]
-    command: Option<Commands>,
-}
-
-#[derive(Subcommand)]
-enum Commands {
-    /// Setup mock
-    MockSetup {
-        verification_key: PathBuf,
-        proofs: PathBuf,
-        public_signals: PathBuf,
-    },
-
-    /// Generates EVM verifier
-    GenEvmVerifier {
-        verification_key: PathBuf,
-        proofs: PathBuf,
-        public_signals: PathBuf,
-        params: PathBuf,
-        output_dir: PathBuf,
-    },
-
-    /// Create proof
-    CreateProof {
-        verification_key: PathBuf,
-        proofs: PathBuf,
-        public_signals: PathBuf,
-        params: PathBuf,
-        output_dir: PathBuf,
-    },
-
-    /// Verify proof
-    VerifyProof {
-        verification_key: PathBuf,
-        proofs: PathBuf,
-        public_signals: PathBuf,
-        proof_file: PathBuf,
-        params: PathBuf,
-    },
-
-    /// EVM proof verify
-    EvmVerifyProof {
-        calldata: PathBuf,
-        evmbytecode: PathBuf,
-    },
-
-    /// Create Params
-    CreateParams { k: usize, output_dir: PathBuf },
+fn main() {
+    println!("main of maze!!!...");
 }
 
 fn report_elapsed(now: Instant) {
@@ -648,518 +585,118 @@ fn report_elapsed(now: Instant) {
     );
 }
 
-fn main() {
-    let cli = Cli::parse();
+#[test]
+fn fullprocess() {
+    println!("{}", "Reading circom-plonk verification key, proofs, and public signals".white().bold());
+    let circom_vk = match prepare_circom_vk(PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/verification_key.json")) {Ok(v) => v, Err(e) => return };
+    let proofs = match prepare_proofs(PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/proofs.json")) {Ok(v) => v, Err(e) => return};
+    let public_signals = match prepare_public_signals(PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/public_signals.json")) {Ok(v) => v, Err(e) => return};
+    println!("circom_vk : {:?}\n proofs : {:?}\n public signals : {:?}", circom_vk, proofs, public_signals);
 
-    match cli.command {
-        Some(Commands::GenEvmVerifier {
-            verification_key,
-            proofs,
-            public_signals,
-            params,
-            output_dir,
-        }) => {
-            println!(
-                "{}",
-                "Reading circom-plonk verification key, proofs, and public signals"
-                    .white()
-                    .bold()
-            );
-            let ((circom_vk, proofs), public_signals) = {
-                match prepare_circom_vk(verification_key)
-                    .and_then(|prev| {
-                        let proofs = prepare_proofs(proofs)?;
-                        Ok((prev, proofs))
-                    })
-                    .and_then(|prev| {
-                        let ps = prepare_public_signals(public_signals)?;
-                        Ok((prev, ps))
-                    }) {
-                    Ok(res) => res,
-                    Err(e) => {
-                        println!("{}", format!("{:#?}", e).red());
-                        std::process::exit(1);
-                    }
-                }
-            };
-            assert!(proofs.len() == public_signals.len());
-            println!();
+    println!("{}", format!("Building aggregation circuit for {} proofs", proofs.len()).white().bold());
+    let circuit = Accumulation::new(circom_vk.clone(), public_signals, proofs);
+    if true {
+        let now = Instant::now();
+        let dimension = DimensionMeasurement::measure(&circuit).unwrap();
+        println!("dimension : {:?}", dimension);
+        // 21 works, takes 1min(release)/10mins(debug) for generate proof.
+        let mock_prover = match MockProver::run(dimension.k(), &circuit, vec![circuit.instances.clone()])
+        {
+            Ok(v) => v,
+            Err(e) => {
+                println!("Mock Prover Run Err : {}", e.to_string().red());
+                return
+            },
+        };
 
-            println!(
-                "{}",
-                format!("Building aggregation circuit for {} proofs", proofs.len())
-                    .white()
-                    .bold()
-            );
-            let circuit = Accumulation::new(circom_vk.clone(), public_signals, proofs);
-            println!();
-
-            // mock proving circuit
-            println!(
-                "{}",
-                "Running mock prover for aggregation circuit".white().bold()
-            );
-            let now = Instant::now();
-            match MockProver::run(3, &circuit, vec![circuit.instances.clone()])
-                .with_context(|| "Mock prover failed")
-            {
-                Ok(mock_prover) => match mock_prover.verify() {
-                    Ok(_) => {}
-                    Err(errs) => {
-                        println!("{}", "Mock prover failed with errors:".red());
-                        errs.iter()
-                            .for_each(|e| println!("{}", e.to_string().red()));
-                    }
-                },
-                Err(e) => {
-                    println!("{}", e.to_string().red());
-                }
-            }
-            report_elapsed(now);
-            println!();
-
-            println!(
-                "{}",
-                "Reading parameters for commitment scheme".white().bold()
-            );
-            let now = Instant::now();
-            let params = match prepare_params(params) {
-                Ok(params) => params,
-                Err(e) => {
-                    println!("{}", e.to_string().red());
-                    std::process::exit(1);
-                }
-            };
-            report_elapsed(now);
-            println!();
-
-            println!("{}", "Generating evm verifier".white().bold());
-            let now = Instant::now();
-            let proving_key = gen_pk(&params, &circuit);
-            let verification_key = proving_key.get_vk();
-            let evm_bytecode = gen_aggregation_evm_verifier(
-                &circom_vk,
-                &params,
-                verification_key,
-                Accumulation::num_instance(),
-                Accumulation::accumulator_indices(),
-            );
-
-            match std::fs::create_dir_all(output_dir.clone())
-                .with_context(|| {
-                    format!(
-                        "Failed to locate directory at {}",
-                        output_dir.to_str().unwrap()
-                    )
-                })
-                .and_then(|_| {
-                    let mut file_path = output_dir;
-                    file_path.extend(vec!["evm-verifier.txt"]);
-                    std::fs::File::create(file_path.clone())
-                        .with_context(|| {
-                            format!(
-                                "Failed to create new file at {}",
-                                file_path.to_str().unwrap()
-                            )
-                        })
-                        .and_then(|mut file| {
-                            file.write_all(&evm_bytecode).with_context(|| {
-                                format!(
-                                    "Failed to write evm verifier to {}",
-                                    file_path.to_str().unwrap()
-                                )
-                            })
-                        })
-                }) {
-                Ok(_) => {}
-                Err(e) => {
-                    println!("{}", e.to_string().red());
-                    std::process::exit(1);
-                }
-            }
-            report_elapsed(now);
-            println!("{}", "Success".green());
-        }
-        Some(Commands::MockSetup {
-            verification_key,
-            proofs,
-            public_signals,
-        }) => {
-            println!(
-                "{}",
-                "Reading circom-plonk verification key, proofs, and public signals"
-                    .white()
-                    .bold()
-            );
-            let ((circom_vk, proofs), public_signals) = {
-                match prepare_circom_vk(verification_key)
-                    .and_then(|prev| {
-                        let proofs = prepare_proofs(proofs)?;
-                        Ok((prev, proofs))
-                    })
-                    .and_then(|prev| {
-                        let ps = prepare_public_signals(public_signals)?;
-                        Ok((prev, ps))
-                    }) {
-                    Ok(res) => res,
-                    Err(e) => {
-                        println!("{}", format!("{:#?}", e).red());
-                        std::process::exit(1);
-                    }
-                }
-            };
-            assert!(proofs.len() == public_signals.len());
-            println!();
-
-            println!(
-                "{}",
-                format!("Building aggregation circuit for {} proofs", proofs.len())
-                    .white()
-                    .bold()
-            );
-            let circuit = Accumulation::new(circom_vk.clone(), public_signals, proofs);
-            println!();
-
-            // mock proving circuit
-            println!(
-                "{}",
-                "Running mock prover for aggregation circuit".white().bold()
-            );
-            let now = Instant::now();
-            let dimension = DimensionMeasurement::measure(&circuit).unwrap();
-            match MockProver::run(dimension.k(), &circuit, vec![circuit.instances.clone()])
-                .with_context(|| "Mock prover failed")
-            {
-                Ok(mock_prover) => match mock_prover.verify() {
-                    Ok(_) => {
-                        println!("{}", "Success".green().bold());
-                    }
-                    Err(errs) => {
-                        println!("{}", "Mock prover failed with errors:".red().bold());
-                        errs.iter()
-                            .for_each(|e| println!("{}", e.to_string().red().bold()));
-                    }
-                },
-                Err(e) => {
-                    println!("{}", format!("{:#?}", e).red().bold());
-                }
-            }
-            println!("{}", format!("k:{}", dimension.k()).blue().bold());
-            report_elapsed(now);
-        }
-        Some(Commands::CreateProof {
-            verification_key,
-            proofs,
-            public_signals,
-            params,
-            output_dir,
-        }) => {
-            println!(
-                "{}",
-                "Reading circom-plonk verification key, proofs, and public signals"
-                    .white()
-                    .bold()
-            );
-            let ((circom_vk, proofs), public_signals) = {
-                match prepare_circom_vk(verification_key)
-                    .and_then(|prev| {
-                        let proofs = prepare_proofs(proofs)?;
-                        Ok((prev, proofs))
-                    })
-                    .and_then(|prev| {
-                        let ps = prepare_public_signals(public_signals)?;
-                        Ok((prev, ps))
-                    }) {
-                    Ok(res) => res,
-                    Err(e) => {
-                        println!("{}", format!("{:#?}", e).red());
-                        std::process::exit(1);
-                    }
-                }
-            };
-            assert!(proofs.len() == public_signals.len());
-            println!();
-
-            println!("{}", "Reading parameters for the circuit".white().bold());
-            let now = Instant::now();
-            let params = match prepare_params(params) {
-                Ok(params) => params,
-                Err(e) => {
-                    println!("{}", format!("{:#?}", e).red());
-                    std::process::exit(1);
-                }
-            };
-            report_elapsed(now);
-            println!();
-
-            println!(
-                "{}",
-                format!("Building aggregation circuit for {} proofs", proofs.len())
-                    .white()
-                    .bold()
-            );
-            let circuit = Accumulation::new(circom_vk.clone(), public_signals, proofs);
-            println!();
-
-            // Make sure output_dir is accessible and can create
-            // necessary files for storing the proof.
-            // This is for precaution.
-            match std::fs::create_dir_all(output_dir.clone())
-                .with_context(|| {
-                    format!(
-                        "Failed to locate directory at {}",
-                        output_dir.to_str().unwrap()
-                    )
-                })
-                .and_then(|_| {
-                    for i in ["proof", "evm-calldata"] {
-                        let mut file_path = output_dir.clone();
-                        file_path.extend(vec![format!("halo2-agg-{}.txt", i)]);
-                        std::fs::File::create(file_path.clone()).with_context(|| {
-                            format!(
-                                "Failed to create new file at {}",
-                                file_path.to_str().unwrap()
-                            )
-                        })?;
-                    }
-                    Ok(())
-                }) {
-                Ok(_) => {}
-                Err(e) => {
-                    println!("{}", format!("{:#?}", e).red());
-                    std::process::exit(1);
-                }
-            }
-
-            println!("{}", "Generating proving key".white().bold());
-            let now = Instant::now();
-            let pk = gen_pk(&params, &circuit);
-            report_elapsed(now);
-            println!();
-
-            println!("{}", "Generating proof".white().bold());
-            let now = Instant::now();
-            let (proof, is_valid) = gen_proof::<
-                _,
-                _,
-                EvmTranscript<G1Affine, _, _, _>,
-                EvmTranscript<G1Affine, _, _, _>,
-            >(
-                &params, &pk, circuit.clone(), circuit.instances()
-            );
-            report_elapsed(now);
-            if !is_valid {
-                println!("{}", "Invalid proof generation".red().bold());
-            }
-
-            let calldata = encode_calldata(&circuit.instances(), &proof);
-            for i in [("proof", proof.clone()), ("evm-calldata", calldata.clone())] {
-                let mut file_path = output_dir.clone();
-                file_path.extend(vec![format!("halo2-agg-{}.txt", i.0)]);
-                match std::fs::File::create(file_path.clone())
-                    .with_context(|| {
-                        format!(
-                            "Failed to open file at {}",
-                            file_path.clone().to_str().unwrap()
-                        )
-                    })
-                    .and_then(|mut file| {
-                        file.write_all(&i.1).with_context(|| {
-                            format!("Failed to write to file at {}", file_path.to_str().unwrap())
-                        })
-                    }) {
-                    Ok(_) => {}
-                    Err(e) => {
-                        println!("{}", format!("{:#?}", e).red());
-                    }
-                }
-            }
-            println!();
-
-            println!("{}", "Simulating evm verification".white().bold());
-            let verification_key = pk.get_vk();
-            let evm_bytecode = gen_aggregation_evm_verifier(
-                &circom_vk,
-                &params,
-                verification_key,
-                Accumulation::num_instance(),
-                Accumulation::accumulator_indices(),
-            );
-            match evm_verify(evm_bytecode, calldata.clone())
-                .with_context(|| "Simulating evm verification failed")
-            {
-                Ok(result) => {
-                    println!("{}", format!("Gas used: {}", result.gas_used).blue());
-                    if result.reverted {
-                        println!("{}", "Verification failed".red())
-                    } else {
-                        println!("{}", "Verification success".green())
-                    }
-                }
-                Err(e) => {
-                    println!("{}", format!("{:#?}", e).red());
-                }
-            }
-            println!();
-
-            println!("{}", format!("Calldata (in bytes):").blue().bold());
-            println!("{}", format!("{:?}", calldata).white().bold());
-        }
-        Some(Commands::VerifyProof {
-            verification_key,
-            proofs,
-            public_signals,
-            proof_file,
-            params,
-        }) => {
-            println!(
-                "{}",
-                "Reading circom-plonk verification key, proofs, and public signals"
-                    .white()
-                    .bold()
-            );
-            let ((circom_vk, proofs), public_signals) = {
-                match prepare_circom_vk(verification_key)
-                    .and_then(|prev| {
-                        let proofs = prepare_proofs(proofs)?;
-                        Ok((prev, proofs))
-                    })
-                    .and_then(|prev| {
-                        let ps = prepare_public_signals(public_signals)?;
-                        Ok((prev, ps))
-                    }) {
-                    Ok(res) => res,
-                    Err(e) => {
-                        println!("{}", format!("{:#?}", e).red());
-                        std::process::exit(1);
-                    }
-                }
-            };
-            assert!(proofs.len() == public_signals.len());
-
-            let agg_proof = match std::fs::read_to_string(proof_file.clone())
-                .with_context(|| format!("Failed to locate {}", proof_file.to_str().unwrap()))
-                .and_then(|proof| {
-                    let proof = serde_json::from_str::<Vec<u8>>(&proof)?;
-                    Ok(proof)
-                }) {
-                Ok(proof) => proof,
-                Err(e) => {
-                    println!("{}", format!("{:#?}", e).red());
-                    std::process::exit(1);
-                }
-            };
-
-            println!("{}", "Reading parameters for the circuit".white().bold());
-            let now = Instant::now();
-            let params = match prepare_params(params) {
-                Ok(params) => params,
-                Err(e) => {
-                    println!("{}", format!("{:#?}", e).red());
-                    std::process::exit(1);
-                }
-            };
-            report_elapsed(now);
-            println!();
-
-            println!(
-                "{}",
-                format!("Building aggregation circuit for {} proofs", proofs.len())
-                    .white()
-                    .bold()
-            );
-            let circuit = Accumulation::new(circom_vk.clone(), public_signals, proofs);
-            println!();
-
-            println!("{}", "Generating verification key".white().bold());
-            let now = Instant::now();
-            let vk = gen_vk(&params, &circuit);
-            report_elapsed(now);
-            println!();
-
-            if check_proof::<_, EvmTranscript<G1Affine, _, _, _>, EvmTranscript<G1Affine, _, _, _>>(
-                &params,
-                &vk,
-                circuit.instances(),
-                agg_proof,
-            ) {
-                println!("{}", "Verification success".green())
-            } else {
-                println!("{}", "Verification failed".red())
-            }
-        }
-        Some(Commands::CreateParams { k, output_dir }) => {
-            println!(
-                "{}",
-                "Warning! Please don't use generated Params in production.".yellow()
-            );
-            let now = Instant::now();
-            match create_and_save_srs(output_dir, k) {
+        match mock_prover.verify() {
                 Ok(_) => {
-                    report_elapsed(now);
-                    println!("{}", "Success".green());
+                    println!("Mock prover verify ok");
                 }
-                Err(e) => {
-                    println!("{}", e.to_string().red());
-                    std::process::exit(1);
+                Err(errs) => {
+                    println!("{}", "Mock prover failed with errors:".red());
+                    errs.iter().for_each(|e| println!("{}", e.to_string().red()));
                 }
-            }
         }
-        Some(Commands::EvmVerifyProof {
-            calldata,
-            evmbytecode,
-        }) => {
-            let (calldata, bytecode) = match std::fs::read_to_string(calldata.clone())
-                .with_context(|| format!("Failed to locate {}", calldata.to_str().unwrap()))
-                .and_then(|calldata| {
-                    let bytecode =
-                        std::fs::read_to_string(evmbytecode.clone()).with_context(|| {
-                            format!("Failed to locate {}", evmbytecode.to_str().unwrap())
-                        })?;
-                    Ok((calldata, bytecode))
-                })
-                .and_then(|(calldata, bytecode)| {
-                    let calldata = serde_json::from_str::<Vec<u8>>(&calldata)
-                        .with_context(|| "Failed to parse calldata")?;
-                    let bytecode = serde_json::from_str::<Vec<u8>>(&bytecode)
-                        .with_context(|| "Failed to parse evm bytecode")?;
-                    Ok((calldata, bytecode))
-                }) {
-                Ok(res) => res,
-                Err(e) => {
-                    println!("{}", format!("{:#?}", e).red());
-                    std::process::exit(1);
-                }
-            };
+        report_elapsed(now);
+        return
+    }
 
-            match evm_verify(bytecode, calldata)
-                .with_context(|| "Simulating evm verification failed")
-            {
-                Ok(result) => {
-                    println!("{}", format!("Gas used: {}", result.gas_used).blue());
-                    if result.reverted {
-                        println!("{}", "Verification failed".red())
-                    } else {
-                        println!("{}", "Verification success".green())
-                    }
-                }
-                Err(e) => {
-                    println!("{}", format!("{:#?}", e).red());
-                }
-            }
+    println!("{}", "Reading parameters for commitment scheme".white().bold());
+    let now = Instant::now();
+    let ptau_srs = PathBuf::from("/Users/sam/ptau/powersOfTau28_hez_final_21.ptau");   // TODO
+    let params = match prepare_params(ptau_srs) {
+        Ok(params) => params,
+        Err(e) => {
+            println!("{}", e.to_string().red());
+            std::process::exit(1);
         }
-        None => {}
     };
+    report_elapsed(now);
 
-    std::process::exit(0);
-}
+    println!("{}", "Generating proof".white().bold());
+    let now = Instant::now();
+    let pk = gen_pk(&params, &circuit);
+    let (proof, is_valid) = gen_proof::<
+        _,
+        _,
+        EvmTranscript<G1Affine, _, _, _>,
+        EvmTranscript<G1Affine, _, _, _>,
+    >(
+        &params, &pk, circuit.clone(), circuit.instances()
+    );
+    report_elapsed(now);
+    if !is_valid {
+        println!("{}", "Invalid proof generation".red().bold());
+    }
 
-#[cfg(test)]
-mod tests {
-    // use super::*;
+    let calldata = encode_calldata(&circuit.instances(), &proof);
+    for i in [("proof", proof.clone()), ("evm-calldata", calldata.clone())] {
+        let mut file_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/");
+        file_path.extend(vec![format!("halo2-agg-{}.txt", i.0)]);
+        match std::fs::File::create(file_path.clone())
+            .with_context(|| {
+                format!(
+                    "Failed to open file at {}",
+                    file_path.clone().to_str().unwrap()
+                )
+            })
+            .and_then(|mut file| {
+                file.write_all(&i.1).with_context(|| {
+                    format!("Failed to write to file at {}", file_path.to_str().unwrap())
+                })
+            }) {
+            Ok(_) => {}
+            Err(e) => {
+                println!("{}", format!("{:#?}", e).red());
+            }
+        }
+    }
 
-    // fn accumulation() {
-    // let vk =
-    // Accumulation::new(params, vk, public_signals, proofs)
-    // }
+    println!("{}", "Simulating evm verification".white().bold());
+    let verification_key = pk.get_vk();
+    let evm_bytecode = gen_aggregation_evm_verifier(
+        &circom_vk,
+        &params,
+        verification_key,
+        Accumulation::num_instance(),
+        Accumulation::accumulator_indices(),
+    );
+    match evm_verify(evm_bytecode, calldata.clone())
+        .with_context(|| "Simulating evm verification failed")
+    {
+        Ok(result) => {
+            println!("{}", format!("Gas used: {}", result.gas_used).blue());
+            if result.reverted {
+                println!("{}", "Verification failed".red())
+            } else {
+                println!("{}", "Verification success".green())
+            }
+        }
+        Err(e) => {
+            println!("{}", format!("{:#?}", e).red());
+        }
+    }
+
+    println!("sanity of maze!!!...");
 }
