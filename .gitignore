@@ -23,3 +23,7 @@ witness_calculator.js
 *_constraints.json
 scripts/types/
 submodules/
+nouns_js
+nvote_js
+round2_js
+.DS_Store

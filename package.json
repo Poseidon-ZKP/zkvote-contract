@@ -56,6 +56,7 @@
   },
   "dependencies": {
     "@walletconnect/client": "^1.8.0",
-    "clipboardy": "^3.0.0"
+    "clipboardy": "^3.0.0",
+    "compute-polynomial": "^1.1.0"
   }
 }

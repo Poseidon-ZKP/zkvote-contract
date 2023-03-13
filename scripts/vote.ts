@@ -205,7 +205,7 @@ async function main(
         group,
         rand,
         get_circuit_wasm_file("group"),
-        get_circuit_zkey_file("group")
+        get_circuit_zkey_file("group").growth16
     )
     console.log("groupProof : ", groupProof)
 

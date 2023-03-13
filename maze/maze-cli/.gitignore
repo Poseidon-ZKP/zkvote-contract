@@ -1,0 +1,7 @@
+/target
+
+/testdata/*.ptau
+/testdata/*.srs
+/testdata/output
+
+.DS_Store/
