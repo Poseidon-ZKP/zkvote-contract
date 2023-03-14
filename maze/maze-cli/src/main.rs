@@ -595,7 +595,7 @@ fn fullprocess() {
 
     println!("{}", format!("Building aggregation circuit for {} proofs", proofs.len()).white().bold());
     let circuit = Accumulation::new(circom_vk.clone(), public_signals, proofs);
-    if true {
+    if false {
         let now = Instant::now();
         let dimension = DimensionMeasurement::measure(&circuit).unwrap();
         println!("dimension : {:?}", dimension);
@@ -624,7 +624,8 @@ fn fullprocess() {
 
     println!("{}", "Reading parameters for commitment scheme".white().bold());
     let now = Instant::now();
-    let ptau_srs = PathBuf::from("/Users/sam/ptau/powersOfTau28_hez_final_21.ptau");   // TODO
+    let ptau_srs = PathBuf::from("/Users/sam/ptau/hermez-21.srs");   // TODO
+    // read in memory take a long time, using srs(6min) instead of ptau
     let params = match prepare_params(ptau_srs) {
         Ok(params) => params,
         Err(e) => {
@@ -632,6 +633,7 @@ fn fullprocess() {
             std::process::exit(1);
         }
     };
+    // TODO : serialize 
     report_elapsed(now);
 
     println!("{}", "Generating proof".white().bold());
