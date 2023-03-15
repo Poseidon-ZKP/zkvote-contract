@@ -609,7 +609,7 @@ fn fullprocess() {
         file.write_all(&evm_bytecode.clone()).unwrap();
     } else {
         println!("{}", "Readding Bytecode".white().bold());
-        let file_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/halo2-agg-evm-calldata.txt");
+        let file_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/halo2-agg-bytecode.txt");
         evm_bytecode = std::fs::read(file_path).unwrap();
         
         let calldata_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/halo2-agg-evm-calldata.txt");
