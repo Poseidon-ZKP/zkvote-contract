@@ -59,12 +59,14 @@ use plonk_verifier::{
 };
 use rand::{rngs::OsRng, SeedableRng};
 use rand_chacha::ChaCha20Rng;
+use serde_json;
+use serde::{Serialize, Deserialize};
 use std::{
     io::{Cursor, Write},
     iter,
     path::PathBuf,
     rc::Rc,
-    time::Instant,
+    time::Instant, string,
 };
 use utils::DimensionMeasurement;
 
@@ -210,6 +212,7 @@ impl Accumulation {
         public_signals: Vec<PublicSignals<Fr>>,
         proofs: Vec<Proof<Bn256>>,
     ) -> Self {
+        println!("{}", format!("Building aggregation circuit for {} proofs", proofs.len()).white().bold());
         let protocol = compile(&vk);
         let proofs: Vec<Vec<u8>> = proofs.iter().map(|p| p.to_compressed_le()).collect();
 
@@ -410,6 +413,7 @@ fn gen_proof<
 }
 
 fn gen_pk<C: Circuit<Fr>>(params: &ParamsKZG<Bn256>, circuit: &C) -> ProvingKey<G1Affine> {
+    println!("{}", "gen_pk".white().bold());
     let vk = keygen_vk(params, circuit).unwrap();
     keygen_pk(params, vk, circuit).unwrap()
 }
@@ -445,6 +449,7 @@ fn gen_aggregation_evm_verifier(
 }
 
 fn evm_verify(deployment_code: Vec<u8>, calldata: Vec<u8>) -> anyhow::Result<RawCallResult> {
+    println!("{}", "Simulating evm verification".white().bold());
     let mut evm = ExecutorBuilder::default()
         .with_gas_limit(u64::MAX.into())
         .build(Backend::new(MultiFork::new().0, None));
@@ -458,6 +463,7 @@ fn evm_verify(deployment_code: Vec<u8>, calldata: Vec<u8>) -> anyhow::Result<Raw
 }
 
 fn prepare_params(path: PathBuf) -> anyhow::Result<ParamsKZG<Bn256>> {
+    println!("{}", "Reading parameters for commitment scheme".white().bold());
     let params = match path.extension() {
         Some(ext) => match ext.to_str().unwrap() {
             "srs" => Ok(Srs::<Bn256>::read(
@@ -474,7 +480,6 @@ fn prepare_params(path: PathBuf) -> anyhow::Result<ParamsKZG<Bn256>> {
     }
     .and_then(|srs| {
         let mut buf = Vec::new();
-        println!("srs write params...");
         srs.write(&mut buf);
         let params = ParamsKZG::<Bn256>::read(&mut std::io::Cursor::new(buf))
             .with_context(|| "Malformed params file")?;
@@ -510,10 +515,6 @@ fn prepare_public_signals(path: PathBuf) -> anyhow::Result<Vec<PublicSignals<Fr>
     Ok(public_signals)
 }
 
-fn main() {
-    println!("main of maze!!!...");
-}
-
 fn report_elapsed(now: Instant) {
     println!(
         "{}",
@@ -523,41 +524,50 @@ fn report_elapsed(now: Instant) {
     );
 }
 
+fn main() {
+    println!("main of maze!!!...");
+}
+
+// #[derive(Debug, Serialize, Deserialize)]
+// struct se {
+//     name : string,
+//     id : u32
+// }
+
 #[test]
 fn fullprocess() {
 
-    println!("{}", "Reading circom-plonk verification key, proofs, and public signals".white().bold());
+    const PROOF_CALLDAT_FROM_FILE : bool = true;
+    const BYTECODE_FROM_FILE : bool = false;
+    const MOCK_PROVE_VERIFY : bool = false;
+
     let circom_vk = match prepare_circom_vk(PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/verification_key.json")) {Ok(v) => v, Err(e) => return };
     let proofs = match prepare_proofs(PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/proofs.json")) {Ok(v) => v, Err(e) => return};
     let public_signals = match prepare_public_signals(PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/public_signals.json")) {Ok(v) => v, Err(e) => return};
-    // println!("circom_vk : {:?}\n proofs : {:?}\n public signals : {:?}", circom_vk, proofs, public_signals);
 
-    println!("{}", format!("Building aggregation circuit for {} proofs", proofs.len()).white().bold());
     let circuit = Accumulation::new(circom_vk.clone(), public_signals, proofs);
-    if false {
+    if MOCK_PROVE_VERIFY {
         let now = Instant::now();
         let dimension = DimensionMeasurement::measure(&circuit).unwrap();
         // 21 works, takes 1min(release)/10mins(debug) for generate proof.
         let mock_prover = MockProver::run(dimension.k(), &circuit, vec![circuit.instances.clone()]).unwrap();
-        let res = mock_prover.verify().unwrap();
+        mock_prover.verify().unwrap();
         report_elapsed(now);
         return
     }
 
-    println!("{}", "Reading parameters for commitment scheme".white().bold());
     let now = Instant::now();
     // read in memory take a long time, using srs(1min) instead of ptau
     let params = prepare_params(PathBuf::from("/Users/sam/ptau/hermez-21.srs")).unwrap();
     report_elapsed(now);
 
-    println!("{}", "gen_pk".white().bold());
     let now = Instant::now();
     let pk = gen_pk(&params, &circuit);
     report_elapsed(now);
 
     let calldata : Vec<u8>;
     let evm_bytecode : Vec<u8>;
-    if false {
+    if !PROOF_CALLDAT_FROM_FILE {
         println!("{}", "Generating proof".white().bold());
         let now = Instant::now();
         let (proof, is_valid) = gen_proof::<
@@ -572,65 +582,47 @@ fn fullprocess() {
         if !is_valid {
             println!("{}", "Invalid proof generation".red().bold());
         }
+        let file_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/halo2-agg-proof.txt");
+        let mut file = std::fs::File::create(file_path.clone()).unwrap();
+        file.write_all(&proof.clone()).unwrap();
 
         calldata = encode_calldata(&circuit.instances(), &proof);
-        for i in [("proof", proof.clone()), ("evm-calldata", calldata.clone())] {
-            let mut file_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/");
-            file_path.extend(vec![format!("halo2-agg-{}.txt", i.0)]);
-            match std::fs::File::create(file_path.clone())
-                .with_context(|| {
-                    format!(
-                        "Failed to open file at {}",
-                        file_path.clone().to_str().unwrap()
-                    )
-                })
-                .and_then(|mut file| {
-                    file.write_all(&i.1).with_context(|| {
-                        format!("Failed to write to file at {}", file_path.to_str().unwrap())
-                    })
-                }) {
-                Ok(_) => {}
-                Err(e) => {
-                    println!("{}", format!("{:#?}", e).red());
-                }
-            }
-        }
+        let file_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/halo2-agg-evm-calldata.txt");
+        let mut file = std::fs::File::create(file_path.clone()).unwrap();
+        file.write_all(&calldata.clone()).unwrap();
 
     } else {
-        println!("{}", "Readding Calldata".white().bold());
-        let now = Instant::now();
         let calldata_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/halo2-agg-evm-calldata.txt");
         calldata = std::fs::read(calldata_path).unwrap();
-        report_elapsed(now);
     }
 
-    println!("{}", "Simulating evm verification".white().bold());
-    let verification_key = pk.get_vk();
-    evm_bytecode = gen_aggregation_evm_verifier(
-        &circom_vk,
-        &params,
-        verification_key,
-        Accumulation::num_instance(),
-        Accumulation::accumulator_indices(),
-    );
-
-    //evm_verify(evm_bytecode, calldata.clone()).unwrap();
-    match evm_verify(evm_bytecode, calldata.clone())
-        .with_context(|| "Simulating evm verification failed")
-    {
-        Ok(result) => {
-            println!("result : {:?}", result);
-            println!("{}", format!("Gas used: {}", result.gas_used).blue());
-            if result.reverted {
-                println!("{}", "Verification failed".red())
-            } else {
-                println!("{}", "Verification success".green())
-            }
-        }
-        Err(e) => {
-            println!("{}", format!("{:#?}", e).red());
-        }
+    if !BYTECODE_FROM_FILE {
+        let verification_key = pk.get_vk();
+        evm_bytecode = gen_aggregation_evm_verifier(
+            &circom_vk,
+            &params,
+            verification_key,
+            Accumulation::num_instance(),
+            Accumulation::accumulator_indices(),
+        );
+        let file_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/halo2-agg-bytecode.txt");
+        let mut file = std::fs::File::create(file_path.clone()).unwrap();
+        file.write_all(&evm_bytecode.clone()).unwrap();
+    } else {
+        println!("{}", "Readding Bytecode".white().bold());
+        let file_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/halo2-agg-evm-calldata.txt");
+        evm_bytecode = std::fs::read(file_path).unwrap();
     }
 
-    println!("sanity of maze!!!...");
+    let result = evm_verify(evm_bytecode, calldata.clone()).unwrap();
+    println!("result : {:?}", result);
+    println!("{}", format!("Gas used: {}", result.gas_used).blue());
+    if result.reverted {
+        println!("{}", "Verification failed".red())
+    } else {
+        println!("{}", "Verification success".green())
+    }
 }
+
+// TODO :
+// 1. EVM Verify Fail : PSE snarkjs ?
