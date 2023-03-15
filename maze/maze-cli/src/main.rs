@@ -548,11 +548,6 @@ fn fullprocess() {
     let now = Instant::now();
     // read in memory take a long time, using srs(1min) instead of ptau
     let params = prepare_params(PathBuf::from("/Users/sam/ptau/hermez-21.srs")).unwrap();
-
-    let mut file_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/");
-    file_path.extend(vec![format!("k-{}.srs", 21)]);
-    let mut file = std::fs::File::create(file_path.clone()).unwrap();
-    params.write(&mut file).unwrap();
     report_elapsed(now);
 
     println!("{}", "gen_pk".white().bold());
@@ -624,6 +619,7 @@ fn fullprocess() {
         .with_context(|| "Simulating evm verification failed")
     {
         Ok(result) => {
+            println!("result : {:?}", result);
             println!("{}", format!("Gas used: {}", result.gas_used).blue());
             if result.reverted {
                 println!("{}", "Verification failed".red())
