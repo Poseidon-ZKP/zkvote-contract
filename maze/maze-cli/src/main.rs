@@ -409,40 +409,9 @@ fn gen_proof<
     (proof, accept)
 }
 
-fn check_proof<
-    E: EncodedChallenge<G1Affine>,
-    TR: TranscriptReadBuffer<Cursor<Vec<u8>>, G1Affine, E>,
-    TW: TranscriptWriterBuffer<Vec<u8>, G1Affine, E>,
->(
-    params: &ParamsKZG<Bn256>,
-    vk: &PlonkVerifyingKey<G1Affine>,
-    instances: Vec<Vec<Fr>>,
-    proof: Vec<u8>,
-) -> bool {
-    let instances = instances
-        .iter()
-        .map(|instances| instances.as_slice())
-        .collect_vec();
-    let mut transcript = TR::init(Cursor::new(proof.clone()));
-    VerificationStrategy::<_, VerifierGWC<_>>::finalize(
-        verify_proof::<_, VerifierGWC<_>, _, TR, _>(
-            params.verifier_params(),
-            vk,
-            AccumulatorStrategy::new(params.verifier_params()),
-            &[instances.as_slice()],
-            &mut transcript,
-        )
-        .unwrap(),
-    )
-}
-
 fn gen_pk<C: Circuit<Fr>>(params: &ParamsKZG<Bn256>, circuit: &C) -> ProvingKey<G1Affine> {
     let vk = keygen_vk(params, circuit).unwrap();
     keygen_pk(params, vk, circuit).unwrap()
-}
-
-fn gen_vk<C: Circuit<Fr>>(params: &ParamsKZG<Bn256>, circuit: &C) -> PlonkVerifyingKey<G1Affine> {
-    keygen_vk(params, circuit).unwrap()
 }
 
 fn gen_aggregation_evm_verifier(
@@ -491,12 +460,6 @@ fn evm_verify(deployment_code: Vec<u8>, calldata: Vec<u8>) -> anyhow::Result<Raw
 fn prepare_params(path: PathBuf) -> anyhow::Result<ParamsKZG<Bn256>> {
     let params = match path.extension() {
         Some(ext) => match ext.to_str().unwrap() {
-            "ptau" => Ok(Srs::<Bn256>::read(
-                &mut std::fs::File::open(path.clone()).with_context(|| {
-                    format!("Failed to read .ptau file {}", path.to_str().unwrap())
-                })?,
-                SrsFormat::SnarkJs,
-            )),
             "srs" => Ok(Srs::<Bn256>::read(
                 &mut std::fs::File::open(path.clone()).with_context(|| {
                     format!("Failed to read .srs file {}", path.to_str().unwrap())
@@ -511,37 +474,12 @@ fn prepare_params(path: PathBuf) -> anyhow::Result<ParamsKZG<Bn256>> {
     }
     .and_then(|srs| {
         let mut buf = Vec::new();
+        println!("srs write params...");
         srs.write(&mut buf);
         let params = ParamsKZG::<Bn256>::read(&mut std::io::Cursor::new(buf))
             .with_context(|| "Malformed params file")?;
         Ok(params)
     })?;
-
-    Ok(params)
-}
-
-fn gen_srs(k: u32) -> ParamsKZG<Bn256> {
-    ParamsKZG::<Bn256>::setup(k, OsRng)
-}
-
-fn create_and_save_srs(dir_path: PathBuf, k: usize) -> anyhow::Result<ParamsKZG<Bn256>> {
-    std::fs::create_dir_all(dir_path.clone()).with_context(|| {
-        format!(
-            "Failed to locate directory at {}",
-            dir_path.to_str().unwrap()
-        )
-    })?;
-
-    let params = gen_srs(k as u32);
-    let mut file_path = dir_path;
-    file_path.extend(vec![format!("k-{}.srs", k)]);
-    let mut file = std::fs::File::create(file_path.clone()).with_context(|| {
-        format!(
-            "Failed to create new file at {}",
-            file_path.to_str().unwrap()
-        )
-    })?;
-    params.write(&mut file)?;
 
     Ok(params)
 }
@@ -587,103 +525,101 @@ fn report_elapsed(now: Instant) {
 
 #[test]
 fn fullprocess() {
+
     println!("{}", "Reading circom-plonk verification key, proofs, and public signals".white().bold());
     let circom_vk = match prepare_circom_vk(PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/verification_key.json")) {Ok(v) => v, Err(e) => return };
     let proofs = match prepare_proofs(PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/proofs.json")) {Ok(v) => v, Err(e) => return};
     let public_signals = match prepare_public_signals(PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/public_signals.json")) {Ok(v) => v, Err(e) => return};
-    println!("circom_vk : {:?}\n proofs : {:?}\n public signals : {:?}", circom_vk, proofs, public_signals);
+    // println!("circom_vk : {:?}\n proofs : {:?}\n public signals : {:?}", circom_vk, proofs, public_signals);
 
     println!("{}", format!("Building aggregation circuit for {} proofs", proofs.len()).white().bold());
     let circuit = Accumulation::new(circom_vk.clone(), public_signals, proofs);
     if false {
         let now = Instant::now();
         let dimension = DimensionMeasurement::measure(&circuit).unwrap();
-        println!("dimension : {:?}", dimension);
         // 21 works, takes 1min(release)/10mins(debug) for generate proof.
-        let mock_prover = match MockProver::run(dimension.k(), &circuit, vec![circuit.instances.clone()])
-        {
-            Ok(v) => v,
-            Err(e) => {
-                println!("Mock Prover Run Err : {}", e.to_string().red());
-                return
-            },
-        };
-
-        match mock_prover.verify() {
-                Ok(_) => {
-                    println!("Mock prover verify ok");
-                }
-                Err(errs) => {
-                    println!("{}", "Mock prover failed with errors:".red());
-                    errs.iter().for_each(|e| println!("{}", e.to_string().red()));
-                }
-        }
+        let mock_prover = MockProver::run(dimension.k(), &circuit, vec![circuit.instances.clone()]).unwrap();
+        let res = mock_prover.verify().unwrap();
         report_elapsed(now);
         return
     }
 
     println!("{}", "Reading parameters for commitment scheme".white().bold());
     let now = Instant::now();
-    let ptau_srs = PathBuf::from("/Users/sam/ptau/hermez-21.srs");   // TODO
-    // read in memory take a long time, using srs(6min) instead of ptau
-    let params = match prepare_params(ptau_srs) {
-        Ok(params) => params,
-        Err(e) => {
-            println!("{}", e.to_string().red());
-            std::process::exit(1);
-        }
-    };
-    // TODO : serialize 
+    // read in memory take a long time, using srs(1min) instead of ptau
+    let params = prepare_params(PathBuf::from("/Users/sam/ptau/hermez-21.srs")).unwrap();
+
+    let mut file_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/");
+    file_path.extend(vec![format!("k-{}.srs", 21)]);
+    let mut file = std::fs::File::create(file_path.clone()).unwrap();
+    params.write(&mut file).unwrap();
     report_elapsed(now);
 
-    println!("{}", "Generating proof".white().bold());
+    println!("{}", "gen_pk".white().bold());
     let now = Instant::now();
     let pk = gen_pk(&params, &circuit);
-    let (proof, is_valid) = gen_proof::<
-        _,
-        _,
-        EvmTranscript<G1Affine, _, _, _>,
-        EvmTranscript<G1Affine, _, _, _>,
-    >(
-        &params, &pk, circuit.clone(), circuit.instances()
-    );
     report_elapsed(now);
-    if !is_valid {
-        println!("{}", "Invalid proof generation".red().bold());
-    }
 
-    let calldata = encode_calldata(&circuit.instances(), &proof);
-    for i in [("proof", proof.clone()), ("evm-calldata", calldata.clone())] {
-        let mut file_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/");
-        file_path.extend(vec![format!("halo2-agg-{}.txt", i.0)]);
-        match std::fs::File::create(file_path.clone())
-            .with_context(|| {
-                format!(
-                    "Failed to open file at {}",
-                    file_path.clone().to_str().unwrap()
-                )
-            })
-            .and_then(|mut file| {
-                file.write_all(&i.1).with_context(|| {
-                    format!("Failed to write to file at {}", file_path.to_str().unwrap())
+    let calldata : Vec<u8>;
+    let evm_bytecode : Vec<u8>;
+    if false {
+        println!("{}", "Generating proof".white().bold());
+        let now = Instant::now();
+        let (proof, is_valid) = gen_proof::<
+            _,
+            _,
+            EvmTranscript<G1Affine, _, _, _>,
+            EvmTranscript<G1Affine, _, _, _>,
+        >(
+            &params, &pk, circuit.clone(), circuit.instances()
+        );
+        report_elapsed(now);
+        if !is_valid {
+            println!("{}", "Invalid proof generation".red().bold());
+        }
+
+        calldata = encode_calldata(&circuit.instances(), &proof);
+        for i in [("proof", proof.clone()), ("evm-calldata", calldata.clone())] {
+            let mut file_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/");
+            file_path.extend(vec![format!("halo2-agg-{}.txt", i.0)]);
+            match std::fs::File::create(file_path.clone())
+                .with_context(|| {
+                    format!(
+                        "Failed to open file at {}",
+                        file_path.clone().to_str().unwrap()
+                    )
                 })
-            }) {
-            Ok(_) => {}
-            Err(e) => {
-                println!("{}", format!("{:#?}", e).red());
+                .and_then(|mut file| {
+                    file.write_all(&i.1).with_context(|| {
+                        format!("Failed to write to file at {}", file_path.to_str().unwrap())
+                    })
+                }) {
+                Ok(_) => {}
+                Err(e) => {
+                    println!("{}", format!("{:#?}", e).red());
+                }
             }
         }
+
+    } else {
+        println!("{}", "Readding Calldata".white().bold());
+        let now = Instant::now();
+        let calldata_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/halo2-agg-evm-calldata.txt");
+        calldata = std::fs::read(calldata_path).unwrap();
+        report_elapsed(now);
     }
 
     println!("{}", "Simulating evm verification".white().bold());
     let verification_key = pk.get_vk();
-    let evm_bytecode = gen_aggregation_evm_verifier(
+    evm_bytecode = gen_aggregation_evm_verifier(
         &circom_vk,
         &params,
         verification_key,
         Accumulation::num_instance(),
         Accumulation::accumulator_indices(),
     );
+
+    //evm_verify(evm_bytecode, calldata.clone()).unwrap();
     match evm_verify(evm_bytecode, calldata.clone())
         .with_context(|| "Simulating evm verification failed")
     {
