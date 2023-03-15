@@ -538,12 +538,12 @@ fn main() {
 fn fullprocess() {
 
     const PROOF_CALLDAT_FROM_FILE : bool = true;
-    const BYTECODE_FROM_FILE : bool = false;
+    const BYTECODE_FROM_FILE : bool = true;
     const MOCK_PROVE_VERIFY : bool = false;
 
-    let circom_vk = match prepare_circom_vk(PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/verification_key.json")) {Ok(v) => v, Err(e) => return };
-    let proofs = match prepare_proofs(PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/proofs.json")) {Ok(v) => v, Err(e) => return};
-    let public_signals = match prepare_public_signals(PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/public_signals.json")) {Ok(v) => v, Err(e) => return};
+    let circom_vk = prepare_circom_vk(PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/verification_key.json")).unwrap();
+    let proofs = prepare_proofs(PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/proofs.json")).unwrap();
+    let public_signals = prepare_public_signals(PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/public_signals.json")).unwrap();
 
     let circuit = Accumulation::new(circom_vk.clone(), public_signals, proofs);
     if MOCK_PROVE_VERIFY {
@@ -556,18 +556,23 @@ fn fullprocess() {
         return
     }
 
-    let now = Instant::now();
-    // read in memory take a long time, using srs(1min) instead of ptau
-    let params = prepare_params(PathBuf::from("/Users/sam/ptau/hermez-21.srs")).unwrap();
-    report_elapsed(now);
-
-    let now = Instant::now();
-    let pk = gen_pk(&params, &circuit);
-    report_elapsed(now);
-
+    let params : ParamsKZG<Bn256>;
+    let pk : ProvingKey<G1Affine>;
     let calldata : Vec<u8>;
     let evm_bytecode : Vec<u8>;
-    if !PROOF_CALLDAT_FROM_FILE {
+
+    if !BYTECODE_FROM_FILE {
+        let now = Instant::now();
+        // read in memory take a long time, using srs(1min) instead of ptau
+        params = prepare_params(PathBuf::from("/Users/sam/ptau/hermez-21.srs")).unwrap();
+        report_elapsed(now);
+
+        let now = Instant::now();
+        pk = gen_pk(&params, &circuit);
+        report_elapsed(now);
+    // }
+
+    // if false {
         println!("{}", "Generating proof".white().bold());
         let now = Instant::now();
         let (proof, is_valid) = gen_proof::<
@@ -591,12 +596,6 @@ fn fullprocess() {
         let mut file = std::fs::File::create(file_path.clone()).unwrap();
         file.write_all(&calldata.clone()).unwrap();
 
-    } else {
-        let calldata_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/halo2-agg-evm-calldata.txt");
-        calldata = std::fs::read(calldata_path).unwrap();
-    }
-
-    if !BYTECODE_FROM_FILE {
         let verification_key = pk.get_vk();
         evm_bytecode = gen_aggregation_evm_verifier(
             &circom_vk,
@@ -612,6 +611,9 @@ fn fullprocess() {
         println!("{}", "Readding Bytecode".white().bold());
         let file_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/halo2-agg-evm-calldata.txt");
         evm_bytecode = std::fs::read(file_path).unwrap();
+        
+        let calldata_path = PathBuf::from("/Users/sam/zkvote-contract/maze/maze-cli/testdata/halo2-agg-evm-calldata.txt");
+        calldata = std::fs::read(calldata_path).unwrap();
     }
 
     let result = evm_verify(evm_bytecode, calldata.clone()).unwrap();
