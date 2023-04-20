@@ -28,6 +28,10 @@ template Vote() {
 
     component o2bits = Num2Bits(3);
     o2bits.in <== o;
+
+    // Ensure exactly one bit is set.
+    1 === o2bits.out[0] + o2bits.out[1] + o2bits.out[2];
+
     component mulG[3];
     component babyAdd[3];
     var i;
