@@ -205,7 +205,7 @@ async function main(
         group,
         rand,
         get_circuit_wasm_file("group"),
-        get_circuit_zkey_file("group").growth16
+        get_circuit_zkey_file("group").groth16
     )
     console.log("groupProof : ", groupProof)
 
@@ -241,7 +241,7 @@ async function main(
         externalNullifier.toBigInt(),
         msgHash,
         get_circuit_wasm_file("signal"),
-        get_circuit_zkey_file("signal")
+        get_circuit_zkey_file("signal").groth16
     )
     let soliditySignalProof: SolidityProof = packToSolidityProof(signalProof.proof)
     console.log("signalProof : ", signalProof)

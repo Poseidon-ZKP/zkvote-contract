@@ -102,14 +102,14 @@ export function get_circuit_wasm_file(
 
 export function get_circuit_zkey_file(
     CUR_CIRCUIT : string
-) {
+): { groth16: string, plonk: string } {
     const DIR = process.cwd()
     console.log("WORK DIR : ", DIR)
     const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
     const FILE_ZKEY_FINAL = CIRCUIT_TGT_DIR + "zkey.16"
     const FILE_ZKEY_PLONK = CIRCUIT_TGT_DIR + "zkey.plonk.16"
     return {
-        growth16 : FILE_ZKEY_FINAL,
+        groth16 : FILE_ZKEY_FINAL,
         plonk : FILE_ZKEY_PLONK
     }
 }
