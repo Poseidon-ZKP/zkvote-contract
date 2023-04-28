@@ -43,14 +43,15 @@ contract Nouns {
     uint[2][] DI;
     uint[] tally_cid;
 
-    uint[2] public PK;
-    //uint[2][][] C;
-    mapping(uint => mapping(uint => mapping(uint => uint))) C;   // uint[2][][]
-
-    mapping(address => uint) public committee;
+    // Committee
     uint public n_comm;
     uint public tally_threshold;
     uint public tallied_committee;
+    mapping(address => uint) public committee;
+
+    // DKG
+    uint[2][] public PK_shares;
+    mapping(uint => uint[2][]) C;
     mapping(address => bool) public round1_done;
     uint round1_total;
 
@@ -100,33 +101,55 @@ contract Nouns {
             lookup_table[x][y] = i;
         }
     }
-    function pointSub(uint256 _x1, uint256 _y1, uint256 _x2, uint256 _y2) public view returns (uint256 x3, uint256 y3) {
-        return CurveBabyJubJub.pointSub(_x1, _y1, _x2, _y2);
+
+    function PK() public view returns (uint256, uint256) {
+        return (PK_shares[0][0], PK_shares[0][1]);
     }
 
     function round1(
         uint[2][] memory CI
     ) public {
-        require(!round1_done[msg.sender], "round 1 already done!");
+        require(round1_total < n_comm, "round 1 already complete");
+        require(!round1_done[msg.sender], "user already participated in round 1!");
+        require(CI.length == tally_threshold, "round 1 already done!");
+
         uint cid = committee[msg.sender] - 1;
         require(cid >= 0);
 
         for (uint256 t = 0; t < tally_threshold; t++) {
             require(CurveBabyJubJub.isOnCurve(CI[t][0], CI[t][1]), "invalid point");
-            C[cid][t][0] = CI[t][0];
-            C[cid][t][1] = CI[t][1];
+        }
+        C[cid] = CI;
+
+        // First set of points is just written to the PK shares.  Subsequent
+        // points are added.
+        if (round1_total == 0) {
+            PK_shares = CI;
+        } else {
+            for (uint256 t = 0; t < tally_threshold; t++) {
+                (uint256 x, uint256 y) = CurveBabyJubJub.pointAdd(
+                    PK_shares[t][0], PK_shares[t][1], CI[t][0], CI[t][1]);
+                PK_shares[t] = [x, y];
+                // PK_shares[t][0] = x;
+                // PK_shares[t][1] = y;
+            }
         }
 
         round1_done[msg.sender] = true;
         round1_total++;
 
-        // Last Committee, PK = Sum(Ci0)
+        // // Last Committee, PK = Sum(Ci0)
         if (round1_total == n_comm) {
-            PK = [C[0][0][0], C[0][0][1]];
-            for (uint256 i = 1; i < n_comm; i++) {
-                (PK[0], PK[1]) = CurveBabyJubJub.pointAdd(PK[0], PK[1], C[i][0][0], C[i][0][1]);
-            }
+        //     PK = [C[0][0][0], C[0][0][1]];
+        //     for (uint256 i = 1; i < n_comm; i++) {
+        //         (PK[0], PK[1]) = CurveBabyJubJub.pointAdd(PK[0], PK[1], C[i][0][0], C[i][0][1]);
+        //     }
+
         }
+    }
+
+    function round1_complete() public view returns (bool) {
+        return round1_total == n_comm;
     }
 
     function round2(
@@ -184,8 +207,12 @@ contract Nouns {
             [[proof[2], proof[3]], [proof[4], proof[5]]],
             [proof[6], proof[7]],
             [ RI[0], RI[1], MI[0][0], MI[0][1], MI[1][0], MI[1][1], MI[2][0], MI[2][1],
-             PK[0], PK[1], votePower[msg.sender]]
+              PK_shares[0][0], PK_shares[0][1], votePower[msg.sender]]
         );
+    }
+
+    function pointSub(uint256 _x1, uint256 _y1, uint256 _x2, uint256 _y2) public view returns (uint256 x3, uint256 y3) {
+        return CurveBabyJubJub.pointSub(_x1, _y1, _x2, _y2);
     }
 
     function Lagrange_coeff(

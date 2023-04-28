@@ -14,11 +14,13 @@ template PoseidonEnc() {
     signal output out;
     signal output kb[2];
 
+    // R = r * G
     component mulG = BabyScaleGenerator();
     mulG.in <== r;
     kb[0] <== mulG.Ax;
     kb[1] <== mulG.Ay;
 
+    // KS = r * C_0
     component mulAny = JubScalarMulAny();
     mulAny.in <== r;
     mulAny.p[0] <== base[0];
@@ -26,11 +28,16 @@ template PoseidonEnc() {
     KS[0] <== mulAny.out[0];
     KS[1] <== mulAny.out[1];
 
+    // Blinding factor = Poseidon(KS[0])
     component pos = Poseidon(1);
     pos.inputs[0] <== KS[0];
     out <== pos.out + msg;
 
     // TODO : complete poseidon enc (C.last == S[1]) to protect from "Tampering"
+
+    // TODO(duncan): The simple poseidon may be sufficient.  This proof will
+    // guarantee that the sender has encrypted the correct plaintext exactly
+    // as described here.
 }
 
 // Round2 : f(l)*G == sum(l^k * C[k])
@@ -39,9 +46,17 @@ template SumScaleMul(t) {
     signal input l;
     signal input C[t][2];
 
+    // Check f_l < BabyJub scalar field
+
     signal res[t][2];
     signal output out[2];
     // signal output cmp[2];
+
+    // TODO(duncan): save some constraints by not multiplying on the first loop
+
+    // TODO(duncan): check l < babyjub field, and use Horners scheme, which
+    // will avoid needing to care about whether l^k wraps in babyjub vs BN
+    // fields.
 
     var lk;
     lk = 1;// 0^0 = 1
@@ -49,6 +64,9 @@ template SumScaleMul(t) {
     component pvkBits[t];
     component babyAdd[t];
     for (var k = 0; k < t; k++) {
+        // TODO(duncan): no constraints on lk here?  We need mulAny[k].in to
+        // be the **witness element** lk * l, otherwise prover can cheat.
+
         mulAny[k] = parallel JubScalarMulAny();
         mulAny[k].in <-- lk;     // Do not need Constraints here, just witness
         mulAny[k].p[0] <== C[k][0];
@@ -66,6 +84,9 @@ template SumScaleMul(t) {
             res[k][0] <== babyAdd[k].xout;
             res[k][1] <== babyAdd[k].yout;
         }
+
+        // TODO(duncan): !! contract may need to check that lk^t won't wrap in
+        // the native scalar field.
 
         lk = lk * l;
     }
@@ -87,10 +108,11 @@ template Round2(t) {
 
     signal input r;
 
-    signal output out[2];
+    signal output out[2]; // f_i_l_commitment
     signal output enc;
     signal output kb[2];
 
+    // Show that f(l) * G = evaluation of committed poly at l
     component S = SumScaleMul(t);
     S.f_l <== f_l;
     S.l <== l;
@@ -98,9 +120,10 @@ template Round2(t) {
         S.C[i][0] <== C[i][0];
         S.C[i][1] <== C[i][1];
     }
-    out[0] <== S.out[0];
-    out[1] <== S.out[1];
+    f_l_commit[0] <== S.out[0];
+    f_l_commit[1] <== S.out[1];
 
+    // Show that ENC(f(l), C_0) = C(iphertext)
     component E = PoseidonEnc();
     E.base[0] <== CL0[0];
     E.base[1] <== CL0[1];
@@ -112,4 +135,5 @@ template Round2(t) {
     log("round 2 circuit out[0] ", out[0]);
 }
 
+// TODO: enc, out
 component main {public [l, C, CL0]} = Round2(2);

@@ -9,6 +9,14 @@ template BabyScaleGenerator() {
     signal output Ax;
     signal output Ay;
 
+    // TODO(duncan): This uses the full generator, even though it is named
+    // BASE8.  Is this safe?  This point has order greater than BN128 scalar
+    // field.
+    //
+    // - Some BabyJubjub secret keys can't be represented in the native scalar
+    // - field For large t, l the elements terms l^k may wrap in the native
+    //   field before they would in the BabyJubjub scalar field.
+
     var BASE8[2] = [
         995203441582195749578291179787384436505546430278305826713579947235728471134,
         5472060717959818805561601436314318772137091100104008585924551046643952123905

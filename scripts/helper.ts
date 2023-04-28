@@ -2,7 +2,6 @@ import * as snarkjs from "snarkjs"
 import { execSync } from "child_process";
 
 import * as ffjavascript from "ffjavascript";
-
 import * as r1csfile from "r1csfile";
 import * as blakejs from "blakejs";
 import * as fs from "fs";
@@ -20,7 +19,15 @@ export const REVERT_REASON_ONLY_ADMIN = REVERT_REASON_HEADER + "\'" + "only Admi
 export const REVERT_REASON_MISS_NFT = REVERT_REASON_HEADER + "\'" + "missing nft!" + "\'"
 export const REVERT_REASON_ALREADY_SIGNAL = REVERT_REASON_HEADER + "\'" + "already signal" + "\'"
 
-export async function compile_circom (fileName, options) {    
+type CircomOptions = {
+    sym: boolean;
+    r1cs: boolean;
+    json: boolean;
+    output: string;
+    O: number;
+}
+
+export async function compile_circom (fileName: string, options: CircomOptions) {
     var flags = "--wasm ";
     // flags += "--inspect ";
     if (options.sym) flags += "--sym ";
@@ -32,7 +39,7 @@ export async function compile_circom (fileName, options) {
     if (options.O === 2) flags += "--O2 "		// full constraint simplify
 
 	try {
-    	await execSync("./submodules/circom/target/release/circom "  + flags + fileName);
+    	execSync("circom "  + flags + fileName);
     	console.log("compile circom circuit done !")
 	} catch (error) {
 		console.log("error : ", error)
@@ -70,7 +77,7 @@ export async function generate_zkey_final_key(
     FILE_R1CS,
     FILE_ZKEY_FINAL
 ) {
-	
+
 	const zkey_0 = {type: "mem"};
 	const zkey_1 = {type: "mem"};
 	const zkey_2 = {type: "mem"};

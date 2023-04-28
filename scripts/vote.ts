@@ -17,7 +17,7 @@ import { PoseidonT3__factory, GroupVerifier__factory, Group__factory, SignalVeri
 
 import * as fs from 'fs';
 import { verify, verify2, writeToEnv } from "./utils/common";
-import { upgrades } from "hardhat" 
+import { upgrades } from "hardhat"
 import { expect } from "chai"
 const hre = require('hardhat');
 
@@ -31,7 +31,7 @@ async function deploy_nft(
     console.log("vnft.address : " , vnft.address)
     writeToEnv("VNFT", vnft.address)
     // await verify2(vnft.address, ["zkvote nft", "zkvote"])
-    
+
     return vnft
 }
 
@@ -55,7 +55,7 @@ async function deploy(
     await poseidonLib.deployed()
     const pt3 = PoseidonT3__factory.connect(poseidonLib.address, owner)
     console.log("pt3.address : " , pt3.address)
-    
+
     // deploy contract 3/7 : M Tree
     const IncrementalBinaryTreeLibFactory = await ethers.getContractFactory("IncrementalBinaryTree", {
         libraries: {
@@ -86,7 +86,7 @@ async function deploy(
     const g = Group__factory.connect(gc.address, owner)
     console.log("g.address : " , g.address)
     await verify2(g.address, groupArs)
-    
+
     // deploy contract 1/2 : signal verifier
     const svf = new SignalVerifier__factory(owner)
     const signal_verifier = await upgrades.deployProxy(svf);
@@ -153,7 +153,7 @@ async function main(
     expect(await vnft.balanceOf(owner.address)).equal(0)
 
     await (await (v.CreateGroupWithAssetDemand(
-        TREE_DEPTH, 
+        TREE_DEPTH,
         owner.address,
         "relationship",
         "relationship",
@@ -174,7 +174,7 @@ async function main(
     // } catch (error) {
     //     expect(error.toString().includes(REVERT_REASON_ONLY_ADMIN)).equal(true)
     // }
-    
+
     try {
         await (await (v.addMember(groupId, identityCommitment))).wait()
     } catch (error) {
@@ -314,4 +314,3 @@ main()
   console.error(error);
   process.exit(1);
 });
-

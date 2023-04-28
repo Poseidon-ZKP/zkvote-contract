@@ -65,11 +65,11 @@ async function zkp_test() {
 }
 
 export async function generate_zkp_round2(
-  f_l,
-  l,
-  C,
-  CL0,
-  r
+    f_l: bigint,
+    l: number,
+    C: string[][],
+    CL0: string[],
+    r: bigint,
 ) {
   const DIR = process.cwd()
   const CUR_CIRCUIT = "round2"
@@ -84,7 +84,7 @@ export async function generate_zkp_round2(
           l : l,
           C : C,
           CL0 : CL0,
-          r : r
+          r : r,
       },
       FILE_WASM,
       FILE_ZKEY
@@ -112,24 +112,29 @@ export async function generate_zkp_round2(
   console.log("round2 growth16 prover done!")
 
   return {
-    proof : packToSolidityProof(proof),
-    publicSignals: {
-      l : l,
-      C : C,
-      CL0 : CL0,
-      enc : publicSignals[2],
-      kb : [publicSignals[3], publicSignals[4]],
-      out : [publicSignals[0], publicSignals[1]]
-    }
+      proof : packToSolidityProof(proof),
+      publicSignals: {
+          l : l,
+          C : C, // Encoded coefficients
+          CL0 : CL0, // Recipient PK
+          enc : publicSignals[2],
+          kb : [publicSignals[3], publicSignals[4]],
+          out : [publicSignals[0], publicSignals[1]]
+      }
   }
 }
 
 export async function generate_plonk_zkp_round2(
-  f_l,
-  l,
-  C,
-  CL0,
-  r
+    f_l: bigint,
+    l: number,
+    C: string[][], // coeff commitments
+    CL0: string[], // recipient PK
+    r: bigint, // eph_sk
+    // f_l,
+    // l,
+    // C,
+    // CL0,
+    // r
 ) {
   const DIR = process.cwd()
   const CUR_CIRCUIT = "round2"
@@ -170,7 +175,7 @@ export async function generate_plonk_zkp_round2(
   )).eq(true)
 
   console.log("round2 plonk prover done!")
-  
+
   const input_pub = await snarkjs.plonk.exportSolidityCallData(proof, publicSignals)
   return {
     proof : input_pub.split(",[")[0],

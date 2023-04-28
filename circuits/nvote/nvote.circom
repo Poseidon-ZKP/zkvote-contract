@@ -50,4 +50,5 @@ template Vote() {
     }
 }
 
+// TODO: Add R and M as public inputs
 component main {public [pk, votePower]} = Vote();
