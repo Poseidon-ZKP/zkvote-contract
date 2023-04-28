@@ -1,5 +1,5 @@
 
-import { PublicKey, pointFromScalar, polynomial_evaluate,
+import { PublicKey, groupOrder, pointFromScalar, polynomial_evaluate,
          polynomial_evaluate_group } from "../crypto";
 import { Signer, Contract } from "ethers";
 import { randomBytes } from "@ethersproject/random";
@@ -49,7 +49,8 @@ export class CommitteeMemberRound1 {
     let Cs: PublicKey[] = [];
 
     for (let i = 0 ; i < threshold ; ++i) {
-      const a = BigInt(id * 10 + i);
+      // const a = BigInt(id * 10 + i);
+      const a = BigInt(hexlify(randomBytes(32))) % groupOrder(babyjub);
       as.push(a);
       Cs.push(pointFromScalar(babyjub, a));
     }
@@ -96,13 +97,17 @@ export class CommitteeMemberRound1 {
     const f_i_l = polynomial_evaluate(
       this.a_coeffs,
       BigInt(recipient_id),
-      this.babyjub.subOrder);
+      groupOrder(this.babyjub));
 
     const babyjub = this.babyjub;
     const f_i_l_commit = pointFromScalar(babyjub, f_i_l);
 
-    expect(f_i_l_commit).eql(polynomial_evaluate_group(
-      this.babyjub, this.getCoefficientCommitments(), BigInt(recipient_id)));
+
+    const expect_f_i_l_commit = polynomial_evaluate_group(
+      this.babyjub, this.getCoefficientCommitments(), BigInt(recipient_id));
+    console.log("       f_i_l_commit: " + f_i_l_commit);
+    console.log("expect_f_i_l_commit: " + expect_f_i_l_commit);
+    expect(f_i_l_commit).eql(expect_f_i_l_commit);
     return {/*l,*/ f_i_l, f_i_l_commit};
   }
 

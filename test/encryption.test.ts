@@ -1,4 +1,5 @@
 import { encryptedToString, poseidonEncEx, poseidonDecEx } from "../scripts/nouns/poseidon";
+import { groupOrder, pointFromScalar } from "../scripts/crypto";
 
 import { randomBytes } from "@ethersproject/random";
 import { hexlify } from "@ethersproject/bytes";
@@ -7,36 +8,36 @@ import { expect } from "chai";
 
 describe("Encryption", () => {
 
-    let babyjub: any;
-    let poseidon: any;
+  let babyjub: any;
+  let poseidon: any;
 
-    before(async () => {
-        babyjub = await buildBabyjub();
-        poseidon = await buildPoseidonReference();
-    });
+  before(async () => {
+    babyjub = await buildBabyjub();
+    poseidon = await buildPoseidonReference();
+  });
 
-    describe("poseidonEnc", () => {
+  describe("poseidonEnc", () => {
 
-        it("should encrypt / decrypt messages ", async function() {
+    it("should encrypt / decrypt messages ", async function() {
 
-            const aliceSK = BigInt(hexlify(randomBytes(32))) % babyjub.order;
-            const alicePK = babyjub.mulPointEscalar(babyjub.Base8, aliceSK);
+      const aliceSK = BigInt(hexlify(randomBytes(32))) % groupOrder(babyjub);
+      const alicePK = pointFromScalar(babyjub, aliceSK);
 
-            const msg = BigInt("12345678900987654321");
+      const msg = BigInt("12345678900987654321");
 
-            // Encrypt
-            const enc = (() => {
-                const r = BigInt(hexlify(randomBytes(32))) % babyjub.order;
-                return poseidonEncEx(babyjub, poseidon, msg, alicePK);
-            })();
-            console.log("enc: " + encryptedToString(enc));
+      // Encrypt
+      const enc = (() => {
+        const r = BigInt(hexlify(randomBytes(32))) % groupOrder(babyjub)
+        return poseidonEncEx(babyjub, poseidon, msg, alicePK);
+      })();
+      console.log("enc: " + encryptedToString(enc));
 
-            // Decrypt
-            const dec = poseidonDecEx(babyjub, poseidon, enc, aliceSK);
-            console.log("enc: " + dec.toString());
-
-        });
+      // Decrypt
+      const dec = poseidonDecEx(babyjub, poseidon, enc, aliceSK);
+      console.log("enc: " + dec.toString());
 
     });
+
+  });
 
 });

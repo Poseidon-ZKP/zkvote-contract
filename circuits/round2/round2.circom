@@ -120,8 +120,10 @@ template Round2(t) {
         S.C[i][0] <== C[i][0];
         S.C[i][1] <== C[i][1];
     }
-    f_l_commit[0] <== S.out[0];
-    f_l_commit[1] <== S.out[1];
+    out[0] <== S.out[0];
+    out[1] <== S.out[1];
+    // f_l_commit[0] <== S.out[0];
+    // f_l_commit[1] <== S.out[1];
 
     // Show that ENC(f(l), C_0) = C(iphertext)
     component E = PoseidonEnc();

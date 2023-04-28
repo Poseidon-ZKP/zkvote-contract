@@ -1,4 +1,5 @@
-import { pointFromScalar, polynomial_evaluate, polynomial_evaluate_group } from "../scripts/crypto";
+import { groupOrder, pointFromScalar, polynomial_evaluate,
+         polynomial_evaluate_group } from "../scripts/crypto";
 import { expect } from "chai";
 const { buildBabyjub } = require('circomlibjs');
 
@@ -49,7 +50,7 @@ describe("Committee Member", () => {
       const f_C = f.map(x => pointFromScalar(babyjub, x));
       const x = 2n;
 
-      const v = polynomial_evaluate(f, x, babyjub.subOrder);
+      const v = polynomial_evaluate(f, x, groupOrder(babyjub));
       const v_C = polynomial_evaluate_group(babyjub, f_C, x);
 
       const expect_v_C = pointFromScalar(babyjub, v);

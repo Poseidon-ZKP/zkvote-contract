@@ -3,6 +3,11 @@
 export type PublicKey = string[];
 
 
+export function groupOrder(babyjub: any): bigint {
+  // return babyjub.subOrder;
+  return babyjub.order;
+}
+
 export function pointFromNative(babyjub: any, native: any[]): PublicKey {
   return native.map(x => babyjub.F.toString(x));
 }
