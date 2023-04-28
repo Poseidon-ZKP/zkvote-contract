@@ -4,8 +4,8 @@ export type PublicKey = string[];
 
 
 export function groupOrder(babyjub: any): bigint {
-  // return babyjub.subOrder;
-  return babyjub.order;
+  return babyjub.subOrder;
+  // return babyjub.order;
 }
 
 export function pointFromNative(babyjub: any, native: any[]): PublicKey {
@@ -19,8 +19,8 @@ export function pointToNative(babyjub: any, point: PublicKey): any[] {
 
 
 export function pointFromScalar(babyjub: any, sk: bigint): PublicKey {
-  // return pointFromNative(babyjub, babyjub.mulPointEscalar(babyjub.Base8, sk));
-  return pointFromNative(babyjub, babyjub.mulPointEscalar(babyjub.Generator, sk));
+  return pointFromNative(babyjub, babyjub.mulPointEscalar(babyjub.Base8, sk));
+  // return pointFromNative(babyjub, babyjub.mulPointEscalar(babyjub.Generator, sk));
 }
 
 
