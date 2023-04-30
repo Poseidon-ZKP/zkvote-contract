@@ -40,65 +40,50 @@ template PoseidonEnc() {
     // as described here.
 }
 
-// Round2 : f(l)*G == sum(l^k * C[k])
-template SumScaleMul(t) {
-    signal input f_l;    // f(l)
-    signal input l;
+
+/// Use Horner's method for safe polynomial evaluation where x may be an
+/// element of a field with a different characteristic.
+template EncodedPolynomialEvaluation(t) {
+
+    assert(t > 1); // t < 2 not handled by this circuit.
+
+    signal input x;
     signal input C[t][2];
-
-    // Check f_l < BabyJub scalar field
-
-    signal res[t][2];
     signal output out[2];
-    // signal output cmp[2];
 
-    // TODO(duncan): save some constraints by not multiplying on the first loop
+    // 1. Start with C[t-1].
+    // 2. For each entry C[i] for i = t-2,...,0:
+    //   1. scalar mul by x
+    //   2. add C[i]
 
-    // TODO(duncan): check l < babyjub field, and use Horners scheme, which
-    // will avoid needing to care about whether l^k wraps in babyjub vs BN
-    // fields.
+    // signal mul_result[t-1][2];
+    component scalar_mul[t-1];
+    // signal add_result[t-1][2];
+    component add[t-1];
 
-    var lk;
-    lk = 1;// 0^0 = 1
-    component mulAny[t];
-    component pvkBits[t];
-    component babyAdd[t];
-    for (var k = 0; k < t; k++) {
-        // TODO(duncan): no constraints on lk here?  We need mulAny[k].in to
-        // be the **witness element** lk * l, otherwise prover can cheat.
-
-        mulAny[k] = parallel JubScalarMulAny();
-        mulAny[k].in <-- lk;     // Do not need Constraints here, just witness
-        mulAny[k].p[0] <== C[k][0];
-        mulAny[k].p[1] <== C[k][1];
-
-        if (k == 0) {
-            res[k][0] <== mulAny[k].out[0];
-            res[k][1] <== mulAny[k].out[1];
+    for (var i = t-2 ; i >= 0 ; i--) {
+        // ScalarMul(prev_result, x);
+        scalar_mul[i] = JubScalarMulAny();
+        scalar_mul[i].in <== x;
+        if (i == t-2) {
+            scalar_mul[i].p <== C[t-1];
         } else {
-            babyAdd[k] = BabyAdd();
-            babyAdd[k].x1 <== mulAny[k].out[0];
-            babyAdd[k].y1 <== mulAny[k].out[1];
-            babyAdd[k].x2 <== res[k-1][0];
-            babyAdd[k].y2 <== res[k-1][1];
-            res[k][0] <== babyAdd[k].xout;
-            res[k][1] <== babyAdd[k].yout;
+            scalar_mul[i].p[0] <== add[i+1].xout;
+            scalar_mul[i].p[1] <== add[i+1].yout;
         }
 
-        // TODO(duncan): !! contract may need to check that lk^t won't wrap in
-        // the native scalar field.
-
-        lk = lk * l;
+        // Add(scalar_mul.out, C[i])
+        add[i] = BabyAdd();
+        add[i].x1 <== scalar_mul[i].out[0];
+        add[i].y1 <== scalar_mul[i].out[1];
+        add[i].x2 <== C[i][0];
+        add[i].y2 <== C[i][1];
     }
 
-    out[0] <== res[t-1][0];
-    out[1] <== res[t-1][1];
-
-    component scaleMulG = BabyScaleGenerator();
-    scaleMulG.in <== f_l;
-    scaleMulG.Ax === out[0];
-    scaleMulG.Ay === out[1];
+    out[0] <== add[0].xout;
+    out[1] <== add[0].yout;
 }
+
 
 template Round2(t) {
     signal input f_l;
@@ -113,17 +98,14 @@ template Round2(t) {
     signal output kb[2];
 
     // Show that f(l) * G = evaluation of committed poly at l
-    component S = SumScaleMul(t);
-    S.f_l <== f_l;
-    S.l <== l;
-    for (var i = 0; i < t; i++) {
-        S.C[i][0] <== C[i][0];
-        S.C[i][1] <== C[i][1];
-    }
-    out[0] <== S.out[0];
-    out[1] <== S.out[1];
-    // f_l_commit[0] <== S.out[0];
-    // f_l_commit[1] <== S.out[1];
+    component encoded_poly_eval = EncodedPolynomialEvaluation(t);
+    encoded_poly_eval.x <== l;
+    encoded_poly_eval.C <== C;
+
+    component compute_f_l_times_G = BabyScaleGenerator();
+    compute_f_l_times_G.in <== f_l;
+    compute_f_l_times_G.Ax === encoded_poly_eval.out[0];
+    compute_f_l_times_G.Ay === encoded_poly_eval.out[1];
 
     // Show that ENC(f(l), C_0) = C(iphertext)
     component E = PoseidonEnc();
