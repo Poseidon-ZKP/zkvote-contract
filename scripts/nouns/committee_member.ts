@@ -27,14 +27,36 @@ type ParsedRound2Event = {
 /// tallying.
 export class CommitteeMember {
 
+  babyjub: any;
+  poseidon: any;
+  nc: Contract;
+  signer: Signer;
+  n_comm: number;
+  threshold: number;
   id: number;
   sk_i: bigint;
+  PK_i: PublicKey;
 
-  constructor(id: number, sk_i: bigint) {
+  constructor(
+    babyjub: any,
+    poseidon: any,
+    nc: Contract,
+    signer: Signer,
+    n_comm: number,
+    threshold: number,
+    id: number,
+    sk_i: bigint,
+    PK_i: PublicKey) {
+    this.babyjub = babyjub;
+    this.poseidon = poseidon;
+    this.nc = nc;
+    this.signer = signer;
+    this.n_comm = n_comm;
+    this.threshold = threshold;
     this.id = id;
     this.sk_i = sk_i;
+    this.PK_i = PK_i;
   }
-
 }
 
 
@@ -234,6 +256,19 @@ export class CommitteeMemberDKG {
       expect(pk_i).to.eql(PK_i);
     }
 
-    return new CommitteeMember(this.id, sk_i /*, PK_i */);
+    // TODO(duncan): in principle, a CommitteeMember could initialize itself
+    // given only its id and the round2 secret key a_coeff[0], entirely from
+    // the chain.
+
+    return new CommitteeMember(
+      this.babyjub,
+      this.poseidon,
+      this.nc,
+      this.signer,
+      this.n_comm,
+      this.threshold,
+      this.id,
+      sk_i,
+      PK_i);
   }
 };
