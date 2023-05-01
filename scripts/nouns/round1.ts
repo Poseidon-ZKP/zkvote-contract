@@ -1,4 +1,4 @@
-import { pointAdd } from "../crypto";
+import { pointAdd, polynomial_evaluate_group } from "../crypto";
 import { CommitteeMemberDKG } from "./committee_member";
 import { expect } from "chai";
 import { Signer, Contract } from "ethers";
@@ -49,10 +49,22 @@ export async function round1(
         }
         return PK_sum;
     })();
-    const PK = (await nc.PK()).map(x => x.toString());
+    const PK = (await nc.PK()).map((x: any) => x.toString());
 
     console.log("expect_PK: " + JSON.stringify(expect_PK));
     console.log("actual PK: " + JSON.stringify(PK));
+
+    const PK_coeffs_sol = (await nc.PK_coefficients());
+    const PK_coeffs = PK_coeffs_sol.map(xy => [xy[0].toString(), xy[1].toString()]);
+    console.log("PK_coeffs: " + JSON.stringify(PK_coeffs));
+
+    members.forEach(member => {
+        const pk_share = polynomial_evaluate_group(
+            babyjub,
+            PK_coeffs,
+            BigInt(member.id));
+        console.log("PK_share for " + member.id + ": " + pk_share);
+    });
 
     expect(PK).eql(expect_PK);
     return {members, PK};

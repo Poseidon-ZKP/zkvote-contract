@@ -133,7 +133,13 @@ contract Nouns {
     }
 
     function PK() public view returns (uint256, uint256) {
+        require(round1_complete(), "round1 is not complete.");
         return (PK_coeffs[0][0], PK_coeffs[0][1]);
+    }
+
+    function PK_coefficients() public view returns (uint[2][] memory) {
+        require(round1_complete(), "round1 is not complete.");
+        return PK_coeffs;
     }
 
     function round1(

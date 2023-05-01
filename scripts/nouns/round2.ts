@@ -1,3 +1,5 @@
+
+import { CommitteeMember } from "./committee_member";
 import { Round1Result } from "./round1";
 import { expect } from "chai";
 import { exit } from "process";
@@ -9,6 +11,7 @@ import { generate_plonk_zkp_round2, generate_zkp_round2 } from "./prover";
 
 
 type Round2Result = {
+  members: CommitteeMember[];
 }
 
 
@@ -83,7 +86,18 @@ export async function round2(
 
   expect(await nc.round2_complete()).to.be.true;
 
+  // Each participant pulls his encrypted shares from the contract events,
+  // and reconstructs his final secret share.
+
+  let committee_members: CommitteeMember[] = [];
+  for (let sender_idx = 0; sender_idx < N_COM; sender_idx++) {
+    const sender = members[sender_idx];
+    const member = await sender.constructSecretShare();
+    expect(member).is.not.null;
+    committee_members.push(member);
+  }
+
   console.log("round 2 done!!")
 
-  return {};
+  return { members: committee_members };
 }

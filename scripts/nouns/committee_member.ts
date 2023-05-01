@@ -5,6 +5,7 @@ import { PublicKey, groupOrder, pointFromScalar, polynomial_evaluate,
 import { Signer, Contract } from "ethers";
 import { randomBytes } from "@ethersproject/random";
 import { hexlify } from "@ethersproject/bytes";
+import { Provider, Filter, Log } from "@ethersproject/providers";
 import { expect } from "chai";
 
 
@@ -15,9 +16,26 @@ type Round2SecretShare = {
 };
 
 
+type ParsedRound2Event = {
+  recip_id: bigint;
+  sender_id: bigint;
+  enc_sk_share: bigint;
+  enc_eph_pk: PublicKey;
+};
+
+
 /// Committee member with secret key share, able to participate in vote
 /// tallying.
 export class CommitteeMember {
+
+  id: number;
+  sk_i: bigint;
+
+  constructor(id: number, sk_i: bigint) {
+    this.id = id;
+    this.sk_i = sk_i;
+  }
+
 }
 
 
@@ -132,7 +150,75 @@ export class CommitteeMemberDKG {
       this.babyjub, this.poseidon, {eph_pk, enc}, this.getRound2SecretKey())
   }
 
-  public constructSecretShare(): CommitteeMember {
-    return new CommitteeMember;
+  public async constructSecretShare(): Promise<CommitteeMember> | null {
+
+    const provider: Provider = this.signer.provider;
+
+    //
+    const cur_block: number = await provider.getBlockNumber();
+
+    // We want to pull all events:
+    //
+    //   event Round2Share(
+    //     uint indexed recip_id, uint sender_id, uint enc_sk_share, uint[2] enc_eph_PK);
+    //
+    // where recip_id is equal to our id.
+
+    // TODO: Pull in batches.
+
+    const filter: Filter = this.nc.filters.Round2Share(this.id);
+    filter.fromBlock = 0;
+    filter.toBlock = cur_block;
+    const logs = await provider.getLogs(filter);
+
+    // Parse
+    const intfc = this.nc.interface;
+    function parseLog(log: Log): ParsedRound2Event {
+      const parsed = intfc.parseLog(log);
+      const args = parsed.args
+      console.log("  parsed args: " + JSON.stringify(args));
+      const event: ParsedRound2Event = {
+        recip_id: BigInt(args[0]),
+        sender_id: BigInt(args[1]),
+        enc_sk_share: BigInt(args[2]),
+        enc_eph_pk: [
+          args[3][0].toString(),
+          args[3][1].toString()],
+      };
+      console.log("  event: " + JSON.stringify({
+        recip_id: event.recip_id.toString(),
+        sender_id: event.sender_id.toString(),
+        enc_sk_share: event.enc_sk_share.toString(),
+        enc_eph_pk: event.enc_eph_pk,
+      }));
+
+      return event;
+    };
+    const parsedEvents: ParsedRound2Event[] = logs.map(parseLog);
+
+    // Decrypt and sum event values to compute our share of the final secret.
+    let { f_i_l: sk_i } = this.computeRound2ShareFor(this.id);
+
+    const order = groupOrder(this.babyjub);
+    parsedEvents.forEach(ev => {
+      const dec = this.decryptRound2Share(ev.enc_sk_share, ev.enc_eph_pk);
+      console.log("  dec (from " + ev.sender_id + ") = " + dec.toString());
+      sk_i = (sk_i + dec) % order;
+      console.log("  sk_i is now: " + sk_i.toString());
+    });
+
+    // Check that f_i * G == PK_i from the contract
+    {
+      const PK_i_expect = pointFromScalar(this.babyjub, sk_i);
+
+      const PK_coeffs_sol = (await this.nc.PK_coefficients());
+      const PK_coeffs = PK_coeffs_sol.map(
+        xy => [xy[0].toString(), xy[1].toString()]);
+      const PK_i = polynomial_evaluate_group(
+        this.babyjub, PK_coeffs, BigInt(this.id));
+      expect(PK_i).to.eql(PK_i_expect);
+    };
+
+    return new CommitteeMember(this.id, sk_i);
   }
 };
