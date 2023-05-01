@@ -13,15 +13,8 @@ type Round2Result = {
 
 
 export async function round2(
-  babyjub: any,
-  poseidon: any,
   nc: Contract,
   round1_result: Round1Result,
-  // COMMITEE: string[],
-  // a,
-  // f,
-  // edwards_twist_C,
-  // r2r,
 ): Promise<Round2Result> {
   // Each committee member encrypts the shares for every other committee
   // member.
@@ -46,36 +39,24 @@ export async function round2(
       // Generate the encryption eph_sk outside of the encryption
       // function, since it's required for witness generation.
 
-      const {f_i_l, f_i_l_commit} = sender.computeRound2ShareFor(recip_id);
-      const recip_PK = (await nc.get_round1_PK_for(recip_id)).map(x => x.toString());
+      const recip_PK = (await nc.get_round1_PK_for(recip_id)).map((x: bigint) => x.toString());
       expect(recip_PK).to.eql(recipient.getRound2PublicKey());
-      const {eph_sk, eph_pk, enc} = poseidonEncEx(babyjub, poseidon, f_i_l, recip_PK);
+      const {f_i_l /*, f_i_l_commit*/} = sender.computeRound2ShareFor(recip_id);
+      const {eph_sk, eph_pk, enc} = sender.encryptRound2ShareFor(f_i_l, recip_PK);
       console.log("  f_i_l = " + f_i_l.toString());
-
-      // Create the encryption and eph_sk
-
-      expect(
-        poseidonDecEx(
-          babyjub, poseidon, {eph_pk, enc}, recipient.getRound2SecretKey())
-      ).to.equal(f_i_l);
 
       // Check the decryption
 
       {
-        const recip_sk = recipient.getRound2SecretKey();
-        const dec = poseidonDecEx(
-          babyjub,
-          poseidon,
-          { eph_pk: eph_pk, enc: enc },
-          recip_sk);
-        expect(dec).equal(f_i_l)
+        const dec = recipient.decryptRound2Share(enc, eph_pk);
+        expect(dec).to.equal(f_i_l);
       }
 
       // TODO: Add the commitment to the shares
 
-      // Send the share to recipient.
+      // Send the share to recipient, with proof.
 
-      const {proof /*, publicSignals*/} = await generate_zkp_round2(
+      const {proof} = await generate_zkp_round2(
         recip_id,
         recip_PK,
         C_coefffs,

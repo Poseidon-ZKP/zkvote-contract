@@ -17,6 +17,7 @@ export type Round1Result = {
 /// 2. create the commitments to coefficients $\{ C_{i,j} \}$
 export async function round1(
     babyjub: any,
+    poseidon: any,
     commitee: Signer[],
     t: number,
     nc: Contract,
@@ -24,7 +25,7 @@ export async function round1(
 
     let i = 1;
     const members: CommitteeMemberDKG[] = commitee.map((signer) => {
-        return CommitteeMemberDKG.initialize(babyjub, nc, signer, t, i++);
+        return CommitteeMemberDKG.initialize(babyjub, poseidon, nc, signer, t, i++);
     });
 
     expect(await nc.round1_complete()).equal(false);

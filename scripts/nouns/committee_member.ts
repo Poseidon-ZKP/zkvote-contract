@@ -1,11 +1,11 @@
 
+import { EncryptedWithEphSK, poseidonEncEx, poseidonDecEx } from "./poseidon";
 import { PublicKey, groupOrder, pointFromScalar, polynomial_evaluate,
          polynomial_evaluate_group } from "../crypto";
 import { Signer, Contract } from "ethers";
 import { randomBytes } from "@ethersproject/random";
 import { hexlify } from "@ethersproject/bytes";
 import { expect } from "chai";
-const polyval = require( 'compute-polynomial' );
 
 
 type Round2SecretShare = {
@@ -25,6 +25,7 @@ export class CommitteeMember {
 export class CommitteeMemberDKG {
 
   babyjub: any;
+  poseidon: any;
   nc: Contract;
   signer: Signer;
   threshold: number;
@@ -34,6 +35,7 @@ export class CommitteeMemberDKG {
 
   constructor(
     babyjub: any,
+    poseidon: any,
     nc: Contract,
     signer: Signer,
     threshold: number,
@@ -42,6 +44,7 @@ export class CommitteeMemberDKG {
     C_coeff_commitments: PublicKey[]
   ) {
     this.babyjub = babyjub;
+    this.poseidon = poseidon;
     this.nc = nc;
     this.signer = signer;
     this.threshold = threshold;
@@ -56,6 +59,7 @@ export class CommitteeMemberDKG {
 
   public static initialize(
     babyjub: any,
+    poseidon: any,
     nc: Contract,
     signer: Signer,
     threshold: number,
@@ -70,7 +74,8 @@ export class CommitteeMemberDKG {
       Cs.push(pointFromScalar(babyjub, a));
     }
 
-    return new CommitteeMemberDKG(babyjub, nc.connect(signer), signer, threshold, id, as, Cs);
+    return new CommitteeMemberDKG(
+      babyjub, poseidon, nc.connect(signer), signer, threshold, id, as, Cs);
   }
 
   public toString(): string {
@@ -106,7 +111,6 @@ export class CommitteeMemberDKG {
     const babyjub = this.babyjub;
     const f_i_l_commit = pointFromScalar(babyjub, f_i_l);
 
-
     const expect_f_i_l_commit = polynomial_evaluate_group(
       this.babyjub, this.getCoefficientCommitments(), BigInt(recipient_id));
     console.log("       f_i_l_commit: " + f_i_l_commit);
@@ -115,8 +119,17 @@ export class CommitteeMemberDKG {
     return {/*l,*/ f_i_l, f_i_l_commit};
   }
 
+  public encryptRound2ShareFor(share: bigint, recip_PK: PublicKey): EncryptedWithEphSK {
+    return poseidonEncEx(this.babyjub, this.poseidon, share, recip_PK);
+  }
+
   public async round2Done(): Promise<boolean> {
     return await this.nc.round2_complete();
+  }
+
+  public decryptRound2Share(enc: bigint, eph_pk: PublicKey): bigint {
+    return poseidonDecEx(
+      this.babyjub, this.poseidon, {eph_pk, enc}, this.getRound2SecretKey())
   }
 
   public constructSecretShare(): CommitteeMember {

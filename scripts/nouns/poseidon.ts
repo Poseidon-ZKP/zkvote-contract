@@ -10,13 +10,13 @@ const { buildBabyjub } = require('circomlibjs');
 export const BN_SCALAR_FIELD_MOD = BigInt("21888242871839275222246405745257275088548364400416034343698204186575808495617");
 
 
-type EncryptedWithEphSK = {
+export type EncryptedWithEphSK = {
     eph_sk: bigint;
     eph_pk: PublicKey;
     enc: bigint;
 }
 
-type Encrypted = {
+export type Encrypted = {
     eph_pk: PublicKey;
     enc: bigint;
 }

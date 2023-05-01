@@ -52,46 +52,12 @@ async function main(
 
     // const {a, C, edwards_twist_C, PK} = await round1(jub, COMMITEE, t, nc)
     // console.log("PK : ", [jub.F.toString(PK[0]), jub.F.toString(PK[1])])
-    const round1_result = await round1(jub, COMMITEE, t, nc);
+    const round1_result = await round1(jub, poseidon, COMMITEE, t, nc);
     const members = round1_result.members;
     console.log("members_round1: " + members.map(x => x.toString()));
 
     // 2. Key Generation Round 2 (Committee)
-    const round2_result = await round2(jub, poseidon, nc, round1_result);
-
-    // let r2r = []  // TODO : using a[i][j] directorly
-    // for (let i = 0; i < N_COM; i++) {
-    //   r2r.push([])
-    //   for (let j = 0; j < N_COM; j++) {
-    //     r2r[i].push(Math.floor(Math.random() * 10)) // TODO: * jub.order
-    //   }
-    // }
-
-    // let f = []
-    // for (let i = 0; i < N_COM; i++) {
-    //     f.push([])
-    //     for (let l = 0; l < N_COM; l++) {
-    //       f[i].push(polyval([...a[i]].reverse(), l))  // reverse copy(a)
-    //     }
-    // }
-    // console.log("f : ", f)
-
-    // await round2(COMMITEE, a, f, edwards_twist_C, r2r, nc, jub)
-    // let sk = []
-    // for (let i = 0; i < N_COM; i++) {
-    //     sk.push(0)
-    //     for (let l = 0; l < N_COM; l++) {
-    //         if (i == l) {
-    //           sk[i] += f[i][i]
-    //         } else {
-    //           const {dec} = await poseidonDec(await nc.ENC(l, i), a[i][0],
-    //                                         [await nc.KB(l, i, 0), await nc.KB(l, i, 1)], jub)
-    //           expect(Number(dec)).equal(f[l][i])
-    //           sk[i] += Number(dec)
-    //         }
-    //     }
-    // }
-    // console.log("sk : ", sk)
+    const round2_result = await round2(nc, round1_result);
 
     // // 3. User Voting
     // let o = []
