@@ -1,10 +1,10 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { Nouns__factory, NvoteVerifier__factory, Round2Verifier__factory } from "../types";
-import { Round2PlonkVerifier__factory } from "../types/factories/contracts/round2/round2_plonk_verifier.sol";
+import { Nouns__factory, Round2Verifier__factory, NvoteVerifier__factory } from "../types";
+// import { Round2PlonkVerifier__factory } from "../types/factories/contracts/round2/round2_plonk_verifier.sol";
 // import { poseidonDec, poseidonEnc } from "./poseidon";
-import { generate_zkp_nvote} from "./prover";
+// import { generate_zkp_nvote} from "./prover";
 import { round1 } from "./round1";
 import { round2 } from "./round2";
 const { buildBabyjub, buildPoseidonReference } = require('circomlibjs');
@@ -34,7 +34,8 @@ async function main(
         COMMITEE.push(owners[i])
     }
 
-    const r2v = await (new Round2PlonkVerifier__factory(deployer)).deploy()
+    // const r2v = await (new Round2PlonkVerifier__factory(deployer)).deploy()
+    const r2v = await (new Round2Verifier__factory(deployer)).deploy()
     console.log("r2v: " + r2v.address);
     const nvv = await (new NvoteVerifier__factory(deployer)).deploy()
     console.log("nvv: " + nvv.address);

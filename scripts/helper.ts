@@ -124,9 +124,9 @@ export function get_circuit_zkey_file(
 export async function build_circuit(
     CUR_CIRCUIT : string
 ) {
-    const DIR = process.cwd()
-    console.log("WORK DIR : ", DIR)
-    const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
+  const DIR = process.cwd()
+  console.log("WORK DIR : ", DIR)
+  const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
 	await compile_circom(CIRCUIT_TGT_DIR + CUR_CIRCUIT + ".circom", {
 		sym : true,
 		r1cs : true,
@@ -135,17 +135,17 @@ export async function build_circuit(
 		output : CIRCUIT_TGT_DIR
 	})
 
-    const FILE_R1CS = CIRCUIT_TGT_DIR + CUR_CIRCUIT + ".r1cs"
-    const FILE_PTAU_FINAL = DIR + "/circuits/ptau.16"
-    const FILE_ZKEY_FINAL = CIRCUIT_TGT_DIR + "zkey.16"
+  const FILE_R1CS = CIRCUIT_TGT_DIR + CUR_CIRCUIT + ".r1cs"
+  const FILE_PTAU_FINAL = DIR + "/circuits/ptau.16"
+  const FILE_ZKEY_FINAL = CIRCUIT_TGT_DIR + "zkey.16"
 
-    const ptau_final = {type: "mem", data: undefined};
-    const zkey_final = {type: "mem", data : undefined};
+  const ptau_final = {type: "mem", data: undefined};
+  const zkey_final = {type: "mem", data : undefined};
 
-    const curve = await ffjavascript.getCurveFromName("bn128");
+  const curve = await ffjavascript.getCurveFromName("bn128");
 	console.log("curve.q : ", curve.q)
 	if (process.env.NEW_PTAU_FINAL_KEY) {
-        // Trust setup : need long time depand on circuit power
+    // Trust setup : need long time depand on circuit power
 		await generate_ptau_fina_key(curve, FILE_PTAU_FINAL)
 	}
 	let ptau_data = Buffer.from(fs.readFileSync(FILE_PTAU_FINAL))
@@ -155,24 +155,28 @@ export async function build_circuit(
 	let zkey_data = Buffer.from(fs.readFileSync(FILE_ZKEY_FINAL))
 	zkey_final.data = new Uint8Array(zkey_data)
 
-    // export/generate on-chain verifier
+  // export/generate on-chain verifier
 	const templates = {groth16 : undefined}
 	templates.groth16 = await fs.promises.readFile(DIR + "/snarkjs-templates/verifier_groth16.sol.ejs", "utf8");
 	let verifierCode : string = await snarkjs.zKey.exportSolidityVerifier(zkey_final, templates)
 	verifierCode = verifierCode.replace("Verifier", CUR_CIRCUIT + "Verifier")
 	verifierCode = verifierCode.replace(new RegExp("Pairing", "g"), CUR_CIRCUIT + "Pairing")
-	fs.writeFileSync(DIR + "/contracts/" + CUR_CIRCUIT + "/" + CUR_CIRCUIT + "_verifier.sol", verifierCode, "utf-8");
 
-    // Plonk
-    const zkey_plonk = {type: "mem", data : undefined};
-    const FILE_ZKEY_PLONK = CIRCUIT_TGT_DIR + "zkey.plonk.16"
-    await snarkjs.plonk.setup(FILE_R1CS, ptau_final, zkey_plonk);
-	fs.writeFileSync(FILE_ZKEY_PLONK, Buffer.from(zkey_plonk.data))
-    console.log(new Date().toUTCString() + " zkey plonk generated...")
-    const plonk_templates = {plonk : undefined}
-	plonk_templates.plonk = await fs.promises.readFile(DIR + "/snarkjs-templates/verifier_plonk.sol.ejs", "utf8");
-	verifierCode = await snarkjs.zKey.exportSolidityVerifier(zkey_plonk, plonk_templates)
-	verifierCode = verifierCode.replace("PlonkVerifier", CUR_CIRCUIT + "PlonkVerifier")
-	fs.writeFileSync(DIR + "/contracts/" + CUR_CIRCUIT + "/" + CUR_CIRCUIT + "_plonk_verifier.sol", verifierCode, "utf-8");
+  const verifierSolFile = DIR + "/contracts/" + CUR_CIRCUIT + "/" + CUR_CIRCUIT + "_verifier.sol";
+  console.log("writing: " + verifierSolFile + " ...");
+	fs.writeFileSync(verifierSolFile, verifierCode, "utf-8");
+  console.log("DONE");
+
+  // // Plonk
+  // const zkey_plonk = {type: "mem", data : undefined};
+  // const FILE_ZKEY_PLONK = CIRCUIT_TGT_DIR + "zkey.plonk.16"
+  // await snarkjs.plonk.setup(FILE_R1CS, ptau_final, zkey_plonk);
+	// fs.writeFileSync(FILE_ZKEY_PLONK, Buffer.from(zkey_plonk.data))
+  // console.log(new Date().toUTCString() + " zkey plonk generated...")
+  // const plonk_templates = {plonk : undefined}
+	// plonk_templates.plonk = await fs.promises.readFile(DIR + "/snarkjs-templates/verifier_plonk.sol.ejs", "utf8");
+	// verifierCode = await snarkjs.zKey.exportSolidityVerifier(zkey_plonk, plonk_templates)
+	// verifierCode = verifierCode.replace("PlonkVerifier", CUR_CIRCUIT + "PlonkVerifier")
+	// fs.writeFileSync(DIR + "/contracts/" + CUR_CIRCUIT + "/" + CUR_CIRCUIT + "_plonk_verifier.sol", verifierCode, "utf-8");
 
 }

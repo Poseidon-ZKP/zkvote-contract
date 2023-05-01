@@ -75,7 +75,7 @@ export async function round2(
 
       // Send the share to recipient.
 
-      const {proof /*, publicSignals*/} = await generate_plonk_zkp_round2(
+      const {proof /*, publicSignals*/} = await generate_zkp_round2(
         recip_id,
         recip_PK,
         C_coefffs,
@@ -88,7 +88,13 @@ export async function round2(
       expect(await nc.round2_complete()).to.be.false;
       expect(await nc.round2_share_received(sender.id, recipient.id)).to.be.false;
       await (await nc.connect(sender.signer).round2(
-        recip_id, enc, eph_pk, proof
+        recip_id,
+        enc,
+        eph_pk,
+        proof.a,
+        proof.b,
+        proof.c,
+        // proof
       )).wait()
       expect(await nc.round2_share_received(sender.id, recipient.id)).to.be.true;
     }

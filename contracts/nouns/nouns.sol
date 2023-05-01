@@ -15,8 +15,12 @@ enum CommitteeState {
 
 interface IVerifierRound2 {
     function verifyProof(
-        bytes memory proof,
-        uint[] memory pubSignals
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        uint256[10] memory input
+        // bytes memory proof,
+        // uint[] memory pubSignals
     ) external view;
 }
 
@@ -187,7 +191,10 @@ contract Nouns {
         uint enc,
         uint[2] calldata eph_pk,
         // uint[2] calldata PK_i_l,
-        bytes calldata proof
+        uint256[2] memory proof_a,
+        uint256[2][2] memory proof_b,
+        uint256[2] memory proof_c
+        // bytes calldata proof
     ) public {
         require(
             (0 < recip_id) && (recip_id <= n_comm),
@@ -203,7 +210,8 @@ contract Nouns {
 
         // Num public inputs should be 1 + 2 + 1 + 2 + 2*tally_threshold
         uint num_pub_inputs = 6 + (2 * tally_threshold);
-        uint[] memory pub = new uint[](num_pub_inputs);
+        require(10 == num_pub_inputs, "invalid public input length");
+        uint[10] memory pub;
         pub[0] = recip_id;
         pub[1] = recip_pk[0];
         pub[2] = recip_pk[1];
@@ -216,7 +224,9 @@ contract Nouns {
             pub[dest_idx++] = round1_C_coeffs[sender_id][i][0];
             pub[dest_idx++] = round1_C_coeffs[sender_id][i][1];
         }
-        round2_verifier.verifyProof(proof, pub);
+
+        round2_verifier.verifyProof(proof_a, proof_b, proof_c, pub);
+        // round2_verifier.verifyProof(proof, pub);
 
         round2_shares_received[sender_id][recip_id] = true;
         ++round2_num_shares;

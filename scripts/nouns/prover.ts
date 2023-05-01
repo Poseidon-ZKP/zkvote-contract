@@ -4,7 +4,7 @@ import { BigNumberish } from "ethers";
 import { exit } from "process";
 import * as snarkjs from "snarkjs"
 
-export type SolidityProof = [
+export type PlonkSolidityProof = [
   BigNumberish,
   BigNumberish,
   BigNumberish,
@@ -16,7 +16,7 @@ export type SolidityProof = [
 ]
 
 
-export default function packToSolidityProof(proof): SolidityProof {
+export default function packPlonkProofToSolidityProof(proof): PlonkSolidityProof {
   return [
       proof.pi_a[0],
       proof.pi_a[1],
@@ -28,6 +28,33 @@ export default function packToSolidityProof(proof): SolidityProof {
       proof.pi_c[1]
   ]
 }
+
+
+export type Groth16Proof = {
+  pi_a: bigint[];
+  pi_b: bigint[][];
+  pi_c: bigint[];
+}
+
+
+export type Groth16SolidityProof = {
+  a: bigint[];
+  b: bigint[][];
+  c: bigint[];
+}
+
+
+export function packGroth16ProofToSolidityProof(proof: Groth16Proof): Groth16SolidityProof {
+  return {
+    a: [proof.pi_a[0], proof.pi_a[1]],
+    b: [
+      [proof.pi_b[0][1],proof.pi_b[0][0]],
+      [proof.pi_b[1][1],proof.pi_b[1][0]],
+    ],
+    c: [proof.pi_c[0], proof.pi_c[1]],
+  }
+}
+
 
 async function zkp_test() {
   const DIR = process.cwd()
@@ -73,7 +100,7 @@ export async function generate_zkp_round2(
     eph_sk: bigint,
     enc: bigint,
     eph_pk: PublicKey,
-) {
+): Promise<{ proof: Groth16SolidityProof}> {
   const DIR = process.cwd()
   const CUR_CIRCUIT = "round2"
   const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
@@ -97,17 +124,19 @@ export async function generate_zkp_round2(
     FILE_ZKEY
   )
 
+  console.log("groth16 proof: " + JSON.stringify(proof));
+
   expect(await snarkjs.groth16.verify(
     vKey,
     publicSignals,
     proof
   )).eq(true)
 
-  console.log("round2 growth16 prover done!")
+  console.log("round2 groth16 prover done!")
 
-  return {
-      proof : packToSolidityProof(proof),
-  }
+  const sol_proof = packGroth16ProofToSolidityProof(proof);
+  console.log("groth16 sol_proof: " + JSON.stringify(sol_proof));
+  return { proof: sol_proof };
 }
 
 export async function generate_plonk_zkp_round2(
@@ -222,7 +251,7 @@ export async function generate_zkp_nvote(
   console.log("nvote prover done!")
 
   return {
-    proof : packToSolidityProof(proof),
+    proof : packPlonkProofToSolidityProof(proof),
     publicSignals: {
       pk : pk,
       votePower : v,
