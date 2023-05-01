@@ -23,9 +23,10 @@ export async function round1(
     nc: Contract,
 ): Promise<Round1Result> {
 
+    const n_comm = commitee.length;
     let i = 1;
     const members: CommitteeMemberDKG[] = commitee.map((signer) => {
-        return CommitteeMemberDKG.initialize(babyjub, poseidon, nc, signer, t, i++);
+        return CommitteeMemberDKG.initialize(babyjub, poseidon, nc, signer, n_comm, t, i++);
     });
 
     expect(await nc.round1_complete()).equal(false);
@@ -55,7 +56,8 @@ export async function round1(
     console.log("actual PK: " + JSON.stringify(PK));
 
     const PK_coeffs_sol = (await nc.PK_coefficients());
-    const PK_coeffs = PK_coeffs_sol.map(xy => [xy[0].toString(), xy[1].toString()]);
+    const PK_coeffs = PK_coeffs_sol
+        .map((xy: bigint[]) => [xy[0].toString(), xy[1].toString()]);
     console.log("PK_coeffs: " + JSON.stringify(PK_coeffs));
 
     members.forEach(member => {

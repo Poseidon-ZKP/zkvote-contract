@@ -10,9 +10,8 @@ import { expect } from "chai";
 
 
 type Round2SecretShare = {
-  // l: number,
   f_i_l: bigint,
-  f_i_l_commit: PublicKey,
+  PK_i_l: PublicKey,
 };
 
 
@@ -46,6 +45,7 @@ export class CommitteeMemberDKG {
   poseidon: any;
   nc: Contract;
   signer: Signer;
+  n_comm: number;
   threshold: number;
   id: number;
   a_coeffs: bigint[];
@@ -56,6 +56,7 @@ export class CommitteeMemberDKG {
     poseidon: any,
     nc: Contract,
     signer: Signer,
+    n_comm: number,
     threshold: number,
     id: number,
     a_coeffs: bigint[],
@@ -65,6 +66,7 @@ export class CommitteeMemberDKG {
     this.poseidon = poseidon;
     this.nc = nc;
     this.signer = signer;
+    this.n_comm = n_comm;
     this.threshold = threshold;
     this.id = id;
     this.a_coeffs = a_coeffs;
@@ -80,9 +82,12 @@ export class CommitteeMemberDKG {
     poseidon: any,
     nc: Contract,
     signer: Signer,
+    n_comm: number,
     threshold: number,
     id: number
   ): CommitteeMemberDKG {
+    expect(n_comm).to.be.greaterThanOrEqual(threshold);
+
     let as: bigint[] = [];
     let Cs: PublicKey[] = [];
 
@@ -93,7 +98,7 @@ export class CommitteeMemberDKG {
     }
 
     return new CommitteeMemberDKG(
-      babyjub, poseidon, nc.connect(signer), signer, threshold, id, as, Cs);
+      babyjub, poseidon, nc.connect(signer), signer, n_comm, threshold, id, as, Cs);
   }
 
   public toString(): string {
@@ -127,14 +132,14 @@ export class CommitteeMemberDKG {
       groupOrder(this.babyjub));
 
     const babyjub = this.babyjub;
-    const f_i_l_commit = pointFromScalar(babyjub, f_i_l);
+    const PK_i_l = pointFromScalar(babyjub, f_i_l);
 
     const expect_f_i_l_commit = polynomial_evaluate_group(
       this.babyjub, this.getCoefficientCommitments(), BigInt(recipient_id));
-    console.log("       f_i_l_commit: " + f_i_l_commit);
+    console.log("       f_i_l_commit: " + PK_i_l);
     console.log("expect_f_i_l_commit: " + expect_f_i_l_commit);
-    expect(f_i_l_commit).eql(expect_f_i_l_commit);
-    return {/*l,*/ f_i_l, f_i_l_commit};
+    expect(PK_i_l).eql(expect_f_i_l_commit);
+    return {f_i_l, PK_i_l};
   }
 
   public encryptRound2ShareFor(share: bigint, recip_PK: PublicKey): EncryptedWithEphSK {
@@ -170,6 +175,7 @@ export class CommitteeMemberDKG {
     filter.fromBlock = 0;
     filter.toBlock = cur_block;
     const logs = await provider.getLogs(filter);
+    expect(logs.length).to.equal(this.n_comm);
 
     // Parse
     const intfc = this.nc.interface;
@@ -197,7 +203,7 @@ export class CommitteeMemberDKG {
     const parsedEvents: ParsedRound2Event[] = logs.map(parseLog);
 
     // Decrypt and sum event values to compute our share of the final secret.
-    let { f_i_l: sk_i } = this.computeRound2ShareFor(this.id);
+    let sk_i = 0n;
 
     const order = groupOrder(this.babyjub);
     parsedEvents.forEach(ev => {
@@ -207,18 +213,27 @@ export class CommitteeMemberDKG {
       console.log("  sk_i is now: " + sk_i.toString());
     });
 
-    // Check that f_i * G == PK_i from the contract
-    {
-      const PK_i_expect = pointFromScalar(this.babyjub, sk_i);
+    // PK = f_i * G
+    const PK_i = pointFromScalar(this.babyjub, sk_i);
 
+    // Check that PK matches the eval of the (encoded) polynomial, given the
+    // coefficient sums.
+    {
       const PK_coeffs_sol = (await this.nc.PK_coefficients());
       const PK_coeffs = PK_coeffs_sol.map(
-        xy => [xy[0].toString(), xy[1].toString()]);
-      const PK_i = polynomial_evaluate_group(
+        (xy: bigint[]) => [xy[0].toString(), xy[1].toString()]);
+      const PK_i_expect = polynomial_evaluate_group(
         this.babyjub, PK_coeffs, BigInt(this.id));
       expect(PK_i).to.eql(PK_i_expect);
     };
 
-    return new CommitteeMember(this.id, sk_i);
+    // Check that PK matches the sum of all public secret shares.
+    {
+      const pk_i = (await this.nc.get_PK_for(this.id))
+                     .map((x: bigint)  => x.toString());
+      expect(pk_i).to.eql(PK_i);
+    }
+
+    return new CommitteeMember(this.id, sk_i /*, PK_i */);
   }
 };

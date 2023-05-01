@@ -93,13 +93,14 @@ async function zkp_test() {
 }
 
 export async function generate_zkp_round2(
-    recip_id: number,
-    recip_PK: PublicKey,
-    C: PublicKey[],
-    f_l: bigint,
-    eph_sk: bigint,
-    enc: bigint,
-    eph_pk: PublicKey,
+  recip_id: number,
+  recip_PK: PublicKey,
+  C: PublicKey[],
+  f_l: bigint,
+  PK_i_l: PublicKey,
+  eph_sk: bigint,
+  enc: bigint,
+  eph_pk: PublicKey,
 ): Promise<{ proof: Groth16SolidityProof}> {
   const DIR = process.cwd()
   const CUR_CIRCUIT = "round2"
@@ -113,9 +114,10 @@ export async function generate_zkp_round2(
       // Public
       recip_id: recip_id,
       recip_PK: recip_PK,
-      C: C,
+      PK_i_l: PK_i_l,
       enc: enc,
       eph_pk: eph_pk,
+      C: C,
       // Secret
       f_l : f_l,
       eph_sk : eph_sk,
@@ -139,75 +141,75 @@ export async function generate_zkp_round2(
   return { proof: sol_proof };
 }
 
-export async function generate_plonk_zkp_round2(
-    recip_id: number,
-    recip_PK: PublicKey,
-    C: PublicKey[],
-    f_l: bigint,
-    eph_sk: bigint,
-    enc: bigint,
-    eph_pk: PublicKey,
-) {
-  const DIR = process.cwd()
-  const CUR_CIRCUIT = "round2"
-  const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
-  const FILE_WASM = CIRCUIT_TGT_DIR + CUR_CIRCUIT + "_js/" + CUR_CIRCUIT + ".wasm"
-  const FILE_ZKEY = CIRCUIT_TGT_DIR + "zkey.plonk.16"
-  const vKey = await snarkjs.zKey.exportVerificationKey(FILE_ZKEY);
+// export async function generate_plonk_zkp_round2(
+//     recip_id: number,
+//     recip_PK: PublicKey,
+//     C: PublicKey[],
+//     f_l: bigint,
+//     eph_sk: bigint,
+//     enc: bigint,
+//     eph_pk: PublicKey,
+// ) {
+//   const DIR = process.cwd()
+//   const CUR_CIRCUIT = "round2"
+//   const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
+//   const FILE_WASM = CIRCUIT_TGT_DIR + CUR_CIRCUIT + "_js/" + CUR_CIRCUIT + ".wasm"
+//   const FILE_ZKEY = CIRCUIT_TGT_DIR + "zkey.plonk.16"
+//   const vKey = await snarkjs.zKey.exportVerificationKey(FILE_ZKEY);
 
-  const { proof, publicSignals } = await snarkjs.plonk.fullProve(
-    {
-      // Public
-      recip_id: recip_id,
-      recip_PK: recip_PK,
-      C: C,
-      enc: enc,
-      eph_pk: eph_pk,
-      // Secret
-      f_l : f_l,
-      eph_sk : eph_sk,
-    },
-    FILE_WASM,
-    FILE_ZKEY
-  )
+//   const { proof, publicSignals } = await snarkjs.plonk.fullProve(
+//     {
+//       // Public
+//       recip_id: recip_id,
+//       recip_PK: recip_PK,
+//       C: C,
+//       enc: enc,
+//       eph_pk: eph_pk,
+//       // Secret
+//       f_l : f_l,
+//       eph_sk : eph_sk,
+//     },
+//     FILE_WASM,
+//     FILE_ZKEY
+//   )
 
-  if (publicSignals.length != 6 + (C.length*2)) { throw "unexpected length"; }
+//   if (publicSignals.length != 6 + (C.length*2)) { throw "unexpected length"; }
 
-  expect(await snarkjs.plonk.verify(
-    vKey,
-    publicSignals,
-    // [
-    //     publicSignals[0],   // out
-    //     publicSignals[1],
-    //     publicSignals[2],   // enc
-    //     publicSignals[3],   // kb[2]
-    //     publicSignals[4],
-    //     publicSignals[5],   // l
-    //     publicSignals[6],   // C[i]
-    //     publicSignals[7],
-    //     publicSignals[8],
-    //     publicSignals[9],
-    //     publicSignals[10],  // C[L][0]
-    //     publicSignals[11]
-    // ],
-    proof
-  )).eq(true)
+//   expect(await snarkjs.plonk.verify(
+//     vKey,
+//     publicSignals,
+//     // [
+//     //     publicSignals[0],   // out
+//     //     publicSignals[1],
+//     //     publicSignals[2],   // enc
+//     //     publicSignals[3],   // kb[2]
+//     //     publicSignals[4],
+//     //     publicSignals[5],   // l
+//     //     publicSignals[6],   // C[i]
+//     //     publicSignals[7],
+//     //     publicSignals[8],
+//     //     publicSignals[9],
+//     //     publicSignals[10],  // C[L][0]
+//     //     publicSignals[11]
+//     // ],
+//     proof
+//   )).eq(true)
 
-  console.log("round2 plonk prover done!")
+//   console.log("round2 plonk prover done!")
 
-  const input_pub = await snarkjs.plonk.exportSolidityCallData(proof, publicSignals)
-  return {
-    proof : input_pub.split(",[")[0],
-    // publicSignals: {
-    //   l : l,
-    //   C : C,
-    //   CL0 : CL0,
-    //   enc : publicSignals[2],
-    //   kb : [publicSignals[3], publicSignals[4]],
-    //   out : [publicSignals[0], publicSignals[1]]
-    // }
-  }
-}
+//   const input_pub = await snarkjs.plonk.exportSolidityCallData(proof, publicSignals)
+//   return {
+//     proof : input_pub.split(",[")[0],
+//     // publicSignals: {
+//     //   l : l,
+//     //   C : C,
+//     //   CL0 : CL0,
+//     //   enc : publicSignals[2],
+//     //   kb : [publicSignals[3], publicSignals[4]],
+//     //   out : [publicSignals[0], publicSignals[1]]
+//     // }
+//   }
+// }
 
 export async function generate_zkp_nvote(
   pk,v,r,o

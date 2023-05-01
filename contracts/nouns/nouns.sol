@@ -18,7 +18,7 @@ interface IVerifierRound2 {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c,
-        uint256[10] memory input
+        uint256[12] memory input
         // bytes memory proof,
         // uint[] memory pubSignals
     ) external view;
@@ -67,6 +67,7 @@ contract Nouns {
     // Final summed polynomial coefficients.
     // After round 1, PK[0] = final committee PK.
     uint[2][] public PK_coeffs;
+    uint[2][] public PK_shares;
 
     // Round 1
 
@@ -104,8 +105,11 @@ contract Nouns {
         // tally_verifier  = _verifiers[2];
 
         n_comm = _committee.length;
+        PK_shares = new uint[2][](n_comm + 1);
         for (uint i=0; i < _committee.length; ++i) {
-            committee[_committee[i]] = i + 1;
+            uint id = i + 1;
+            committee[_committee[i]] = id;
+            PK_shares[id] = [0,1];
         }
 
         uint VOTE_POWER_TOTAL = 0;
@@ -149,13 +153,13 @@ contract Nouns {
         require(!round1_done[msg.sender], "user already participated in round 1!");
         require(C_coeffs.length == tally_threshold, "round 1 already done!");
 
-        uint cid = committee[msg.sender];
-        require(cid > 0);
+        uint sender_id = committee[msg.sender];
+        require((0 < sender_id) && (sender_id <= n_comm));
 
         for (uint256 t = 0; t < tally_threshold; t++) {
             require(CurveBabyJubJub.isOnCurve(C_coeffs[t][0], C_coeffs[t][1]), "invalid point");
         }
-        round1_C_coeffs[cid] = C_coeffs;
+        round1_C_coeffs[sender_id] = C_coeffs;
 
         // First set of points is just written to the PK shares.  Subsequent
         // points are added.
@@ -177,6 +181,8 @@ contract Nouns {
         // complete.
         if (round1_received == n_comm) {
             emit Round1Complete();
+
+            // TODO: state cleanup to save some gas?
         }
     }
 
@@ -196,10 +202,10 @@ contract Nouns {
         uint recip_id,
         uint enc,
         uint[2] calldata eph_pk,
-        // uint[2] calldata PK_i_l,
-        uint256[2] memory proof_a,
-        uint256[2][2] memory proof_b,
-        uint256[2] memory proof_c
+        uint[2] calldata PK_i_l,
+        uint256[2] calldata proof_a,
+        uint256[2][2] calldata proof_b,
+        uint256[2] calldata proof_c
         // bytes calldata proof
     ) public {
         require(
@@ -210,22 +216,23 @@ contract Nouns {
         require(
             round2_shares_received[sender_id][recip_id] == false,
             "round2 sender-receiver pair already submitted");
-        require(sender_id != recip_id, "cannot submit share for self");
 
         uint[2] memory recip_pk = round1_C_coeffs[recip_id][0];
 
-        // Num public inputs should be 1 + 2 + 1 + 2 + 2*tally_threshold
-        uint num_pub_inputs = 6 + (2 * tally_threshold);
-        require(10 == num_pub_inputs, "invalid public input length");
-        uint[10] memory pub;
+        // Num public inputs should be 1 + 2 + 1 + 2 + 2 + 2*tally_threshold
+        uint num_pub_inputs = 8 + (2 * tally_threshold);
+        require(12 == num_pub_inputs, "invalid public input length");
+        uint[12] memory pub;
         pub[0] = recip_id;
         pub[1] = recip_pk[0];
         pub[2] = recip_pk[1];
-        pub[3] = enc;
-        pub[4] = eph_pk[0];
-        pub[5] = eph_pk[1];
+        pub[3] = PK_i_l[0];
+        pub[4] = PK_i_l[1];
+        pub[5] = enc;
+        pub[6] = eph_pk[0];
+        pub[7] = eph_pk[1];
         // Copy the C_coeffs at the end of the public inputs.
-        uint dest_idx = 6;
+        uint dest_idx = 8;
         for (uint i = 0 ; i < tally_threshold ; ++i) {
             pub[dest_idx++] = round1_C_coeffs[sender_id][i][0];
             pub[dest_idx++] = round1_C_coeffs[sender_id][i][1];
@@ -233,6 +240,10 @@ contract Nouns {
 
         round2_verifier.verifyProof(proof_a, proof_b, proof_c, pub);
         // round2_verifier.verifyProof(proof, pub);
+
+        uint[2] storage recip_pk_share = PK_shares[recip_id];
+        (recip_pk_share[0], recip_pk_share[1]) = CurveBabyJubJub.pointAdd(
+            recip_pk_share[0], recip_pk_share[1], PK_i_l[0], PK_i_l[1]);
 
         round2_shares_received[sender_id][recip_id] = true;
         ++round2_num_shares;
@@ -246,7 +257,14 @@ contract Nouns {
     }
 
     function round2_complete() public view returns (bool) {
-        return round2_num_shares == n_comm * (n_comm - 1);
+        return round2_num_shares == n_comm * n_comm;
+    }
+
+    function get_PK_for(uint participant_id) public view returns(uint, uint) {
+        require(round2_complete(), "round2 not complete");
+        require((0 < participant_id) && (participant_id <= n_comm), "invalid participant_id");
+        uint[2] storage pk_share = PK_shares[participant_id];
+        return (pk_share[0], pk_share[1]);
     }
 
     function vote(

@@ -90,7 +90,7 @@ template EncodedPolynomialEvaluation(t) {
 template Round2(t) {
     signal input recip_id;  // recipient's ID (l in the protocol spec)
     signal input recip_PK[2]; // recipient's public key (C_{l,0} in the spec)
-    // signal input PK_i_l[2]; // Encoded secret share for l (PK_{i,l} = f_l * G in spec)
+    signal input PK_i_l[2]; // Encoded secret share for l (PK_{i,l} = f_l * G in spec)
     signal input enc;  // encrypted f_l
     signal input eph_pk[2];  // eph_pk to accompany the encrypted f_l
     signal input C[t][2]; // The encoded coefficients (C_{i,.})
@@ -98,9 +98,6 @@ template Round2(t) {
     // Secrets
     signal input f_l; // the encrypted value f_l
     signal input eph_sk; // the ephemeral secret key for encryption
-
-    // TODO: Make this a public input
-    signal PK_i_l[2]; // Encoded secret share for l (PK_{i,l} = f_l * G in spec)
 
     // f(l) * G = evaluation of committed poly at l
     component encoded_poly_eval = EncodedPolynomialEvaluation(t);
@@ -123,4 +120,4 @@ template Round2(t) {
 }
 
 // TODO: enc, out
-component main {public [recip_id, recip_PK /*, PK_i_l*/, enc, eph_pk, C]} = Round2(2);
+component main {public [recip_id, recip_PK, PK_i_l, enc, eph_pk, C]} = Round2(2);

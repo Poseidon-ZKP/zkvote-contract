@@ -2,12 +2,8 @@
 import { CommitteeMember } from "./committee_member";
 import { Round1Result } from "./round1";
 import { expect } from "chai";
-import { exit } from "process";
-import { randomBytes } from "@ethersproject/random";
 import { Contract } from "ethers";
-import { hexlify } from "@ethersproject/bytes";
-import { poseidonDecEx, poseidonEncEx } from "./poseidon";
-import { generate_plonk_zkp_round2, generate_zkp_round2 } from "./prover";
+import { generate_zkp_round2 } from "./prover";
 
 
 type Round2Result = {
@@ -32,8 +28,6 @@ export async function round2(
 
     for (let recip_idx = 0; recip_idx < N_COM; recip_idx++) {
 
-      if (sender_idx == recip_idx) continue;
-
       const recipient = members[recip_idx];
       const recip_id = recipient.id;
 
@@ -44,7 +38,7 @@ export async function round2(
 
       const recip_PK = (await nc.get_round1_PK_for(recip_id)).map((x: bigint) => x.toString());
       expect(recip_PK).to.eql(recipient.getRound2PublicKey());
-      const {f_i_l /*, f_i_l_commit*/} = sender.computeRound2ShareFor(recip_id);
+      const {f_i_l, PK_i_l} = sender.computeRound2ShareFor(recip_id);
       const {eph_sk, eph_pk, enc} = sender.encryptRound2ShareFor(f_i_l, recip_PK);
       console.log("  f_i_l = " + f_i_l.toString());
 
@@ -64,6 +58,7 @@ export async function round2(
         recip_PK,
         C_coefffs,
         f_i_l,
+        PK_i_l,
         eph_sk,
         enc,
         eph_pk,
@@ -75,6 +70,7 @@ export async function round2(
         recip_id,
         enc,
         eph_pk,
+        PK_i_l,
         proof.a,
         proof.b,
         proof.c,
