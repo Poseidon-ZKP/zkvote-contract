@@ -1,11 +1,11 @@
 import { pointAdd } from "../crypto";
-import { CommitteeMemberRound1 } from "./committee_member";
+import { CommitteeMemberDKG } from "./committee_member";
 import { expect } from "chai";
 import { Signer, Contract } from "ethers";
 
 
 export type Round1Result = {
-    members: CommitteeMemberRound1[],
+    members: CommitteeMemberDKG[],
     PK: any,
 };
 
@@ -23,8 +23,8 @@ export async function round1(
 ): Promise<Round1Result> {
 
     let i = 1;
-    const members: CommitteeMemberRound1[] = commitee.map((signer) => {
-        return CommitteeMemberRound1.initialize(babyjub, signer, t, i++);
+    const members: CommitteeMemberDKG[] = commitee.map((signer) => {
+        return CommitteeMemberDKG.initialize(babyjub, nc, signer, t, i++);
     });
 
     expect(await nc.round1_complete()).equal(false);
@@ -32,7 +32,6 @@ export async function round1(
     await Promise.all(members.map(async (member) => {
         const Cs = member.getCoefficientCommitments();
         console.log("Cs: " + JSON.stringify(Cs));
-        Promise.resolve();
         await nc.connect(member.signer).round1(Cs);
     }));
 

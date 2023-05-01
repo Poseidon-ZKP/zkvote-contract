@@ -1,3 +1,4 @@
+import { PublicKey } from "../crypto";
 import { expect } from "chai";
 import { BigNumberish } from "ethers";
 import { exit } from "process";
@@ -65,11 +66,13 @@ async function zkp_test() {
 }
 
 export async function generate_zkp_round2(
+    recip_id: number,
+    recip_PK: PublicKey,
+    C: PublicKey[],
     f_l: bigint,
-    l: number,
-    C: string[][],
-    CL0: string[],
-    r: bigint,
+    eph_sk: bigint,
+    enc: bigint,
+    eph_pk: PublicKey,
 ) {
   const DIR = process.cwd()
   const CUR_CIRCUIT = "round2"
@@ -79,33 +82,24 @@ export async function generate_zkp_round2(
   const vKey = await snarkjs.zKey.exportVerificationKey(FILE_ZKEY);
 
   const { proof, publicSignals } = await snarkjs.groth16.fullProve(
-      {
-          f_l : f_l,
-          l : l,
-          C : C,
-          CL0 : CL0,
-          r : r,
-      },
-      FILE_WASM,
-      FILE_ZKEY
+    {
+      // Public
+      recip_id: recip_id,
+      recip_PK: recip_PK,
+      C: C,
+      enc: enc,
+      eph_pk: eph_pk,
+      // Secret
+      f_l : f_l,
+      eph_sk : eph_sk,
+    },
+    FILE_WASM,
+    FILE_ZKEY
   )
 
   expect(await snarkjs.groth16.verify(
     vKey,
-    [
-        publicSignals[0],   // out
-        publicSignals[1],
-        publicSignals[2],   // enc
-        publicSignals[3],   // kb[2]
-        publicSignals[4],
-        publicSignals[5],   // l
-        publicSignals[6],   // C[i]
-        publicSignals[7],
-        publicSignals[8],
-        publicSignals[9],
-        publicSignals[10],  // C[L][0]
-        publicSignals[11]
-    ],
+    publicSignals,
     proof
   )).eq(true)
 
@@ -113,28 +107,17 @@ export async function generate_zkp_round2(
 
   return {
       proof : packToSolidityProof(proof),
-      publicSignals: {
-          l : l,
-          C : C, // Encoded coefficients
-          CL0 : CL0, // Recipient PK
-          enc : publicSignals[2],
-          kb : [publicSignals[3], publicSignals[4]],
-          out : [publicSignals[0], publicSignals[1]]
-      }
   }
 }
 
 export async function generate_plonk_zkp_round2(
+    recip_id: number,
+    recip_PK: PublicKey,
+    C: PublicKey[],
     f_l: bigint,
-    l: number,
-    C: string[][], // coeff commitments
-    CL0: string[], // recipient PK
-    r: bigint, // eph_sk
-    // f_l,
-    // l,
-    // C,
-    // CL0,
-    // r
+    eph_sk: bigint,
+    enc: bigint,
+    eph_pk: PublicKey,
 ) {
   const DIR = process.cwd()
   const CUR_CIRCUIT = "round2"
@@ -144,33 +127,40 @@ export async function generate_plonk_zkp_round2(
   const vKey = await snarkjs.zKey.exportVerificationKey(FILE_ZKEY);
 
   const { proof, publicSignals } = await snarkjs.plonk.fullProve(
-      {
-          f_l : f_l,
-          l : l,
-          C : C,
-          CL0 : CL0,
-          r : r
-      },
-      FILE_WASM,
-      FILE_ZKEY
+    {
+      // Public
+      recip_id: recip_id,
+      recip_PK: recip_PK,
+      C: C,
+      enc: enc,
+      eph_pk: eph_pk,
+      // Secret
+      f_l : f_l,
+      eph_sk : eph_sk,
+    },
+    FILE_WASM,
+    FILE_ZKEY
   )
+
+  if (publicSignals.length != 6 + (C.length*2)) { throw "unexpected length"; }
 
   expect(await snarkjs.plonk.verify(
     vKey,
-    [
-        publicSignals[0],   // out
-        publicSignals[1],
-        publicSignals[2],   // enc
-        publicSignals[3],   // kb[2]
-        publicSignals[4],
-        publicSignals[5],   // l
-        publicSignals[6],   // C[i]
-        publicSignals[7],
-        publicSignals[8],
-        publicSignals[9],
-        publicSignals[10],  // C[L][0]
-        publicSignals[11]
-    ],
+    publicSignals,
+    // [
+    //     publicSignals[0],   // out
+    //     publicSignals[1],
+    //     publicSignals[2],   // enc
+    //     publicSignals[3],   // kb[2]
+    //     publicSignals[4],
+    //     publicSignals[5],   // l
+    //     publicSignals[6],   // C[i]
+    //     publicSignals[7],
+    //     publicSignals[8],
+    //     publicSignals[9],
+    //     publicSignals[10],  // C[L][0]
+    //     publicSignals[11]
+    // ],
     proof
   )).eq(true)
 
@@ -179,14 +169,14 @@ export async function generate_plonk_zkp_round2(
   const input_pub = await snarkjs.plonk.exportSolidityCallData(proof, publicSignals)
   return {
     proof : input_pub.split(",[")[0],
-    publicSignals: {
-      l : l,
-      C : C,
-      CL0 : CL0,
-      enc : publicSignals[2],
-      kb : [publicSignals[3], publicSignals[4]],
-      out : [publicSignals[0], publicSignals[1]]
-    }
+    // publicSignals: {
+    //   l : l,
+    //   C : C,
+    //   CL0 : CL0,
+    //   enc : publicSignals[2],
+    //   kb : [publicSignals[3], publicSignals[4]],
+    //   out : [publicSignals[0], publicSignals[1]]
+    // }
   }
 }
 

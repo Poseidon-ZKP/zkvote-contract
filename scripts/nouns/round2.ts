@@ -28,69 +28,73 @@ export async function round2(
 
   const members = round1_result.members;
   const N_COM = members.length;
-  for (let i = 0; i < N_COM; i++) {
+  for (let sender_idx = 0; sender_idx < N_COM; sender_idx++) {
 
-    const sender = members[i];
+    const sender = members[sender_idx];
     const sender_id = sender.id;
     const C_coefffs = sender.getCoefficientCommitments();
 
-    for (let l = 0; l < N_COM; l++) {
+    for (let recip_idx = 0; recip_idx < N_COM; recip_idx++) {
 
-      if (i == l) continue;
+      if (sender_idx == recip_idx) continue;
 
-      const recipient = members[l];
-      const recipient_id = recipient.id;
+      const recipient = members[recip_idx];
+      const recip_id = recipient.id;
 
-      console.log("ROUND2: " + sender_id + " --> " + recipient_id);
+      console.log("ROUND2: sender: " + sender_id + " --> recip: " + recip_id);
 
       // Generate the encryption eph_sk outside of the encryption
       // function, since it's required for witness generation.
 
-      const {f_i_l, f_i_l_commit} = sender.computeRound2ShareFor(recipient_id);
-      const C_l_0 = recipient.getRound2PublicKey();
-      const {eph_sk, eph_pk, enc} = poseidonEncEx(babyjub, poseidon, f_i_l, C_l_0);
+      const {f_i_l, f_i_l_commit} = sender.computeRound2ShareFor(recip_id);
+      const recip_PK = (await nc.get_round1_PK_for(recip_id)).map(x => x.toString());
+      expect(recip_PK).to.eql(recipient.getRound2PublicKey());
+      const {eph_sk, eph_pk, enc} = poseidonEncEx(babyjub, poseidon, f_i_l, recip_PK);
       console.log("  f_i_l = " + f_i_l.toString());
 
       // Create the encryption and eph_sk
+
       expect(
         poseidonDecEx(
           babyjub, poseidon, {eph_pk, enc}, recipient.getRound2SecretKey())
       ).to.equal(f_i_l);
 
       // Check the decryption
-      // const {dec} = await poseidonDec(enc, a[l][0], KB, jub)
-      const recip_sk = recipient.getRound2SecretKey();
-      const dec = poseidonDecEx(babyjub, poseidon, { eph_pk: eph_pk, enc: enc }, recip_sk);
-      expect(dec).equal(f_i_l)
+
+      {
+        const recip_sk = recipient.getRound2SecretKey();
+        const dec = poseidonDecEx(
+          babyjub,
+          poseidon,
+          { eph_pk: eph_pk, enc: enc },
+          recip_sk);
+        expect(dec).equal(f_i_l)
+      }
 
       // TODO: Add the commitment to the shares
 
-      const {proof, publicSignals} = await generate_plonk_zkp_round2(
-        f_i_l,
-        recipient_id,
+      // Send the share to recipient.
+
+      const {proof /*, publicSignals*/} = await generate_plonk_zkp_round2(
+        recip_id,
+        recip_PK,
         C_coefffs,
-        C_l_0,
+        f_i_l,
         eph_sk,
-        // enc,
-        // edwards_twist_C[i],
-        // edwards_twist_C[l][0],
-        // r2r[i][l]
+        enc,
+        eph_pk,
       )
-      console.log("publicSignals: " + publicSignals);
 
-      expect(BigInt(enc)).equal(BigInt(publicSignals.enc))
-      expect(eph_pk[0]).equal(publicSignals.kb[0])
-      expect(eph_pk[1]).equal(publicSignals.kb[1])
-
-
-      // await (await nc.connect(COMMITEE[i]).round2(
-      //   l, publicSignals.enc, publicSignals.kb, publicSignals.out, proof
-      // )).wait()
-      // console.log("round 2 on-chain verify done!!")
+      expect(await nc.round2_complete()).to.be.false;
+      expect(await nc.round2_share_received(sender.id, recipient.id)).to.be.false;
+      await (await nc.connect(sender.signer).round2(
+        recip_id, enc, eph_pk, proof
+      )).wait()
+      expect(await nc.round2_share_received(sender.id, recipient.id)).to.be.true;
     }
   }
 
-  // TODO : verify (recursive) aggregate plonk proof
+  expect(await nc.round2_complete()).to.be.true;
 
   console.log("round 2 done!!")
 

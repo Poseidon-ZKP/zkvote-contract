@@ -6,32 +6,34 @@ include "../../node_modules/circomlib/circuits/poseidon.circom";
 include "../nouns/babyjubExtend.circom";
 
 template PoseidonEnc() {
-    signal input base[2];
+    signal input recip_PK[2];
     signal input msg;
-    signal input r;
+    signal input eph_sk;
 
     signal KS[2];
     signal output out;
-    signal output kb[2];
+    signal output eph_pk[2];
+
+    // TODO(duncan): check eph_sk \in F_B?
 
     // R = r * G
-    component mulG = BabyScaleGenerator();
-    mulG.in <== r;
-    kb[0] <== mulG.Ax;
-    kb[1] <== mulG.Ay;
+    component comp_eph_PK = BabyScaleGenerator();
+    comp_eph_PK.in <== eph_sk;
+    eph_pk[0] <== comp_eph_PK.Ax;
+    eph_pk[1] <== comp_eph_PK.Ay;
 
     // KS = r * C_0
-    component mulAny = JubScalarMulAny();
-    mulAny.in <== r;
-    mulAny.p[0] <== base[0];
-    mulAny.p[1] <== base[1];
-    KS[0] <== mulAny.out[0];
-    KS[1] <== mulAny.out[1];
+    component comp_KS = JubScalarMulAny();
+    comp_KS.in <== eph_sk;
+    comp_KS.p <== recip_PK;
 
     // Blinding factor = Poseidon(KS[0])
-    component pos = Poseidon(1);
-    pos.inputs[0] <== KS[0];
-    out <== pos.out + msg;
+    component hash_KS = Poseidon(1);
+    hash_KS.inputs[0] <== comp_KS.out[0];
+
+    // out holds the original plaintext, "blinded" by the hash of the shared
+    // secret.
+    out <== hash_KS.out + msg;
 
     // TODO : complete poseidon enc (C.last == S[1]) to protect from "Tampering"
 
@@ -86,20 +88,23 @@ template EncodedPolynomialEvaluation(t) {
 
 
 template Round2(t) {
-    signal input f_l;
-    signal input l;
-    signal input C[t][2];
-    signal input CL0[2];
+    signal input recip_id;  // recipient's ID (l in the protocol spec)
+    signal input recip_PK[2]; // recipient's public key (C_{l,0} in the spec)
+    // signal input PK_i_l[2]; // Encoded secret share for l (PK_{i,l} = f_l * G in spec)
+    signal input enc;  // encrypted f_l
+    signal input eph_pk[2];  // eph_pk to accompany the encrypted f_l
+    signal input C[t][2]; // The encoded coefficients (C_{i,.})
 
-    signal input r;
+    // Secrets
+    signal input f_l; // the encrypted value f_l
+    signal input eph_sk; // the ephemeral secret key for encryption
 
-    signal output out[2]; // f_i_l_commitment
-    signal output enc;
-    signal output kb[2];
+    // TODO: Make this a public input
+    signal PK_i_l[2]; // Encoded secret share for l (PK_{i,l} = f_l * G in spec)
 
-    // Show that f(l) * G = evaluation of committed poly at l
+    // f(l) * G = evaluation of committed poly at l
     component encoded_poly_eval = EncodedPolynomialEvaluation(t);
-    encoded_poly_eval.x <== l;
+    encoded_poly_eval.x <== recip_id;
     encoded_poly_eval.C <== C;
 
     component compute_f_l_times_G = BabyScaleGenerator();
@@ -107,17 +112,15 @@ template Round2(t) {
     compute_f_l_times_G.Ax === encoded_poly_eval.out[0];
     compute_f_l_times_G.Ay === encoded_poly_eval.out[1];
 
-    // Show that ENC(f(l), C_0) = C(iphertext)
-    component E = PoseidonEnc();
-    E.base[0] <== CL0[0];
-    E.base[1] <== CL0[1];
-    E.msg <== f_l;
-    E.r <== r;
-    enc <== E.out;
-    kb[0] <== E.kb[0];
-    kb[1] <== E.kb[1];
-    log("round 2 circuit out[0] ", out[0]);
+    // Show that ENC(f(l), C_0) = (enc, eph_pk)
+    component compute_enc = PoseidonEnc();
+    compute_enc.recip_PK <== recip_PK;
+    compute_enc.msg <== f_l;
+    compute_enc.eph_sk <== eph_sk;
+
+    compute_enc.out === enc;
+    compute_enc.eph_pk === eph_pk;
 }
 
 // TODO: enc, out
-component main {public [l, C, CL0]} = Round2(2);
+component main {public [recip_id, recip_PK /*, PK_i_l*/, enc, eph_pk, C]} = Round2(2);

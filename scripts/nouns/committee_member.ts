@@ -15,9 +15,17 @@ type Round2SecretShare = {
 };
 
 
-export class CommitteeMemberRound1 {
+/// Committee member with secret key share, able to participate in vote
+/// tallying.
+export class CommitteeMember {
+}
+
+
+/// Committee member participating in Distributed Key Generation.
+export class CommitteeMemberDKG {
 
   babyjub: any;
+  nc: Contract;
   signer: Signer;
   threshold: number;
   id: number;
@@ -26,6 +34,7 @@ export class CommitteeMemberRound1 {
 
   constructor(
     babyjub: any,
+    nc: Contract,
     signer: Signer,
     threshold: number,
     id: number,
@@ -33,6 +42,7 @@ export class CommitteeMemberRound1 {
     C_coeff_commitments: PublicKey[]
   ) {
     this.babyjub = babyjub;
+    this.nc = nc;
     this.signer = signer;
     this.threshold = threshold;
     this.id = id;
@@ -44,18 +54,23 @@ export class CommitteeMemberRound1 {
         JSON.stringify(a_coeffs.map(x => x.toString())));
   }
 
-  public static initialize(babyjub: any, signer: Signer, threshold: number, id: number): CommitteeMemberRound1 {
+  public static initialize(
+    babyjub: any,
+    nc: Contract,
+    signer: Signer,
+    threshold: number,
+    id: number
+  ): CommitteeMemberDKG {
     let as: bigint[] = [];
     let Cs: PublicKey[] = [];
 
     for (let i = 0 ; i < threshold ; ++i) {
-      // const a = BigInt(id * 10 + i);
       const a = BigInt(hexlify(randomBytes(32))) % groupOrder(babyjub);
       as.push(a);
       Cs.push(pointFromScalar(babyjub, a));
     }
 
-    return new CommitteeMemberRound1(babyjub, signer, threshold, id, as, Cs);
+    return new CommitteeMemberDKG(babyjub, nc.connect(signer), signer, threshold, id, as, Cs);
   }
 
   public toString(): string {
@@ -69,17 +84,6 @@ export class CommitteeMemberRound1 {
 
   /// Return the commitments { C_{i,j} }.
   public getCoefficientCommitments(): string[][] {
-    // const babyjub = this.babyjub;
-    // const B = babyjub.Base8;
-    // const Cs = this.a_coeffs.map(a => { return babyjub.mulPointEscalar(B, a); });
-    // // console.log("Cs: " + JSON.stringify(Cs));
-    // // Convert to bigints
-    // return Cs.map(
-    //     c => c.map(
-    //         c_i => babyjub.F.toString(c_i)
-    //     )
-    // );
-
     return this.C_coeff_commitments;
   }
 
@@ -111,4 +115,11 @@ export class CommitteeMemberRound1 {
     return {/*l,*/ f_i_l, f_i_l_commit};
   }
 
+  public async round2Done(): Promise<boolean> {
+    return await this.nc.round2_complete();
+  }
+
+  public constructSecretShare(): CommitteeMember {
+    return new CommitteeMember;
+  }
 };

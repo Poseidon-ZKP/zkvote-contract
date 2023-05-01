@@ -35,6 +35,10 @@ contract Nouns {
     IVerifierNvote  nvote_verifier;
     address tally_verifier;
 
+    //
+    // Voting
+    //
+
     mapping(address => uint) public votePower;
     mapping(address => bool) public voted;
     uint[3] public voteStats;
@@ -43,27 +47,43 @@ contract Nouns {
     uint[2][] DI;
     uint[] tally_cid;
 
+    //
     // Committee
+    //
+
     uint public n_comm;
     uint public tally_threshold;
     uint public tallied_committee;
     mapping(address => uint) public committee;
 
+    //
     // DKG
-    uint[2][] public PK_shares;
-    mapping(uint => uint[2][]) C;
+    //
+
+    // Final summed polynomial coefficients.
+    // After round 1, PK[0] = final committee PK.
+    uint[2][] public PK_coeffs;
+
+    // Round 1
+
+    mapping(uint => uint[2][]) round1_C_coeffs;
     mapping(address => bool) public round1_done;
-    uint round1_total;
+    uint round1_received;
 
-    mapping(uint => mapping(uint => uint)) public ENC;
-    mapping(uint => mapping(uint => mapping(uint => uint))) public KB;
+    // Round 2
+    mapping(uint => mapping(uint => bool)) public round2_shares_received;
+    uint round2_num_shares;
+    // mapping(uint => mapping(uint => uint)) public enc_sk_shares;
+    // mapping(uint => mapping(uint => uint[2])) public enc_eph_PK;
 
+    // Lookup table for vote counts
     mapping(uint => mapping(uint => uint)) public lookup_table;
 
-    // Generator Point
-    // uint public constant Gx = 995203441582195749578291179787384436505546430278305826713579947235728471134;
-    // uint public constant Gy = 5472060717959818805561601436314318772137091100104008585924551046643952123905;
+    // Events
+    event Round1Complete();
+    event Round2Share(uint indexed recip_id, uint sender_id, uint enc_sk_share, uint[2] enc_eph_PK);
 
+    // Generator Point
     uint public constant Gx = 5299619240641551281634865583518297030282874472190772894086521144482721001553;
     uint public constant Gy = 16950150798460657717958625567821834550301663161624707787222815936182638968203;
 
@@ -99,91 +119,118 @@ contract Nouns {
             M[i][1] = 1;
         }
 
-        for (uint i = 1; i <= VOTE_POWER_TOTAL; i++) {
-            (uint x, uint y) = CurveBabyJubJub.pointMul(Gx, Gy, i);
+        uint x = Gx;
+        uint y = Gy;
+        lookup_table[x][y] = 1;
+        for (uint i = 2; i <= VOTE_POWER_TOTAL; i++) {
+            (x, y) = CurveBabyJubJub.pointAdd(x, y, Gx, Gy);
             lookup_table[x][y] = i;
         }
     }
 
     function PK() public view returns (uint256, uint256) {
-        return (PK_shares[0][0], PK_shares[0][1]);
+        return (PK_coeffs[0][0], PK_coeffs[0][1]);
     }
 
     function round1(
-        uint[2][] memory CI
+        uint[2][] memory C_coeffs
     ) public {
-        require(round1_total < n_comm, "round 1 already complete");
+        require(round1_received < n_comm, "round 1 already complete");
         require(!round1_done[msg.sender], "user already participated in round 1!");
-        require(CI.length == tally_threshold, "round 1 already done!");
+        require(C_coeffs.length == tally_threshold, "round 1 already done!");
 
-        uint cid = committee[msg.sender] - 1;
-        require(cid >= 0);
+        uint cid = committee[msg.sender];
+        require(cid > 0);
 
         for (uint256 t = 0; t < tally_threshold; t++) {
-            require(CurveBabyJubJub.isOnCurve(CI[t][0], CI[t][1]), "invalid point");
+            require(CurveBabyJubJub.isOnCurve(C_coeffs[t][0], C_coeffs[t][1]), "invalid point");
         }
-        C[cid] = CI;
+        round1_C_coeffs[cid] = C_coeffs;
 
         // First set of points is just written to the PK shares.  Subsequent
         // points are added.
-        if (round1_total == 0) {
-            PK_shares = CI;
+        if (round1_received == 0) {
+            PK_coeffs = C_coeffs;
         } else {
             for (uint256 t = 0; t < tally_threshold; t++) {
                 (uint256 x, uint256 y) = CurveBabyJubJub.pointAdd(
-                    PK_shares[t][0], PK_shares[t][1], CI[t][0], CI[t][1]);
-                PK_shares[t] = [x, y];
-                // PK_shares[t][0] = x;
-                // PK_shares[t][1] = y;
+                    PK_coeffs[t][0], PK_coeffs[t][1], C_coeffs[t][0], C_coeffs[t][1]);
+                PK_coeffs[t] = [x, y];
             }
         }
 
+        // Mark round 1 as done for this participant.
         round1_done[msg.sender] = true;
-        round1_total++;
+        round1_received++;
 
-        // // Last Committee, PK = Sum(Ci0)
-        if (round1_total == n_comm) {
-        //     PK = [C[0][0][0], C[0][0][1]];
-        //     for (uint256 i = 1; i < n_comm; i++) {
-        //         (PK[0], PK[1]) = CurveBabyJubJub.pointAdd(PK[0], PK[1], C[i][0][0], C[i][0][1]);
-        //     }
-
+        // Emit an event when all participants have submitted, and round 1 is
+        // complete.
+        if (round1_received == n_comm) {
+            emit Round1Complete();
         }
     }
 
     function round1_complete() public view returns (bool) {
-        return round1_total == n_comm;
+        return round1_received == n_comm;
+    }
+
+    function get_round1_PK_for(uint participant_id) public view returns (uint, uint) {
+        require(
+            (0 < participant_id) && (participant_id <= n_comm),
+            "invalid participant_id");
+        uint[2] storage r1_p_PK = round1_C_coeffs[participant_id][0];
+        return (r1_p_PK[0], r1_p_PK[1]);
     }
 
     function round2(
-        uint l,
+        uint recip_id,
         uint enc,
-        uint[2] calldata kb,
-        uint[2] calldata out,
+        uint[2] calldata eph_pk,
+        // uint[2] calldata PK_i_l,
         bytes calldata proof
     ) public {
-        uint cid = committee[msg.sender] - 1;
-        require(cid >= 0);
+        require(
+            (0 < recip_id) && (recip_id <= n_comm),
+            "unexpected validator id");
+        uint sender_id = committee[msg.sender];
+        require(sender_id > 0, "invalid sender id");
+        require(
+            round2_shares_received[sender_id][recip_id] == false,
+            "round2 sender-receiver pair already submitted");
+        require(sender_id != recip_id, "cannot submit share for self");
 
-        uint[] memory pub = new uint[](12);
-        pub[0] = out[0];
-        pub[1] = out[1];
-        pub[2] = enc;
-        pub[3] = kb[0];
-        pub[4] = kb[1];
-        pub[5] = l;
-        pub[6] = C[cid][0][0];
-        pub[7] = C[cid][0][1];
-        pub[8] = C[cid][1][0];
-        pub[9] = C[cid][1][1];
-        pub[10] = C[l][0][0];
-        pub[11] = C[l][0][1];
+        uint[2] memory recip_pk = round1_C_coeffs[recip_id][0];
 
+        // Num public inputs should be 1 + 2 + 1 + 2 + 2*tally_threshold
+        uint num_pub_inputs = 6 + (2 * tally_threshold);
+        uint[] memory pub = new uint[](num_pub_inputs);
+        pub[0] = recip_id;
+        pub[1] = recip_pk[0];
+        pub[2] = recip_pk[1];
+        pub[3] = enc;
+        pub[4] = eph_pk[0];
+        pub[5] = eph_pk[1];
+        // Copy the C_coeffs at the end of the public inputs.
+        uint dest_idx = 6;
+        for (uint i = 0 ; i < tally_threshold ; ++i) {
+            pub[dest_idx++] = round1_C_coeffs[sender_id][i][0];
+            pub[dest_idx++] = round1_C_coeffs[sender_id][i][1];
+        }
         round2_verifier.verifyProof(proof, pub);
 
-        ENC[cid][l] = enc;
-        KB[cid][l][0] = kb[0];
-        KB[cid][l][1] = kb[1];
+        round2_shares_received[sender_id][recip_id] = true;
+        ++round2_num_shares;
+        emit Round2Share(recip_id, sender_id, enc, eph_pk);
+    }
+
+    function round2_share_received(uint sender_id, uint recip_id) public view returns (bool) {
+        require((0 < sender_id) && (sender_id <= n_comm), "invalid sender_id");
+        require((0 < recip_id) && (recip_id <= n_comm), "invalid recip_id");
+        return round2_shares_received[sender_id][recip_id];
+    }
+
+    function round2_complete() public view returns (bool) {
+        return round2_num_shares == n_comm * (n_comm - 1);
     }
 
     function vote(
@@ -210,7 +257,7 @@ contract Nouns {
             [[proof[2], proof[3]], [proof[4], proof[5]]],
             [proof[6], proof[7]],
             [ RI[0], RI[1], MI[0][0], MI[0][1], MI[1][0], MI[1][1], MI[2][0], MI[2][1],
-              PK_shares[0][0], PK_shares[0][1], votePower[msg.sender]]
+              PK_coeffs[0][0], PK_coeffs[0][1], votePower[msg.sender]]
         );
     }
 
