@@ -27,7 +27,7 @@ type CircomOptions = {
     O: number;
 }
 
-export async function compile_circom (fileName: string, options: CircomOptions) {
+export async function compile_circom(fileName: string, options: CircomOptions) {
     var flags = "--wasm ";
     // flags += "--inspect ";
     if (options.sym) flags += "--sym ";
@@ -139,14 +139,14 @@ export async function build_circuit(circuit : string): Promise<void> {
 	await compile_circom(src_dir + circuit + ".circom", {
 		sym : true,
 		r1cs : true,
-		json : true,
+		json : false,
 		O : 2,
 		output : dest_dir
 	})
 
   const FILE_R1CS = dest_dir + circuit + ".r1cs"
   const FILE_PTAU_FINAL = pwd + "/circuits/ptau.16"
-  const FILE_ZKEY_FINAL = dest_dir + "zkey.16"
+  const FILE_ZKEY_FINAL = dest_dir + circuit + ".zkey.16"
 
   const ptau_final = {type: "mem", data: undefined};
   const zkey_final = {type: "mem", data : undefined};

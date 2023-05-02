@@ -5,7 +5,7 @@ const args = process.argv;
 
 let circuits = args.slice(2);
 if (circuits.length == 0) {
-  circuits = [ "round2", "vote" ];
+  circuits = [ "round2", "nvote" ];
 }
 console.log("Building circuits: " + circuits);
 
