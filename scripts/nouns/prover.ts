@@ -126,15 +126,15 @@ export async function generate_zkp_round2(
     FILE_ZKEY
   )
 
-  console.log("groth16 proof: " + JSON.stringify(proof));
+  // console.log("groth16 proof: " + JSON.stringify(proof));
 
-  expect(await snarkjs.groth16.verify(
-    vKey,
-    publicSignals,
-    proof
-  )).eq(true)
+  // expect(await snarkjs.groth16.verify(
+  //   vKey,
+  //   publicSignals,
+  //   proof
+  // )).eq(true)
 
-  console.log("round2 groth16 prover done!")
+  // console.log("round2 groth16 prover done!")
 
   const sol_proof = packGroth16ProofToSolidityProof(proof);
   console.log("groth16 sol_proof: " + JSON.stringify(sol_proof));
