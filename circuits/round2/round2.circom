@@ -3,7 +3,7 @@ pragma custom_templates;    // TODO : proof of plonk's custom gate
 
 include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../../node_modules/circomlib/circuits/poseidon.circom";
-include "../nouns/babyjubExtend.circom";
+include "../common/babyjubExtend.circom";
 
 template PoseidonEnc() {
     signal input recip_PK[2];
