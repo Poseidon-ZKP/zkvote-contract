@@ -50,7 +50,7 @@ export async function round1(
         }
         return PK_sum;
     })();
-    const PK = (await nc.PK()).map((x: any) => x.toString());
+    const PK = (await nc.get_PK()).map((x: bigint) => x.toString());
 
     console.log("expect_PK: " + JSON.stringify(expect_PK));
     console.log("actual PK: " + JSON.stringify(PK));
@@ -96,7 +96,7 @@ export async function round1(
     //     // PK_comp = jub.addPoint(PK_comp, C[i][0])
     // }
 
-    // expect(jub.F.toString(PK[0])).equal(await nc.PK(0))
+    // expect(jub.F.toString(PK[0])).equal(await nc.get_PK()[0])
     // console.log("round 1 done!")
     // return {
     //     a : a,

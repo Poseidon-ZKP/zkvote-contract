@@ -1,12 +1,11 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { Signer } from "ethers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { Nouns__factory, Round2Verifier__factory, NvoteVerifier__factory } from "../types";
-// import { Round2PlonkVerifier__factory } from "../types/factories/contracts/round2/round2_plonk_verifier.sol";
-// import { poseidonDec, poseidonEnc } from "./poseidon";
-// import { generate_zkp_nvote} from "./prover";
 import { round1 } from "./round1";
 import { round2 } from "./round2";
+import { Vote, Voter } from "./voter";
 const { buildBabyjub, buildPoseidonReference } = require('circomlibjs');
 const polyval = require( 'compute-polynomial' );
 
@@ -25,13 +24,20 @@ async function main(
     // }
 
     // Parameters
-    const V = [1, 2, 3]        // voting power per user
+    const V = [1n, 2n, 3n, 4n] // voting power per user
     const N_USER = V.length
     const N_COM = 3
+    expect(owners.length).to.be.greaterThanOrEqual(N_USER + N_COM);
+
     const t = 2
-    let COMMITEE = []
+    let COMMITEE: SignerWithAddress[] = [];
     for (let i = 0; i < N_COM; i++) {
         COMMITEE.push(owners[i])
+    }
+
+    let USERS: SignerWithAddress[] = [];
+    for (let i = 0 ; i < N_USER ; i++) {
+        USERS.push(owners[N_COM + i]);
     }
 
     // const r2v = await (new Round2PlonkVerifier__factory(deployer)).deploy()
@@ -43,7 +49,7 @@ async function main(
     const nc = await (new Nouns__factory(deployer)).deploy(
         verifiers,
         COMMITEE.map((e) => e.address),
-        COMMITEE.map((e) => e.address),
+        USERS.map((e) => e.address),
         V,
         t
     )
@@ -53,13 +59,27 @@ async function main(
     // const {a, C, edwards_twist_C, PK} = await round1(jub, COMMITEE, t, nc)
     // console.log("PK : ", [jub.F.toString(PK[0]), jub.F.toString(PK[1])])
     const round1_result = await round1(jub, poseidon, COMMITEE, t, nc);
-    const members = round1_result.members;
-    console.log("members_round1: " + members.map(x => x.toString()));
+    const round1_members = round1_result.members;
+    console.log("round1_members: " + round1_members.map(x => x.toString()));
 
     // 2. Key Generation Round 2 (Committee)
     const round2_result = await round2(nc, round1_result);
+    const full_members = round2_result.members;
+    console.log("full_members: " + full_members.map(x => x.toString()));
 
-    // // 3. User Voting
+    // 3. User Voting
+    const voters: Voter[] = USERS.map((signer, i) => {
+        return new Voter(jub/*,poseidon */, signer, nc, V[i]);
+    });
+
+    const votes: Vote[] = [Vote.Yay, Vote.Nay, Vote.Abstain];
+    await Promise.all(voters.map(async (voter, i) => {
+        const my_vote = votes[i % votes.length];
+        const public_vote = await voter.cast_vote(my_vote);
+
+        console.log("Voter " + (await voter.signer.getAddress()) + ": " + JSON.stringify(public_vote));
+    }));
+
     // let o = []
     // let r = []
     // let R = []

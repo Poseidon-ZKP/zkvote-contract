@@ -29,7 +29,7 @@ interface IVerifierNvote {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c,
-        uint256[11] memory input
+        uint256[15] memory input
     ) external view;
 }
 
@@ -46,7 +46,7 @@ contract Nouns {
     mapping(address => uint) public votePower;
     mapping(address => bool) public voted;
     uint[3] public voteStats;
-    uint[2] public R;
+    uint[2][3] public R;
     uint[2][3] public M;
     uint[2][] DI;
     uint[] tally_cid;
@@ -120,9 +120,9 @@ contract Nouns {
 
         tally_threshold = _tally_threshold;
         tallied_committee = 0;
-        R[0] = 0;
-        R[1] = 1;
         for (uint256 i = 0; i < 3; i++) {
+            R[i][0] = 0;
+            R[i][1] = 1;
             M[i][0] = 0;
             M[i][1] = 1;
         }
@@ -136,7 +136,7 @@ contract Nouns {
         }
     }
 
-    function PK() public view returns (uint256, uint256) {
+    function get_PK() public view returns (uint256, uint256) {
         require(round1_complete(), "round1 is not complete.");
         return (PK_coeffs[0][0], PK_coeffs[0][1]);
     }
@@ -268,31 +268,57 @@ contract Nouns {
     }
 
     function vote(
-        uint[2] calldata RI,
-        uint[2][3] calldata MI,
-        uint[8] calldata proof
+        uint[2][3] calldata voter_R_i,
+        uint[2][3] calldata voter_M_i,
+        uint256[2] calldata proof_a,
+        uint256[2][2] calldata proof_b,
+        uint256[2] calldata proof_c
     ) public {
-        require(votePower[msg.sender]>0, "invalid voter!");
+
+        uint vw = votePower[msg.sender];
+        require(vw > 0, "invalid voter!");
         require(!voted[msg.sender], "already vote!");
-        uint cid = committee[msg.sender] - 1;
-        require(cid >= 0);
-
-        // R = R + RI
-        (R[0], R[1]) = CurveBabyJubJub.pointAdd(RI[0], RI[1], R[0], R[1]);
-
-        // M = M + MI
-        for (uint256 i = 0; i < 3; i++) {
-            (M[i][0], M[i][1]) = CurveBabyJubJub.pointAdd(M[i][0], M[i][1], MI[i][0], MI[i][1]);
-        }
 
         // Verify ZKP
-        nvote_verifier.verifyProof(
-            [proof[0], proof[1]],
-            [[proof[2], proof[3]], [proof[4], proof[5]]],
-            [proof[6], proof[7]],
-            [ RI[0], RI[1], MI[0][0], MI[0][1], MI[1][0], MI[1][1], MI[2][0], MI[2][1],
-              PK_coeffs[0][0], PK_coeffs[0][1], votePower[msg.sender]]
-        );
+        uint[15] memory inputs = [
+            PK_coeffs[0][0],
+            PK_coeffs[0][1],
+            votePower[msg.sender],
+            voter_R_i[0][0],
+            voter_R_i[0][1],
+            voter_R_i[1][0],
+            voter_R_i[1][1],
+            voter_R_i[2][0],
+            voter_R_i[2][1],
+            voter_M_i[0][0],
+            voter_M_i[0][1],
+            voter_M_i[1][0],
+            voter_M_i[1][1],
+            voter_M_i[2][0],
+            voter_M_i[2][1]
+        ];
+
+        nvote_verifier.verifyProof(proof_a, proof_b, proof_c, inputs);
+
+        // Mark the voter as having voted
+        voted[msg.sender] = true;
+
+        // Sum the M and R values for each vote type.
+        for (uint256 k = 0; k < 3; k++) {
+            uint[2] storage R_k = R[k];
+            uint[2] storage M_k = R[k];
+            uint[2] memory R_i_k = voter_R_i[k];
+            uint[2] memory M_i_k = voter_M_i[k];
+            // R_k = R_k + R_{i,k}
+            (R_k[0], R_k[1]) = CurveBabyJubJub.pointAdd(
+                R_k[0], R_k[1], R_i_k[0], R_i_k[1]);
+            // M_k = M_k + M_{i,k}
+            (M_k[0], M_k[1]) = CurveBabyJubJub.pointAdd(M_k[0], M_k[1], M_i_k[0], M_i_k[1]);
+        }
+    }
+
+    function has_voted(address voter) public view returns(bool) {
+        return voted[voter];
     }
 
     function pointSub(uint256 _x1, uint256 _y1, uint256 _x2, uint256 _y2) public view returns (uint256 x3, uint256 y3) {

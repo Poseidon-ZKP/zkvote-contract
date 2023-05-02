@@ -212,8 +212,14 @@ export async function generate_zkp_round2(
 // }
 
 export async function generate_zkp_nvote(
-  pk,v,r,o
-) {
+  PK: PublicKey,
+  votePower: bigint,
+  Rs: PublicKey[],
+  Ms: PublicKey[],
+  o: bigint,
+  rs: bigint[],
+): Promise<{ proof: Groth16SolidityProof }> {
+
   const DIR = process.cwd()
   const CUR_CIRCUIT = "nvote"
   const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
@@ -222,47 +228,40 @@ export async function generate_zkp_nvote(
   const vKey = await snarkjs.zKey.exportVerificationKey(FILE_ZKEY);
 
   const { proof, publicSignals } = await snarkjs.groth16.fullProve(
-      {
-          pk : pk,
-          votePower : v,
-          r : r,
-          o : o
-      },
-      FILE_WASM,
-      FILE_ZKEY
+    {
+      PK : PK,
+      votePower : votePower,
+      R : Rs,
+      M: Ms,
+      o : o,
+      r: rs,
+    },
+    FILE_WASM,
+    FILE_ZKEY
   )
 
+  const expect_num_inputs = 2 + 1 + 2*3 + 2*3;
+  expect(publicSignals.length).to.equal(expect_num_inputs);
   expect(await snarkjs.groth16.verify(
     vKey,
-    [
-        publicSignals[0],   // R
-        publicSignals[1],
-        publicSignals[2],   // M
-        publicSignals[3],
-        publicSignals[4],
-        publicSignals[5],
-        publicSignals[6],
-        publicSignals[7],
-        publicSignals[8],   // PK
-        publicSignals[9],
-        publicSignals[10]   // vote power
-    ],
+    publicSignals,
+    // [
+    //     publicSignals[0],   // R
+    //     publicSignals[1],
+    //     publicSignals[2],   // M
+    //     publicSignals[3],
+    //     publicSignals[4],
+    //     publicSignals[5],
+    //     publicSignals[6],
+    //     publicSignals[7],
+    //     publicSignals[8],   // PK
+    //     publicSignals[9],
+    //     publicSignals[10]   // vote power
+    // ],
     proof
   )).eq(true)
 
   console.log("nvote prover done!")
 
-  return {
-    proof : packPlonkProofToSolidityProof(proof),
-    publicSignals: {
-      pk : pk,
-      votePower : v,
-      R : [publicSignals[0], publicSignals[1]],
-      M : [
-        [publicSignals[2], publicSignals[3]],
-        [publicSignals[4], publicSignals[5]],
-        [publicSignals[6], publicSignals[7]],
-      ]
-    }
-  }
+  return { proof : packGroth16ProofToSolidityProof(proof) }
 }

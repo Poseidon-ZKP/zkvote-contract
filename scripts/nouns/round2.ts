@@ -1,9 +1,9 @@
 
 import { CommitteeMember } from "./committee_member";
 import { Round1Result } from "./round1";
-import { expect } from "chai";
 import { Contract } from "ethers";
 import { generate_zkp_round2 } from "./prover";
+import { expect } from "chai";
 
 
 type Round2Result = {
