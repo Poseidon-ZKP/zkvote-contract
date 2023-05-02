@@ -133,20 +133,22 @@ export async function build_circuit(circuit : string): Promise<void> {
   // console.log("WORK DIR : ", pwd);
 
   const src_dir = pwd + "/circuits/" + circuit + "/"
-  const dest_dir = pwd + "/artifacts/" + circuit + "/"
-  ensure_dir(dest_dir);
+  const circuit_dest_dir = pwd + "/artifacts/circuits/" + circuit + "/"
+  const sol_dest_dir = pwd + "/contracts/" + circuit + "/"
+  ensure_dir(circuit_dest_dir);
+  ensure_dir(sol_dest_dir);
 
 	await compile_circom(src_dir + circuit + ".circom", {
 		sym : true,
 		r1cs : true,
 		json : false,
 		O : 2,
-		output : dest_dir
+		output : circuit_dest_dir
 	})
 
-  const FILE_R1CS = dest_dir + circuit + ".r1cs"
+  const FILE_R1CS = circuit_dest_dir + circuit + ".r1cs"
   const FILE_PTAU_FINAL = pwd + "/circuits/ptau.16"
-  const FILE_ZKEY_FINAL = dest_dir + circuit + ".zkey.16"
+  const FILE_ZKEY_FINAL = circuit_dest_dir + circuit + ".zkey.16"
 
   const ptau_final = {type: "mem", data: undefined};
   const zkey_final = {type: "mem", data : undefined};
@@ -173,7 +175,7 @@ export async function build_circuit(circuit : string): Promise<void> {
 	verifierCode = verifierCode.replace(new RegExp("Pairing", "g"), circuit + "Pairing")
 
   // const verifierSolFile = pwd + "/contracts/" + circuit + "/" + circuit + "_verifier.sol";
-  const verifierSolFile = dest_dir + circuit + "_verifier.sol";
+  const verifierSolFile = sol_dest_dir + circuit + "_verifier.sol";
   console.log("writing: " + verifierSolFile + " ...");
 	fs.writeFileSync(verifierSolFile, verifierCode, "utf-8");
   console.log("DONE");

@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "circuits": "yarn ts-node scripts/build-circuit.ts",
+    "contracts": "yarn hardhat compile",
+    "build": "yarn circuits && yarn contracts",
+    "test": "yarn ts-node scripts/nouns/nouns.ts",
     "postinstall": "patch-package"
   },
   "keywords": [],

@@ -4,6 +4,16 @@ import { BigNumberish } from "ethers";
 import { exit } from "process";
 import * as snarkjs from "snarkjs"
 
+function circuit_paths(circuit_name: string): {wasm: string, zkey: string} {
+  const pwd = process.cwd();
+  const artifact_dir  = pwd + "/artifacts/circuits/" + circuit_name  + "/";
+  return {
+    wasm: artifact_dir + circuit_name + "_js/" + circuit_name + ".wasm",
+    zkey: artifact_dir + circuit_name + ".zkey.16",
+  };
+}
+
+
 export type PlonkSolidityProof = [
   BigNumberish,
   BigNumberish,
@@ -56,41 +66,41 @@ export function packGroth16ProofToSolidityProof(proof: Groth16Proof): Groth16Sol
 }
 
 
-async function zkp_test() {
-  const DIR = process.cwd()
-  const CUR_CIRCUIT = "nouns"
-  const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
-  const FILE_WASM = CIRCUIT_TGT_DIR + CUR_CIRCUIT + "_js/" + CUR_CIRCUIT + ".wasm"
-  const FILE_ZKEY = CIRCUIT_TGT_DIR + "zkey.16"
+// async function zkp_test() {
+//   const DIR = process.cwd()
+//   const CUR_CIRCUIT = "nouns"
+//   const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
+//   const FILE_WASM = CIRCUIT_TGT_DIR + CUR_CIRCUIT + "_js/" + CUR_CIRCUIT + ".wasm"
+//   const FILE_ZKEY = CIRCUIT_TGT_DIR + "zkey.16"
 
-  const { proof, publicSignals } = await snarkjs.groth16.fullProve(
-      {
-          in : 8,
-          p : [
-            '995203441582195749578291179787384436505546430278305826713579947235728471134',
-            '5472060717959818805561601436314318772137091100104008585924551046643952123905'
-          ],
-      },
-      FILE_WASM,
-      FILE_ZKEY
-  )
+//   const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+//       {
+//           in : 8,
+//           p : [
+//             '995203441582195749578291179787384436505546430278305826713579947235728471134',
+//             '5472060717959818805561601436314318772137091100104008585924551046643952123905'
+//           ],
+//       },
+//       FILE_WASM,
+//       FILE_ZKEY
+//   )
 
-  exit(0)
-  const vKey = await snarkjs.zKey.exportVerificationKey(FILE_ZKEY);
-  // expect([publicSignals[0], [publicSignals[1]].equal(jub.Generator))
-  // expect([publicSignals[2], [publicSignals[3]].equal(jub.Generator))
-  expect(await snarkjs.groth16.verify(
-    vKey,
-    [
-        publicSignals[0],   // G = 1 * G
-        publicSignals[1],
-        publicSignals[2],   // B = 8 * G
-        publicSignals[3]
-    ],
-    proof
-  )).eq(true)
-  exit(0)
-}
+//   exit(0)
+//   const vKey = await snarkjs.zKey.exportVerificationKey(FILE_ZKEY);
+//   // expect([publicSignals[0], [publicSignals[1]].equal(jub.Generator))
+//   // expect([publicSignals[2], [publicSignals[3]].equal(jub.Generator))
+//   expect(await snarkjs.groth16.verify(
+//     vKey,
+//     [
+//         publicSignals[0],   // G = 1 * G
+//         publicSignals[1],
+//         publicSignals[2],   // B = 8 * G
+//         publicSignals[3]
+//     ],
+//     proof
+//   )).eq(true)
+//   exit(0)
+// }
 
 export async function generate_zkp_round2(
   recip_id: number,
@@ -102,12 +112,9 @@ export async function generate_zkp_round2(
   enc: bigint,
   eph_pk: PublicKey,
 ): Promise<{ proof: Groth16SolidityProof}> {
-  const DIR = process.cwd()
-  const CUR_CIRCUIT = "round2"
-  const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
-  const FILE_WASM = CIRCUIT_TGT_DIR + CUR_CIRCUIT + "_js/" + CUR_CIRCUIT + ".wasm"
-  const FILE_ZKEY = CIRCUIT_TGT_DIR + "zkey.16"
-  const vKey = await snarkjs.zKey.exportVerificationKey(FILE_ZKEY);
+  const { wasm, zkey } = circuit_paths("round2");
+
+  // const vKey_promise = snarkjs.zKey.exportVerificationKey(zkey);
 
   const { proof, publicSignals } = await snarkjs.groth16.fullProve(
     {
@@ -122,14 +129,14 @@ export async function generate_zkp_round2(
       f_l : f_l,
       eph_sk : eph_sk,
     },
-    FILE_WASM,
-    FILE_ZKEY
+    wasm,
+    zkey
   )
 
   // console.log("groth16 proof: " + JSON.stringify(proof));
 
   // expect(await snarkjs.groth16.verify(
-  //   vKey,
+  //   await vKey_promise,
   //   publicSignals,
   //   proof
   // )).eq(true)
@@ -219,13 +226,9 @@ export async function generate_zkp_nvote(
   o: bigint,
   rs: bigint[],
 ): Promise<{ proof: Groth16SolidityProof }> {
+  const { wasm, zkey } = circuit_paths("nvote");
 
-  const DIR = process.cwd()
-  const CUR_CIRCUIT = "nvote"
-  const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
-  const FILE_WASM = CIRCUIT_TGT_DIR + CUR_CIRCUIT + "_js/" + CUR_CIRCUIT + ".wasm"
-  const FILE_ZKEY = CIRCUIT_TGT_DIR + "zkey.16"
-  const vKey = await snarkjs.zKey.exportVerificationKey(FILE_ZKEY);
+  const vKey_promise = snarkjs.zKey.exportVerificationKey(zkey);
 
   const { proof, publicSignals } = await snarkjs.groth16.fullProve(
     {
@@ -236,14 +239,14 @@ export async function generate_zkp_nvote(
       o : o,
       r: rs,
     },
-    FILE_WASM,
-    FILE_ZKEY
+    wasm,
+    zkey
   )
 
   const expect_num_inputs = 2 + 1 + 2*3 + 2*3;
   expect(publicSignals.length).to.equal(expect_num_inputs);
   expect(await snarkjs.groth16.verify(
-    vKey,
+    await vKey_promise,
     publicSignals,
     // [
     //     publicSignals[0],   // R
