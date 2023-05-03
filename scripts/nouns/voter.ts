@@ -16,7 +16,8 @@ export enum Vote {
 }
 
 
-export type PublicVoteData = {
+export type VoteRecord = {
+  vote: Vote,
   R: PublicKey[],
   M: PublicKey[],
 };
@@ -39,11 +40,12 @@ export class Voter {
     // private poseidon: any,
     public signer: Signer,
     private nc: Contract,
-    private voting_weight: bigint) {
+    public voting_weight: bigint) {
     this.nc = nc.connect(signer);
   }
 
-  public async cast_vote(vote: Vote): Promise<PublicVoteData | null> {
+  public async cast_vote(vote: Vote): Promise<VoteRecord | null> {
+
     // Encrypt 3 votes.  One of which must be:
     //   voting_weight * G +
 
@@ -87,7 +89,7 @@ export class Voter {
     await this.nc.vote(Rs, Ms, proof.a, proof.b, proof.c);
     expect(await this.nc.has_voted(address)).to.be.true;
 
-    return { R: Rs, M: Ms };
+    return { vote, R: Rs, M: Ms };
   }
 
 };

@@ -268,3 +268,38 @@ export async function generate_zkp_nvote(
 
   return { proof : packGroth16ProofToSolidityProof(proof) }
 }
+
+
+export async function generate_zkp_tally(
+  PK_i: PublicKey,
+  R: PublicKey[],
+  D_i: PublicKey[],
+  sk_i: bigint,
+): Promise<{ proof: Groth16SolidityProof }> {
+  const { wasm, zkey } = circuit_paths("tally");
+
+  const vKey_promise = snarkjs.zKey.exportVerificationKey(zkey);
+
+  const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    {
+      PK_i : PK_i,
+      R : R,
+      D_i: D_i,
+      sk_i : sk_i,
+    },
+    wasm,
+    zkey
+  )
+
+  const expect_num_inputs = 2 + 2*3 + 2*3; // PK_i, R, D_i
+  expect(publicSignals.length).to.equal(expect_num_inputs);
+  expect(await snarkjs.groth16.verify(
+    await vKey_promise,
+    publicSignals,
+    proof
+  )).eq(true)
+
+  console.log("tally prover done!")
+
+  return { proof : packGroth16ProofToSolidityProof(proof) }
+}

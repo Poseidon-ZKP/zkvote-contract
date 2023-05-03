@@ -1,7 +1,10 @@
 
 import { EncryptedWithEphSK, poseidonEncEx, poseidonDecEx } from "./poseidon";
-import { PublicKey, groupOrder, pointFromScalar, polynomial_evaluate,
-         polynomial_evaluate_group } from "../crypto";
+import {
+  PublicKey, groupOrder, pointFromScalar, pointFromSolidity, pointMul,
+  polynomial_evaluate, polynomial_evaluate_group
+} from "../crypto";
+import { generate_zkp_tally } from "./prover";
 import { Signer, Contract } from "ethers";
 import { randomBytes } from "@ethersproject/random";
 import { hexlify } from "@ethersproject/bytes";
@@ -56,6 +59,26 @@ export class CommitteeMember {
     this.id = id;
     this.sk_i = sk_i;
     this.PK_i = PK_i;
+  }
+
+  public async tallyVotes(): Promise<void> {
+    // Query R from the contract and compute D_{i,k}, k=1,2,3, where:
+    //
+    //  D_{i,k} = sk_i * R_{i,k}
+
+    const R: PublicKey[] = (await this.nc.get_R()).map(pointFromSolidity);
+    const D_i = R.map(R_i => pointMul(this.babyjub, R_i, this.sk_i));
+
+    // Create proof of computation.
+
+    console.log("MEMBER("+ this.id + ") tally: " + JSON.stringify({
+      PK_i: this.PK_i, R, D_i, }));
+
+    const { proof } = await generate_zkp_tally(this.PK_i, R, D_i, this.sk_i);
+
+    // Send (id, D_{i,1}, D_{i,2}, D_{1,3}) to the contract, with a proof.
+
+    await this.nc.tally(D_i, proof.a, proof.b, proof.c);
   }
 }
 
@@ -271,4 +294,5 @@ export class CommitteeMemberDKG {
       sk_i,
       PK_i);
   }
+
 };

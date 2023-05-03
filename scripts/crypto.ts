@@ -1,4 +1,5 @@
 
+import { BigNumber } from "ethers";
 
 export type PublicKey = string[];
 
@@ -21,6 +22,11 @@ export function pointToNative(babyjub: any, point: PublicKey): any[] {
 export function pointFromScalar(babyjub: any, sk: bigint): PublicKey {
   return pointFromNative(babyjub, babyjub.mulPointEscalar(babyjub.Base8, sk));
   // return pointFromNative(babyjub, babyjub.mulPointEscalar(babyjub.Generator, sk));
+}
+
+
+export function pointFromSolidity(pk_sol: bigint[] | BigNumber[]): PublicKey {
+  return pk_sol.map(xy => xy.toString());
 }
 
 

@@ -33,11 +33,30 @@ interface IVerifierNvote {
     ) external view;
 }
 
+interface IVerifierTally {
+    function verifyProof(
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        uint256[14] memory input
+    ) external view;
+}
+
 contract Nouns {
+
+    uint constant babyjub_sub_order = 2736030358979909402780800718157159386076813972158567259200215660948447373041;
 
     IVerifierRound2 round2_verifier;
     IVerifierNvote  nvote_verifier;
-    address tally_verifier;
+    IVerifierTally  tally_verifier;
+
+    //
+    // Committee configuration
+    //
+
+    uint public n_comm;
+    uint public tally_threshold;
+    mapping(address => uint) public committee_ids;
 
     //
     // Voting
@@ -45,20 +64,15 @@ contract Nouns {
 
     mapping(address => uint) public votePower;
     mapping(address => bool) public voted;
-    uint[3] public voteStats;
     uint[2][3] public R;
     uint[2][3] public M;
-    uint[2][] DI;
+    uint[2][3][] DI;
     uint[] tally_cid;
-
-    //
-    // Committee
-    //
-
-    uint public n_comm;
-    uint public tally_threshold;
     uint public tallied_committee;
-    mapping(address => uint) public committee;
+    uint[3] public vote_totals;
+
+    // DEBUG
+    uint[] lambdas;
 
     //
     // DKG
@@ -87,6 +101,7 @@ contract Nouns {
     // Events
     event Round1Complete();
     event Round2Share(uint indexed recip_id, uint sender_id, uint enc_sk_share, uint[2] enc_eph_PK);
+    event TallyComplete(/*uint indexed vote_id, */ uint yay, uint nay, uint abstain);
 
     // Generator Point
     uint public constant Gx = 5299619240641551281634865583518297030282874472190772894086521144482721001553;
@@ -101,14 +116,14 @@ contract Nouns {
     ) {
         // require(_verifiers.length == 3, "invalid verifiers!");
         round2_verifier = IVerifierRound2(_verifiers[0]);
-        nvote_verifier   = IVerifierNvote(_verifiers[1]);
-        // tally_verifier  = _verifiers[2];
+        nvote_verifier = IVerifierNvote(_verifiers[1]);
+        tally_verifier = IVerifierTally(_verifiers[2]);
 
         n_comm = _committee.length;
         PK_shares = new uint[2][](n_comm + 1);
         for (uint i=0; i < _committee.length; ++i) {
             uint id = i + 1;
-            committee[_committee[i]] = id;
+            committee_ids[_committee[i]] = id;
             PK_shares[id] = [0,1];
         }
 
@@ -153,7 +168,7 @@ contract Nouns {
         require(!round1_done[msg.sender], "user already participated in round 1!");
         require(C_coeffs.length == tally_threshold, "round 1 already done!");
 
-        uint sender_id = committee[msg.sender];
+        uint sender_id = committee_ids[msg.sender];
         require((0 < sender_id) && (sender_id <= n_comm));
 
         for (uint256 t = 0; t < tally_threshold; t++) {
@@ -211,7 +226,7 @@ contract Nouns {
         require(
             (0 < recip_id) && (recip_id <= n_comm),
             "unexpected validator id");
-        uint sender_id = committee[msg.sender];
+        uint sender_id = committee_ids[msg.sender];
         require(sender_id > 0, "invalid sender id");
         require(
             round2_shares_received[sender_id][recip_id] == false,
@@ -306,7 +321,7 @@ contract Nouns {
         // Sum the M and R values for each vote type.
         for (uint256 k = 0; k < 3; k++) {
             uint[2] storage R_k = R[k];
-            uint[2] storage M_k = R[k];
+            uint[2] storage M_k = M[k];
             uint[2] memory R_i_k = voter_R_i[k];
             uint[2] memory M_i_k = voter_M_i[k];
             // R_k = R_k + R_{i,k}
@@ -317,63 +332,161 @@ contract Nouns {
         }
     }
 
+    function get_R() public view returns (uint[2][3] memory) {
+        return R;
+    }
+
+    function get_M() public view returns (uint[2][3] memory) {
+        return M;
+    }
+
     function has_voted(address voter) public view returns(bool) {
         return voted[voter];
     }
 
-    function pointSub(uint256 _x1, uint256 _y1, uint256 _x2, uint256 _y2) public view returns (uint256 x3, uint256 y3) {
-        return CurveBabyJubJub.pointSub(_x1, _y1, _x2, _y2);
-    }
-
-    function Lagrange_coeff(
-        int i
-    ) internal view returns (int lamda) {
-        lamda = 1;
-        for (uint256 t = 0; t < tally_threshold; t++) {
-            int j = int(tally_cid[t]);
-            if (i == j) continue;
-            lamda *= (j / (j - i));
-        }
-    }
-
-    function reveal(
-    ) internal {
-        uint[2] memory D;
-        D[0] = 0;
-        D[1] = 1;
-
-        for (uint256 t = 0; t < tally_threshold; t++) {
-            uint cid = tally_cid[t];
-            int lamda = Lagrange_coeff(int(cid));
-
-            uint[2] memory d;
-            if (lamda < 0) {
-                (d[0], d[1]) = CurveBabyJubJub.pointMul(DI[t][0], DI[t][1], uint(0 - lamda));
-                (D[0], D[1]) = CurveBabyJubJub.pointSub(D[0], D[1], d[0], d[1]);
-            } else if (lamda > 0) {
-                (d[0], d[1]) = CurveBabyJubJub.pointMul(DI[t][0], DI[t][1], uint(lamda));
-                (D[0], D[1]) = CurveBabyJubJub.pointAdd(D[0], D[1], d[0], d[1]);
-            }
-        }
-
-        for (uint256 i = 0; i < 3; i++) {
-            uint[2] memory VG;
-            (VG[0], VG[1]) = CurveBabyJubJub.pointSub(M[i][0], M[i][1], D[0], D[1]);
-            voteStats[i] = lookup_table[VG[0]][VG[1]];
-        }
-    }
+    // function pointSub(uint256 _x1, uint256 _y1, uint256 _x2, uint256 _y2) public view returns (uint256 x3, uint256 y3) {
+    //     return CurveBabyJubJub.pointSub(_x1, _y1, _x2, _y2);
+    // }
 
     function tally(
-        uint[2] calldata _DI
+        uint[2][3] calldata DI_,
+        uint[2] calldata proof_a,
+        uint[2][2] calldata proof_b,
+        uint[2] calldata proof_c
     ) public {
-        uint cid = committee[msg.sender] - 1;
-        require(cid >= 0);
+        uint cid = committee_ids[msg.sender];
+        require((0 < cid) && (cid <= n_comm), "invalid participant id");
+        require(tally_cid.length < tally_threshold, "votes already tallied");
+
+        uint[2] storage PK_i = PK_shares[cid];
+
+        uint[14] memory inputs = [
+            PK_i[0],
+            PK_i[1],
+            // R[0] ~ R[2]
+            R[0][0],
+            R[0][1],
+            R[1][0],
+            R[1][1],
+            R[2][0],
+            R[2][1],
+            // D[0] ~ D[2]
+            DI_[0][0],
+            DI_[0][1],
+            DI_[1][0],
+            DI_[1][1],
+            DI_[2][0],
+            DI_[2][1]
+        ];
+
+        tally_verifier.verifyProof(proof_a, proof_b, proof_c, inputs);
 
         tally_cid.push(cid);
-        DI.push(_DI);
+        DI.push(DI_);
 
         if (++tallied_committee == tally_threshold) {
             reveal();
         }
     }
+
+    function Lagrange_coeff(uint i) internal view returns (uint lamda) {
+
+        // For denominator we may have -ve factors. Track the number of
+        // +ve / -ve factors and perform modulo at the end.
+
+        // Use x -> x^{r-2} to compute x^{-1} and divide by the denominator.
+
+        uint numerator = 1;
+        uint denominator = 1;
+        int denom_sign = 1;
+
+        for (uint256 t = 0; t < tally_threshold; t++) {
+            uint j = tally_cid[t];
+            if (i == j) continue;
+            numerator *= j;
+            int denom_factor = int(j) - int(i);
+            if (denom_factor < 0) {
+                denom_factor = -denom_factor;
+                denom_sign *= -1;
+            }
+            denominator *= uint(denom_factor);
+
+            // lamda *= (j / (j - i));
+        }
+
+        if (denom_sign == -1) {
+            denominator = babyjub_sub_order - denominator;
+        }
+        uint denominator_inv = CurveBabyJubJub.expmod(
+            denominator, babyjub_sub_order - 2, babyjub_sub_order);
+        return mulmod(numerator, denominator_inv, babyjub_sub_order);
+    }
+
+    function reveal() internal {
+        // For each k=0,1,2, we must compute:
+        //
+        //   sum_{i \in I} \lambda_i D_{i,k}
+        //
+        // where I is the set of IDs we have submissions for.
+        //
+        // \lambda_i is computed as:
+        //
+        //   \lambda_i
+        //     = \prod_{j \in I, j \neq i} j / (j-i)
+        //     = P / (i \prod_j (j-i))
+        //
+        // if P is pre-computed as:
+        //
+        //   P = \prod_{i \in I} i
+
+        uint[2][3] memory D;
+        D[0][0] = 0;
+        D[0][1] = 1;
+        D[1][0] = 0;
+        D[1][1] = 1;
+        D[2][0] = 0;
+        D[2][1] = 1;
+
+        for (uint256 i = 0; i < tally_threshold; i++) {
+            uint cid = tally_cid[i];
+            uint[2][3] storage D_t = DI[i];
+
+            uint lambda = Lagrange_coeff(cid);
+            // DEBUG:
+            lambdas.push(lambda);
+            require(lambda >= 0, "invalid lambda");
+
+            for (uint k = 0 ; k < 3 ; ++k) {
+
+                uint[2] storage D_t_k = D_t[k];
+                (uint x, uint y) = CurveBabyJubJub.pointMul(D_t_k[0], D_t_k[1], lambda);
+                (D[k][0], D[k][1]) = CurveBabyJubJub.pointAdd(D[k][0], D[k][1], x, y);
+
+                // if (lamda < 0) {
+                //     (d[0], d[1]) = CurveBabyJubJub.pointMul(DI[t][0], DI[t][1], uint(0 - lamda));
+                //     (D[0], D[1]) = CurveBabyJubJub.pointSub(D[0], D[1], d[0], d[1]);
+                // } else if (lamda > 0) {
+                //     (d[0], d[1]) = CurveBabyJubJub.pointMul(DI[t][0], DI[t][1], uint(lamda));
+                //     (D[0], D[1]) = CurveBabyJubJub.pointAdd(D[0], D[1], d[0], d[1]);
+                // }
+            }
+        }
+
+        for (uint256 k = 0; k < 3; k++) {
+            uint[2] memory VG;
+            (VG[0], VG[1]) = CurveBabyJubJub.pointSub(M[k][0], M[k][1], D[k][0], D[k][1]);
+            vote_totals[k] = lookup_table[VG[0]][VG[1]];
+        }
+
+        emit TallyComplete(vote_totals[0], vote_totals[1], vote_totals[2]);
+    }
+
+    function get_vote_totals() public view returns (uint[3] memory) {
+        return vote_totals;
+    }
+
+    function get_tally_committee_debug() public view returns(uint[] memory, uint[] memory, uint[2][3][] memory) {
+        return (tally_cid, lambdas, DI);
+    }
+
 }
