@@ -15,25 +15,38 @@ jobs:
     steps:
       - name: check out git repo
         uses: actions/checkout@v3
+
       - name: Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+
+      - name: Cache circom
+        id: cache-circom
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/bin/circom
+          key: ${{ runner.os }}-circom
+
       - name: Install circom
+        if: steps.cache-circom.outputs.cache-hit != 'true'
         run: |
           git clone https://github.com/iden3/circom.git
           cd circom
           cargo build --release
           cargo install --path circom
           circom --help
+
       # - name: Install NVM
       #   uses: dcodeIO/setup-node-nvm@master
       #   with:
       #     node-version: ${{ matrix.node-version }}
+
       - name: Build
         run: |
           yarn install
           yarn build
+
       - name: Test
         run: |
           yarn test
