@@ -4,8 +4,9 @@ import {
   PublicKey, groupOrder, pointFromScalar, pointFromSolidity, pointMul,
   polynomial_evaluate, polynomial_evaluate_group
 } from "../crypto";
-import { generate_zkp_tally } from "./prover";
-import { Signer, Contract } from "ethers";
+import { generate_zkp_round2, generate_zkp_tally } from "./prover";
+import { Nouns } from "../types";
+import { Signer, BigNumberish } from "ethers";
 import { randomBytes } from "@ethersproject/random";
 import { hexlify } from "@ethersproject/bytes";
 import { Provider, Filter, Log } from "@ethersproject/providers";
@@ -32,7 +33,7 @@ export class CommitteeMember {
 
   babyjub: any;
   poseidon: any;
-  nc: Contract;
+  nc: Nouns;
   signer: Signer;
   n_comm: number;
   threshold: number;
@@ -43,7 +44,7 @@ export class CommitteeMember {
   constructor(
     babyjub: any,
     poseidon: any,
-    nc: Contract,
+    nc: Nouns,
     signer: Signer,
     n_comm: number,
     threshold: number,
@@ -78,7 +79,11 @@ export class CommitteeMember {
 
     // Send (id, D_{i,1}, D_{i,2}, D_{1,3}) to the contract, with a proof.
 
-    await this.nc.tally(D_i, proof.a, proof.b, proof.c);
+    await this.nc.tally(
+      <any>D_i,
+      proof.a,
+      proof.b,
+      proof.c);
   }
 }
 
@@ -88,7 +93,7 @@ export class CommitteeMemberDKG {
 
   babyjub: any;
   poseidon: any;
-  nc: Contract;
+  nc: Nouns;
   signer: Signer;
   n_comm: number;
   threshold: number;
@@ -99,7 +104,7 @@ export class CommitteeMemberDKG {
   constructor(
     babyjub: any,
     poseidon: any,
-    nc: Contract,
+    nc: Nouns,
     signer: Signer,
     n_comm: number,
     threshold: number,
@@ -109,7 +114,7 @@ export class CommitteeMemberDKG {
   ) {
     this.babyjub = babyjub;
     this.poseidon = poseidon;
-    this.nc = nc;
+    this.nc = nc.connect(signer);
     this.signer = signer;
     this.n_comm = n_comm;
     this.threshold = threshold;
@@ -125,7 +130,7 @@ export class CommitteeMemberDKG {
   public static initialize(
     babyjub: any,
     poseidon: any,
-    nc: Contract,
+    nc: Nouns,
     signer: Signer,
     n_comm: number,
     threshold: number,
@@ -155,6 +160,10 @@ export class CommitteeMemberDKG {
     });
   }
 
+  log(msg: string) {
+    console.log("[C:" + this.id + "] " + msg);
+  }
+
   /// Return the commitments { C_{i,j} }.
   public getCoefficientCommitments(): string[][] {
     return this.C_coeff_commitments;
@@ -166,6 +175,20 @@ export class CommitteeMemberDKG {
 
   public getRound2SecretKey(): bigint {
     return this.a_coeffs[0];
+  }
+
+  public async round1(): Promise<void> {
+    // Post commitments to our polynomial coefficients to the contract.
+
+    this.log("posting Cs: " + JSON.stringify(this.C_coeff_commitments));
+    await this.nc.round1(<[BigNumberish, BigNumberish][]>(this.C_coeff_commitments));
+  }
+
+  public async round1_wait(): Promise<void> {
+    // wait for all other participants to finish posting their coefficient commitments.
+    while (!(await this.nc.round1_complete())) {
+      await new Promise(r => setTimeout(r, 100));
+    }
   }
 
   public computeRound2ShareFor(recipient_id: number): Round2SecretShare {
@@ -191,8 +214,56 @@ export class CommitteeMemberDKG {
     return poseidonEncEx(this.babyjub, this.poseidon, share, recip_PK);
   }
 
-  public async round2Done(): Promise<boolean> {
-    return await this.nc.round2_complete();
+  public async round2(committee_ids: number[]): Promise<void> {
+    // For each recipient (including us), compute and encrypt the share of OUR
+    // secret.
+
+    // TODO(duncan): get committee member ID list from the contract
+
+    const our_id = this.id;
+    const that = this;
+
+    await Promise.all(committee_ids.map(async recip_id => {
+
+      const recip_PK = pointFromSolidity(
+        await this.nc.get_round1_PK_for(recip_id));
+
+      this.log("round2: computing share for " + JSON.stringify({
+        id: recip_id, pk: recip_PK}));
+
+      const {f_i_l, PK_i_l} = this.computeRound2ShareFor(recip_id);
+      const {eph_sk, eph_pk, enc} = this.encryptRound2ShareFor(f_i_l, recip_PK);
+
+      // Generate the proof of encryption
+      const {proof} = await generate_zkp_round2(
+        recip_id,
+        recip_PK,
+        that.C_coeff_commitments,
+        f_i_l,
+        PK_i_l,
+        eph_sk,
+        enc,
+        eph_pk,
+      )
+
+      // Post the share to the contract
+      expect(await that.nc.round2_share_received(our_id, recip_id)).to.be.false;
+      await that.nc.round2(
+        recip_id,
+        enc,
+        <[BigNumberish, BigNumberish]>eph_pk,
+        <[BigNumberish, BigNumberish]>PK_i_l,
+        proof.a,
+        proof.b,
+        proof.c,
+      )
+    }));
+  }
+
+  public async round2_wait(): Promise<void> {
+    while (!(await this.nc.round2_complete())) {
+      await new Promise(r => setTimeout(r, 100));
+    }
   }
 
   public decryptRound2Share(enc: bigint, eph_pk: PublicKey): bigint {
@@ -265,8 +336,7 @@ export class CommitteeMemberDKG {
     // coefficient sums.
     {
       const PK_coeffs_sol = (await this.nc.PK_coefficients());
-      const PK_coeffs = PK_coeffs_sol.map(
-        (xy: bigint[]) => [xy[0].toString(), xy[1].toString()]);
+      const PK_coeffs = PK_coeffs_sol.map(pointFromSolidity);
       const PK_i_expect = polynomial_evaluate_group(
         this.babyjub, PK_coeffs, BigInt(this.id));
       expect(PK_i).to.eql(PK_i_expect);
@@ -274,8 +344,7 @@ export class CommitteeMemberDKG {
 
     // Check that PK matches the sum of all public secret shares.
     {
-      const pk_i = (await this.nc.get_PK_for(this.id))
-                     .map((x: bigint)  => x.toString());
+      const pk_i = pointFromSolidity(await this.nc.get_PK_for(this.id));
       expect(pk_i).to.eql(PK_i);
     }
 

@@ -1,7 +1,6 @@
 import { PublicKey } from "../crypto";
 import { expect } from "chai";
 import { BigNumberish } from "ethers";
-import { exit } from "process";
 import * as snarkjs from "snarkjs"
 
 function circuit_paths(circuit_name: string): {wasm: string, zkey: string} {
@@ -48,9 +47,9 @@ export type Groth16Proof = {
 
 
 export type Groth16SolidityProof = {
-  a: bigint[];
-  b: bigint[][];
-  c: bigint[];
+  a: [BigNumberish, BigNumberish];
+  b: [[BigNumberish, BigNumberish],[BigNumberish, BigNumberish]];
+  c: [BigNumberish, BigNumberish];
 }
 
 
