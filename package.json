@@ -58,9 +58,6 @@
     "typescript": "^4.8.4"
   },
   "dependencies": {
-    "@walletconnect/client": "^1.8.0",
-    "clipboardy": "^3.0.0",
-    "compute-polynomial": "^1.1.0",
-    "rust": "file:rust/pkg"
+    "@walletconnect/client": "^1.8.0"
   }
 }
