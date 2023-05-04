@@ -19,10 +19,17 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Install NVM
-        uses: dcodeIO/setup-node-nvm@master
-        with:
-          node-version: ${{ matrix.node-version }}
+      - name: Install circom
+        run: |
+          git clone https://github.com/iden3/circom.git
+          cd circom
+          cargo build --release
+          cargo install --path circom
+          circom --help
+      # - name: Install NVM
+      #   uses: dcodeIO/setup-node-nvm@master
+      #   with:
+      #     node-version: ${{ matrix.node-version }}
       - name: Build
         run: |
           yarn install
