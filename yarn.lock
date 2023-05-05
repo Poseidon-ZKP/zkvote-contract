@@ -4013,6 +4013,16 @@ clone@^1.0.2:
   resolved "https://registry.yarnpkg.com/clone/-/clone-1.0.4.tgz#da309cc263df15994c688ca902179ca3c7cd7c7e"
   integrity sha512-JQHZ2QMW6l3aH/j6xCqQThY/9OH4D/9ls34cgkUBiEeocRTU04tHfKPBsUK1PqZCUQM7GiA0IIXJSuXHI64Kbg==
 
+cmd-ts@^0.12.1:
+  version "0.12.1"
+  resolved "https://registry.yarnpkg.com/cmd-ts/-/cmd-ts-0.12.1.tgz#5ddf69f27887e7380ce6d50a07a3850cb82ea3f7"
+  integrity sha512-k93f6LgFEzx7/vBy5qV+tu1VI8YuH0DZmwNXPvRaDR4Qp7Fl9+pUSylX/CKHrWoKqHMJjNOLb1NeYTvHOjQ2Kw==
+  dependencies:
+    chalk "^4.0.0"
+    debug "^4.3.4"
+    didyoumean "^1.2.2"
+    strip-ansi "^6.0.0"
+
 code-point-at@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
@@ -4668,6 +4678,11 @@ devtools-protocol@0.0.981744:
   version "0.0.981744"
   resolved "https://registry.yarnpkg.com/devtools-protocol/-/devtools-protocol-0.0.981744.tgz#9960da0370284577d46c28979a0b32651022bacf"
   integrity sha512-0cuGS8+jhR67Fy7qG3i3Pc7Aw494sb9yG9QgpG97SFVWwolgYjlhJg7n+UaHxOQT30d1TYu/EYe9k01ivLErIg==
+
+didyoumean@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/didyoumean/-/didyoumean-1.2.2.tgz#989346ffe9e839b4555ecf5666edea0d3e8ad037"
+  integrity sha512-gxtyfqMg7GKyhQmb056K7M3xszy/myH8w+B4RT+QXBQsvAOdc3XymqDDPHx1BgPgsdAA5SIifona89YtRATDzw==
 
 diff-match-patch@^1.0.5:
   version "1.0.5"

@@ -11,3 +11,4 @@ scripts/types/
 .DS_Store
 *~
 /build-db
+*.config.json
