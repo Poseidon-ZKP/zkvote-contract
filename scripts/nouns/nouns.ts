@@ -1,16 +1,17 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { BigNumber } from "ethers";
-import { expect } from "chai";
-import { ethers } from "hardhat";
 import {
   PublicKey, pointFromSolidity, pointFromScalar, pointAdd, pointMul,
   polynomial_evaluate_group,
 } from "../crypto";
+import * as nouns_contract from "./nouns_contract";
 import {
     Nouns__factory, Round2Verifier__factory, NvoteVerifier__factory, TallyVerifier__factory,
 } from "../types";
 import { Vote, Voter, VoteRecord } from "./voter";
 import { CommitteeMemberDKG } from "./committee_member";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { BigNumber } from "ethers";
+import { expect } from "chai";
+import { ethers } from "hardhat";
 const { buildBabyjub, buildPoseidonReference } = require('circomlibjs');
 
 
@@ -40,25 +41,16 @@ async function main(
     USERS.push(owners[N_COMM + i]);
   }
 
-  // Contract deployment
-  const round2_verifier = await (new Round2Verifier__factory(deployer)).deploy()
-  console.log("round2_verifier: " + round2_verifier.address);
-  const nvote_verifier = await (new NvoteVerifier__factory(deployer)).deploy()
-  console.log("nvote_verifier: " + nvote_verifier.address);
-  const tally_verifier = await (new TallyVerifier__factory(deployer)).deploy()
-  console.log("tally_verifier: " + tally_verifier.address);
-  const verifiers = [
-    round2_verifier.address,
-    nvote_verifier.address,
-    tally_verifier.address,
-  ];
-  const nc = await (new Nouns__factory(deployer)).deploy(
-    verifiers,
+  // Deploy contract, and register voters
+  const nc = await nouns_contract.deploy(
+    deployer,
     COMMITEE.map((e) => e.address),
-    USERS.map((e) => e.address),
-    V,
-    t
+    BigInt(t),
+    10n, // total voting power
   );
+  for (let i = 0 ; i < V.length ; ++i) {
+    await nc.add_voter(USERS[i].address, V[i]);
+  }
 
   // 0. Create committee members
   const committee_dkg: CommitteeMemberDKG[] = COMMITEE.map(

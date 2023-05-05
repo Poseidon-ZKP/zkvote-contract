@@ -2,8 +2,9 @@ import { encryptedToString, poseidonEncEx, poseidonDecEx } from "../scripts/noun
 import { groupOrder, pointFromScalar } from "../scripts/crypto";
 import { randomBytes } from "@ethersproject/random";
 import { hexlify } from "@ethersproject/bytes";
-const { buildPoseidonReference, buildBabyjub } = require('circomlibjs');
 import { expect } from "chai";
+const { buildPoseidonReference, buildBabyjub } = require('circomlibjs');
+
 
 describe("Encryption", () => {
 

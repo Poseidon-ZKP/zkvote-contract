@@ -59,10 +59,16 @@ contract Nouns {
     mapping(address => uint) public committee_ids;
 
     //
-    // Voting
+    // Voters
+    //
+    mapping(address => uint) public votePower;
+    uint voting_power;
+    uint total_voting_power;
+
+    //
+    // Voting state
     //
 
-    mapping(address => uint) public votePower;
     mapping(address => bool) public voted;
     uint[2][3] public R;
     uint[2][3] public M;
@@ -110,9 +116,8 @@ contract Nouns {
     constructor(
         address[] memory _verifiers,
         address[] memory _committee,
-        address[] memory _user,
-        uint[] memory _votePower,
-        uint _tally_threshold
+        uint _tally_threshold,
+        uint total_voting_power_
     ) {
         // require(_verifiers.length == 3, "invalid verifiers!");
         round2_verifier = IVerifierRound2(_verifiers[0]);
@@ -127,11 +132,11 @@ contract Nouns {
             PK_shares[id] = [0,1];
         }
 
-        uint VOTE_POWER_TOTAL = 0;
-        for (uint i=0; i < _user.length; ++i) {
-            votePower[_user[i]] = _votePower[i];
-            VOTE_POWER_TOTAL += _votePower[i];
-        }
+        // uint VOTE_POWER_TOTAL = 0;
+        // for (uint i=0; i < _user.length; ++i) {
+        //     votePower[_user[i]] = _votePower[i];
+        //     VOTE_POWER_TOTAL += _votePower[i];
+        // }
 
         tally_threshold = _tally_threshold;
         tallied_committee = 0;
@@ -145,10 +150,19 @@ contract Nouns {
         uint x = Gx;
         uint y = Gy;
         lookup_table[x][y] = 1;
-        for (uint i = 2; i <= VOTE_POWER_TOTAL; i++) {
+        for (uint i = 2; i <= total_voting_power_; i++) {
             (x, y) = CurveBabyJubJub.pointAdd(x, y, Gx, Gy);
             lookup_table[x][y] = i;
         }
+        total_voting_power = total_voting_power_;
+    }
+
+    function add_voter(address voter, uint voter_weight) public {
+        // Temporary mechanism to define voter weights.
+        require(votePower[voter] == 0, "voter already registered");
+        votePower[voter] = voter_weight;
+        voting_power += voter_weight;
+        require(voting_power <= total_voting_power, "total voting power exceeded");
     }
 
     function get_PK() public view returns (uint256, uint256) {
