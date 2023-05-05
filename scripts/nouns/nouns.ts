@@ -9,8 +9,6 @@ import {
 import {
     Nouns__factory, Round2Verifier__factory, NvoteVerifier__factory, TallyVerifier__factory,
 } from "../types";
-// import { round1 } from "./round1";
-// import { round2 } from "./round2";
 import { Vote, Voter, VoteRecord } from "./voter";
 import { CommitteeMemberDKG } from "./committee_member";
 const { buildBabyjub, buildPoseidonReference } = require('circomlibjs');
@@ -23,12 +21,6 @@ async function main(
   const poseidon = await buildPoseidonReference();
   const owners = await ethers.getSigners()
   let deployer : SignerWithAddress = owners[0]
-
-  // const accounts: any = hre.config.networks.hardhat.accounts;
-  // for (let index = 0; index < owners.length; index++) {
-  //   const wallet = ethers.Wallet.fromMnemonic(accounts.mnemonic, accounts.path + `/${index}`);
-  //   console.log("`", wallet.privateKey + "`,")
-  // }
 
   // Parameters
   // voting power per user
@@ -48,7 +40,7 @@ async function main(
     USERS.push(owners[N_COMM + i]);
   }
 
-  // const r2v = await (new Round2PlonkVerifier__factory(deployer)).deploy()
+  // Contract deployment
   const round2_verifier = await (new Round2Verifier__factory(deployer)).deploy()
   console.log("round2_verifier: " + round2_verifier.address);
   const nvote_verifier = await (new NvoteVerifier__factory(deployer)).deploy()

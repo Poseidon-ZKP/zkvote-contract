@@ -37,11 +37,16 @@ export class Voter {
 
   constructor(
     private babyjub: any,
-    // private poseidon: any,
     public signer: Signer,
     private nc: Contract,
     public voting_weight: bigint) {
     this.nc = nc.connect(signer);
+  }
+
+  public async get_voting_weight(): Promise<bigint> {
+    // For now, we just keep this on locally on the class.  Later, query the
+    // chain or some snapshot for this info.
+    return this.voting_weight;
   }
 
   public async cast_vote(vote: Vote): Promise<VoteRecord | null> {
@@ -58,7 +63,7 @@ export class Voter {
     const rs: bigint[] = [];
 
     const babyjub = this.babyjub;
-    const vw = this.voting_weight;
+    const vw = await this.get_voting_weight();
     function encrypt_vote(v: Vote) {
       // r_i <- random
       // R_i = r_i*G
