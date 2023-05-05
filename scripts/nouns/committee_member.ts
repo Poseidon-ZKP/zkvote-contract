@@ -1,5 +1,5 @@
 
-import { EncryptedWithEphSK, poseidonEncEx, poseidonDecEx } from "./poseidon";
+import { EncryptedWithEphSK, poseidonEncEx, poseidonDecEx } from "./encryption";
 import {
   PublicKey, groupOrder, pointFromScalar, pointFromSolidity, pointMul,
   polynomial_evaluate, polynomial_evaluate_group

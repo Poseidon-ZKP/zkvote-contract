@@ -1,6 +1,5 @@
-import { encryptedToString, poseidonEncEx, poseidonDecEx } from "../scripts/nouns/poseidon";
+import { encryptedToString, poseidonEncEx, poseidonDecEx } from "../scripts/nouns/encryption";
 import { groupOrder, pointFromScalar } from "../scripts/crypto";
-
 import { randomBytes } from "@ethersproject/random";
 import { hexlify } from "@ethersproject/bytes";
 const { buildPoseidonReference, buildBabyjub } = require('circomlibjs');
