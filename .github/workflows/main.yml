@@ -15,6 +15,10 @@ jobs:
     steps:
       - name: check out git repo
         uses: actions/checkout@v3
+        with:
+          lfs: true
+      - run: git lfs pull
+      - run: ls -la circuits
 
       - name: Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
