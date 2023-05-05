@@ -62,19 +62,25 @@ export class CommitteeMember {
     this.PK_i = PK_i;
   }
 
+  log(msg: string) {
+    console.log("[C:" + this.id + "] " + msg);
+  }
+
   public async tallyVotes(): Promise<void> {
     // Query R from the contract and compute D_{i,k}, k=1,2,3, where:
     //
     //  D_{i,k} = sk_i * R_{i,k}
 
+    this.log("tally:");
+
     const R: PublicKey[] = (await this.nc.get_R()).map(pointFromSolidity);
+    this.log("  R (from contract): " + JSON.stringify(R));
+
     const D_i = R.map(R_i => pointMul(this.babyjub, R_i, this.sk_i));
+    this.log("  D_i (our contribution): " + JSON.stringify(D_i));
 
     // Create proof of computation.
-
-    console.log("MEMBER("+ this.id + ") tally: " + JSON.stringify({
-      PK_i: this.PK_i, R, D_i, }));
-
+    this.log("  proving contribution...");
     const { proof } = await generate_zkp_tally(this.PK_i, R, D_i, this.sk_i);
 
     // Send (id, D_{i,1}, D_{i,2}, D_{1,3}) to the contract, with a proof.
@@ -122,9 +128,7 @@ export class CommitteeMemberDKG {
     this.a_coeffs = a_coeffs;
     this.C_coeff_commitments = C_coeff_commitments;
 
-    console.log(
-      "COMMITTEE MEMBER " + id + ": " +
-        JSON.stringify(a_coeffs.map(x => x.toString())));
+    this.log(JSON.stringify(a_coeffs.map(x => x.toString())));
   }
 
   public static initialize(
@@ -204,8 +208,6 @@ export class CommitteeMemberDKG {
 
     const expect_f_i_l_commit = polynomial_evaluate_group(
       this.babyjub, this.getCoefficientCommitments(), BigInt(recipient_id));
-    console.log("       f_i_l_commit: " + PK_i_l);
-    console.log("expect_f_i_l_commit: " + expect_f_i_l_commit);
     expect(PK_i_l).eql(expect_f_i_l_commit);
     return {f_i_l, PK_i_l};
   }
@@ -232,6 +234,8 @@ export class CommitteeMemberDKG {
         id: recip_id, pk: recip_PK}));
 
       const {f_i_l, PK_i_l} = this.computeRound2ShareFor(recip_id);
+      this.log("       PK_i_l: " + PK_i_l);
+
       const {eph_sk, eph_pk, enc} = this.encryptRound2ShareFor(f_i_l, recip_PK);
 
       // Generate the proof of encryption
@@ -285,6 +289,8 @@ export class CommitteeMemberDKG {
     //
     // where recip_id is equal to our id.
 
+    this.log("reading shares:");
+
     // TODO: Pull in batches.
 
     const filter: Filter = this.nc.filters.Round2Share(this.id);
@@ -295,10 +301,11 @@ export class CommitteeMemberDKG {
 
     // Parse
     const intfc = this.nc.interface;
+    const that = this;
     function parseLog(log: Log): ParsedRound2Event {
       const parsed = intfc.parseLog(log);
       const args = parsed.args
-      console.log("  parsed args: " + JSON.stringify(args));
+      // console.log("  parsed args: " + JSON.stringify(args));
       const event: ParsedRound2Event = {
         recip_id: BigInt(args[0]),
         sender_id: BigInt(args[1]),
@@ -307,7 +314,7 @@ export class CommitteeMemberDKG {
           args[3][0].toString(),
           args[3][1].toString()],
       };
-      console.log("  event: " + JSON.stringify({
+      that.log("    event: " + JSON.stringify({
         recip_id: event.recip_id.toString(),
         sender_id: event.sender_id.toString(),
         enc_sk_share: event.enc_sk_share.toString(),
@@ -324,13 +331,15 @@ export class CommitteeMemberDKG {
     const order = groupOrder(this.babyjub);
     parsedEvents.forEach(ev => {
       const dec = this.decryptRound2Share(ev.enc_sk_share, ev.enc_eph_pk);
-      console.log("  dec (from " + ev.sender_id + ") = " + dec.toString());
+      this.log("    decrypted (from " + ev.sender_id + ") = " + dec.toString());
       sk_i = (sk_i + dec) % order;
-      console.log("  sk_i is now: " + sk_i.toString());
     });
 
     // PK = f_i * G
     const PK_i = pointFromScalar(this.babyjub, sk_i);
+
+    this.log("  sk_i: " + sk_i.toString());
+    this.log("  PK_i: " + PK_i);
 
     // Check that PK matches the eval of the (encoded) polynomial, given the
     // coefficient sums.

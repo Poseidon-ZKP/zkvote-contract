@@ -87,6 +87,7 @@ async function main(
   await Promise.all(committee_dkg.map(member => member.round1_wait()));
 
   // Sanity checks
+  console.log("");
 
   // Get expected PK by querying committee members
   const expect_PK = (() => {
@@ -118,12 +119,6 @@ async function main(
 
   // Compute the committee IDs
   const committee_ids = committee_dkg.map(m => m.id);
-
-  // const {a, C, edwards_twist_C, PK} = await round1(babyjub, COMMITEE, t, nc)
-  // console.log("PK : ", [babyjub.F.toString(PK[0]), babyjub.F.toString(PK[1])])
-  // const round1_result = await round1(babyjub, poseidon, COMMITEE, t, nc);
-  // const round1_members = round1_result.members;
-  // console.log("round1_members: " + round1_members.map(x => x.toString()));
 
   //
   // 2. Key Generation Round 2 (Committee)
@@ -265,6 +260,7 @@ async function main(
 
   // 5. Recover the decrypted vote counts
 
+  console.log("\n\n---- VOTE COUNTS ----");
   const vote_totals = (await nc.get_vote_totals()).map((x: BigNumber) => BigInt(x.toString()));
   console.log("vote_totals: " + vote_totals);
   expect(vote_totals).to.eql(expect_vote_totals);

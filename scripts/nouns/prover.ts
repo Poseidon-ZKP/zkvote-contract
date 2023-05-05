@@ -143,7 +143,7 @@ export async function generate_zkp_round2(
   // console.log("round2 groth16 prover done!")
 
   const sol_proof = packGroth16ProofToSolidityProof(proof);
-  console.log("groth16 sol_proof: " + JSON.stringify(sol_proof));
+  // console.log("groth16 sol_proof: " + JSON.stringify(sol_proof));
   return { proof: sol_proof };
 }
 
