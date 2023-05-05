@@ -18,7 +18,6 @@ jobs:
         with:
           lfs: true
       - run: git lfs pull
-      - run: ls -la circuits
 
       - name: Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
@@ -41,15 +40,14 @@ jobs:
           cargo install --path circom
           circom --help
 
-      # - name: Install NVM
-      #   uses: dcodeIO/setup-node-nvm@master
-      #   with:
-      #     node-version: ${{ matrix.node-version }}
-
-      - name: Build
+      - name: Build circuits and contracts
         run: |
           yarn install
           yarn build
+
+      - name: Compile Typescript
+        run: |
+          yarn tsc
 
       - name: Test
         run: |
