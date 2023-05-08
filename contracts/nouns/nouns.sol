@@ -61,9 +61,9 @@ contract Nouns {
     //
     // Voters
     //
-    mapping(address => uint) public votePower;
-    uint voting_power;
-    uint total_voting_power;
+    mapping(address => uint) public vote_power;
+    uint public registered_voting_power;
+    uint public max_voting_power;
 
     //
     // Voting state
@@ -74,6 +74,7 @@ contract Nouns {
     uint[2][3] public M;
     uint[2][3][] DI;
     uint[] tally_cid;
+    uint public voting_weight_used;
     uint public tallied_committee;
     uint[3] public vote_totals;
 
@@ -117,7 +118,7 @@ contract Nouns {
         address[] memory _verifiers,
         address[] memory _committee,
         uint _tally_threshold,
-        uint total_voting_power_
+        uint _max_voting_power
     ) {
         // require(_verifiers.length == 3, "invalid verifiers!");
         round2_verifier = IVerifierRound2(_verifiers[0]);
@@ -150,23 +151,23 @@ contract Nouns {
         uint x = Gx;
         uint y = Gy;
         lookup_table[x][y] = 1;
-        for (uint i = 2; i <= total_voting_power_; i++) {
+        for (uint i = 2; i <= _max_voting_power; i++) {
             (x, y) = CurveBabyJubJub.pointAdd(x, y, Gx, Gy);
             lookup_table[x][y] = i;
         }
-        total_voting_power = total_voting_power_;
+        max_voting_power = _max_voting_power;
     }
 
     function add_voter(address voter, uint voter_weight) public {
         // Temporary mechanism to define voter weights.
-        require(votePower[voter] == 0, "voter already registered");
-        votePower[voter] = voter_weight;
-        voting_power += voter_weight;
-        require(voting_power <= total_voting_power, "total voting power exceeded");
+        require(vote_power[voter] == 0, "voter already registered");
+        vote_power[voter] = voter_weight;
+        registered_voting_power += voter_weight;
+        require(registered_voting_power <= max_voting_power, "total voting power exceeded");
     }
 
     function get_voting_weight(address voter) public view returns (uint) {
-        return votePower[voter];
+        return vote_power[voter];
     }
 
     function get_PK() public view returns (uint256, uint256) {
@@ -308,7 +309,7 @@ contract Nouns {
         uint256[2] calldata proof_c
     ) public {
 
-        uint vw = votePower[msg.sender];
+        uint vw = vote_power[msg.sender];
         require(vw > 0, "invalid voter!");
         require(!voted[msg.sender], "already vote!");
 
@@ -316,7 +317,7 @@ contract Nouns {
         uint[15] memory inputs = [
             PK_coeffs[0][0],
             PK_coeffs[0][1],
-            votePower[msg.sender],
+            vw,
             voter_R_i[0][0],
             voter_R_i[0][1],
             voter_R_i[1][0],
@@ -348,6 +349,8 @@ contract Nouns {
             // M_k = M_k + M_{i,k}
             (M_k[0], M_k[1]) = CurveBabyJubJub.pointAdd(M_k[0], M_k[1], M_i_k[0], M_i_k[1]);
         }
+
+        voting_weight_used += vw;
     }
 
     function get_R() public view returns (uint[2][3] memory) {

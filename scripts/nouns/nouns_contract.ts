@@ -10,6 +10,8 @@ export { Nouns } from "../types";
 
 export type NounsContractDescriptor = {
   address: string;
+  n_comm: number,
+  threshold: number,
 };
 
 
@@ -36,8 +38,17 @@ export async function deploy(
 }
 
 
-export function get_descriptor(nouns: Nouns): NounsContractDescriptor {
-  return { address: nouns.address };
+export async function get_descriptor(nouns: Nouns): Promise<NounsContractDescriptor> {
+  const n_comm = await nouns.n_comm();
+  const threshold = await nouns.tally_threshold();
+  console.log("n_comm: " + n_comm);
+  console.log("threshold: " + threshold);
+  console.log("address: " + nouns.address);
+  return {
+    address: nouns.address,
+    n_comm: parseInt(n_comm.toString()),
+    threshold: parseInt(threshold.toString()),
+  };
 }
 
 

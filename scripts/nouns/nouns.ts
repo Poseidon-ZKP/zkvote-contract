@@ -48,13 +48,13 @@ async function main(
     BigInt(t),
     10n, // total voting power
   );
-  const nc_descriptor = nouns_contract.get_descriptor(nc);
+  const nc_descriptor = await nouns_contract.get_descriptor(nc);
 
   // 0. Create committee members
-  const committee_dkg: CommitteeMemberDKG[] = COMMITEE.map(
-    (signer, i) => CommitteeMemberDKG.initialize(
-      babyjub, poseidon, nc, signer, N_COMM, t, i + 1)
-  );
+  const committee_dkg: CommitteeMemberDKG[] = await Promise.all(COMMITEE.map(
+    async (signer, i) => CommitteeMemberDKG.initialize(
+      babyjub, poseidon, nc_descriptor, signer, i + 1)
+  ));
 
   //
   // 1. Key Generation Round 1 (Committee)
@@ -99,9 +99,6 @@ async function main(
     });
   }
 
-  // Compute the committee IDs
-  const committee_ids = committee_dkg.map(m => m.id);
-
   //
   // 2. Key Generation Round 2 (Committee)
   //
@@ -110,7 +107,7 @@ async function main(
 
   // Compute and upload the encrypted shares
   expect(await nc.round2_complete()).to.be.false;
-  committee_dkg.forEach(member => member.round2(committee_ids));
+  committee_dkg.forEach(member => member.round2());
 
   // Wait for round 2 to finish
   await Promise.all(committee_dkg.map(

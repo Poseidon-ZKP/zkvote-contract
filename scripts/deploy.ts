@@ -48,7 +48,7 @@ const app = command({
     }),
   },
   handler: async (
-    {n_comm, threshold, total_voting_power, descriptor_file, endpoint }
+    {n_comm, threshold, total_voting_power, descriptor_file, endpoint}
   ) => {
     console.log("CONFIG: " + JSON.stringify({ n_comm, threshold, endpoint }));
 
@@ -72,7 +72,8 @@ const app = command({
     console.log("Nouns deployed at: " + nouns.address);
 
     // Write the description
-    const desc = nouns_contract.get_descriptor(nouns);
+    const desc = await nouns_contract.get_descriptor(nouns);
+    console.log("desc=" + JSON.stringify(desc));
     fs.writeFileSync(descriptor_file, JSON.stringify(desc));
     console.log("Descriptor written at: " + descriptor_file);
   },

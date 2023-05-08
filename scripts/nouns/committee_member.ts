@@ -5,6 +5,8 @@ import {
   polynomial_evaluate, polynomial_evaluate_group
 } from "../crypto";
 import { generate_zkp_round2, generate_zkp_tally } from "./prover";
+import { NounsContractDescriptor } from "./nouns_contract";
+import * as nouns_contract from "./nouns_contract";
 import { Nouns } from "../types";
 import { Signer, BigNumberish } from "ethers";
 import { randomBytes } from "@ethersproject/random";
@@ -81,11 +83,26 @@ export class CommitteeMember {
 
     // Send (id, D_{i,1}, D_{i,2}, D_{1,3}) to the contract, with a proof.
 
-    await this.nc.tally(
-      <any>D_i,
-      proof.a,
-      proof.b,
-      proof.c);
+    const that = this;
+    async function send_tally(retry: number = 10): Promise<void> {
+      try {
+        await that.nc.tally(
+          <any>D_i,
+          proof.a,
+          proof.b,
+          proof.c);
+      } catch (e) {
+        if (retry <= 0) {
+          throw e;
+        }
+
+        console.log("retrying tally tx ...");
+        await new Promise(r => setTimeout(r, 100));
+        await send_tally(retry - 1);
+      }
+    }
+
+    await send_tally();
   }
 
   log(msg: string) {
@@ -107,7 +124,7 @@ export class CommitteeMemberDKG {
   a_coeffs: bigint[];
   C_coeff_commitments: PublicKey[];
 
-  constructor(
+  private constructor(
     babyjub: any,
     poseidon: any,
     nc: Nouns,
@@ -131,28 +148,40 @@ export class CommitteeMemberDKG {
     this.log(JSON.stringify(a_coeffs.map(x => x.toString())));
   }
 
-  public static initialize(
+  public static async initialize(
     babyjub: any,
     poseidon: any,
-    nc: Nouns,
+    nc_descriptor: NounsContractDescriptor,
     signer: Signer,
-    n_comm: number,
-    threshold: number,
+    // n_comm: number,
+    // threshold: number,
     id: number
-  ): CommitteeMemberDKG {
-    expect(n_comm).to.be.greaterThanOrEqual(threshold);
+  ): Promise<CommitteeMemberDKG> {
+    expect(nc_descriptor.n_comm).to.be.greaterThanOrEqual(nc_descriptor.threshold);
+
+    // TODO: determine a_0 from the eth private key
 
     let as: bigint[] = [];
     let Cs: PublicKey[] = [];
 
-    for (let i = 0 ; i < threshold ; ++i) {
+    for (let i = 0 ; i < nc_descriptor.threshold ; ++i) {
       const a = BigInt(hexlify(randomBytes(32))) % groupOrder(babyjub);
       as.push(a);
       Cs.push(pointFromScalar(babyjub, a));
     }
 
+    const nc = nouns_contract.from_descriptor(signer.provider, nc_descriptor);
+
     return new CommitteeMemberDKG(
-      babyjub, poseidon, nc.connect(signer), signer, n_comm, threshold, id, as, Cs);
+      babyjub,
+      poseidon,
+      nc.connect(signer),
+      signer,
+      nc_descriptor.n_comm,
+      nc_descriptor.threshold,
+      id,
+      as,
+      Cs);
   }
 
   public toString(): string {
@@ -181,11 +210,27 @@ export class CommitteeMemberDKG {
     return this.a_coeffs[0];
   }
 
-  public async round1(): Promise<void> {
+  public async round1(retry: number = 10): Promise<void> {
     // Post commitments to our polynomial coefficients to the contract.
 
     this.log("posting Cs: " + JSON.stringify(this.C_coeff_commitments));
-    await this.nc.round1(<[BigNumberish, BigNumberish][]>(this.C_coeff_commitments));
+    try {
+      await this.nc.round1(<[BigNumberish, BigNumberish][]>(this.C_coeff_commitments));
+    } catch(e) {
+      if (retry <= 0) {
+        throw e;
+      }
+
+      // TODO(duncan): this retrying is a bit of a hack, but is a conveninent
+      // way to deal with the state changing between gas estimation and the tx
+      // being deployed.  (e.g. if we are not last to submit when gas is
+      // estimated, but last to submit when the tx is executed and therefore
+      // end up doing more work).
+
+      console.log("retrying round1() ...");
+      await new Promise(r => setTimeout(r, 100));
+      await this.round1(retry - 1);
+    }
   }
 
   public async round1_wait(): Promise<void> {
@@ -216,7 +261,7 @@ export class CommitteeMemberDKG {
     return poseidonEncEx(this.babyjub, this.poseidon, share, recip_PK);
   }
 
-  public async round2(committee_ids: number[]): Promise<void> {
+  public async round2(): Promise<void> {
     // For each recipient (including us), compute and encrypt the share of OUR
     // secret.
 
@@ -225,7 +270,8 @@ export class CommitteeMemberDKG {
     const our_id = this.id;
     const that = this;
 
-    await Promise.all(committee_ids.map(async recip_id => {
+    await Promise.all(Array.from({length: this.n_comm}).map(async (_, idx) => {
+      const recip_id = idx + 1;
 
       const recip_PK = pointFromSolidity(
         await this.nc.get_round1_PK_for(recip_id));
@@ -252,16 +298,32 @@ export class CommitteeMemberDKG {
 
       // Post the share to the contract
       expect(await that.nc.round2_share_received(our_id, recip_id)).to.be.false;
-      await that.nc.round2(
-        recip_id,
-        enc,
-        <[BigNumberish, BigNumberish]>eph_pk,
-        <[BigNumberish, BigNumberish]>PK_i_l,
-        proof.a,
-        proof.b,
-        proof.c,
-      )
-    }));
+
+      async function send_secret(retry: number = 10): Promise<void> {
+        try {
+          await that.nc.round2(
+            recip_id,
+            enc,
+              <[BigNumberish, BigNumberish]>eph_pk,
+              <[BigNumberish, BigNumberish]>PK_i_l,
+            proof.a,
+            proof.b,
+            proof.c,
+          )
+        } catch(e) {
+          if (retry <= 0) {
+            throw e;
+          }
+
+          console.log("retrying round2 tx ...");
+          await new Promise(r => setTimeout(r, 100));
+          await send_secret(retry - 1);
+        }
+      }
+
+      await send_secret();
+    }
+    ));
   }
 
   public async round2_wait(): Promise<void> {
