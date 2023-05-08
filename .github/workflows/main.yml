@@ -6,7 +6,7 @@ on:
 jobs:
   build:
 
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
@@ -41,9 +41,19 @@ jobs:
           cargo install --path circom
           circom --help
 
-      - name: Build circuits and contracts
+      - name: Cache yarn install
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install
         run: |
           yarn install
+
+      - name: Build circuits and contracts
+        run: |
           yarn build
 
       - name: Compile Typescript
