@@ -165,6 +165,10 @@ contract Nouns {
         require(voting_power <= total_voting_power, "total voting power exceeded");
     }
 
+    function get_voting_weight(address voter) public view returns (uint) {
+        return votePower[voter];
+    }
+
     function get_PK() public view returns (uint256, uint256) {
         require(round1_complete(), "round1 is not complete.");
         return (PK_coeffs[0][0], PK_coeffs[0][1]);

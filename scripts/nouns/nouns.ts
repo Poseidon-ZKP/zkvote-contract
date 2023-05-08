@@ -49,9 +49,6 @@ async function main(
     10n, // total voting power
   );
   const nc_descriptor = nouns_contract.get_descriptor(nc);
-  for (let i = 0 ; i < V.length ; ++i) {
-    await nc.add_voter(USERS[i].address, V[i]);
-  }
 
   // 0. Create committee members
   const committee_dkg: CommitteeMemberDKG[] = COMMITEE.map(
@@ -135,9 +132,17 @@ async function main(
 
   console.log("\n\n---- VOTE ----");
 
-  const voters: Voter[] = USERS.map((signer, i) => {
-    return new Voter(babyjub, signer, nc_descriptor, V[i]);
-  });
+  // Instantiate Voter classes
+  const voters: Voter[] = await Promise.all(USERS.map(async (signer) => {
+    return Voter.initialize(signer, nc_descriptor);
+  }));
+
+  // Dummy registration process
+  await Promise.all(voters.map(async (voter, i) => {
+    await voter.dummy_register(V[i]);
+    // await nc.add_voter(USERS[i].address, V[i]);
+    expect(await voter.get_voting_weight()).is.equal(V[i]);
+  }));
 
   const votes: Vote[] = [Vote.Abstain, Vote.Nay, Vote.Yay];
   const expect_vote_totals = [0n, 0n, 0n];
@@ -160,15 +165,16 @@ async function main(
     const my_vote = votes[i % votes.length];
     const vote_record = await voter.cast_vote(my_vote);
 
-    console.log("Voter " + (await voter.signer.getAddress()) + ": " + JSON.stringify(vote_record));
+    console.log(
+      "Voter " + (await voter.signer.getAddress()) + ": " +
+        JSON.stringify(vote_record));
     const Ms = (await nc.get_M()).map(pointFromSolidity);
     const Rs = (await nc.get_R()).map(pointFromSolidity);
     console.log("M[0]: " + Ms[0]);
     console.log("R[0]: " + Rs[0]);
 
-
     // DEBUG: count the total votes we should see for each outcome:
-    expect_vote_totals[i % votes.length] += voter.voting_weight;
+    expect_vote_totals[i % votes.length] += await voter.get_voting_weight();
 
     vote_records.push(vote_record);
   }

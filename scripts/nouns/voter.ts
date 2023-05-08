@@ -9,6 +9,7 @@ import { hexlify } from "@ethersproject/bytes";
 import { randomBytes } from "@ethersproject/random";
 import { Signer, BigNumberish } from "ethers";
 import { expect } from "chai";
+const { buildBabyjub } = require('circomlibjs');
 
 
 export enum Vote {
@@ -44,24 +45,36 @@ export class Voter {
   babyjub: any;
   signer: Signer;
   nc: Nouns;
-  voting_weight: bigint;
 
-  constructor(
+  private constructor(
     babyjub: any,
     signer: Signer,
-    nouns_desc: NounsContractDescriptor,
-    voting_weight: bigint) {
+    nouns_desc: NounsContractDescriptor) {
     this.babyjub = babyjub;
     this.signer = signer;
     this.nc = nouns_contract.from_descriptor(signer.provider, nouns_desc)
       .connect(signer);
-    this.voting_weight = voting_weight;
+  }
+
+  public static async initialize(
+    signer: Signer,
+    nouns_desc: NounsContractDescriptor): Promise<Voter> {
+    return new Voter(
+      await buildBabyjub(),
+      signer,
+      nouns_desc);
   }
 
   public async get_voting_weight(): Promise<bigint> {
     // TODO: For now, we just keep this on locally on the class.  Later, query
     // the chain or some snapshot for this info.
-    return this.voting_weight;
+    const weight = await this.nc.get_voting_weight(await this.signer.getAddress());
+    return BigInt(weight.toString());
+  }
+
+  /// DUMMY register as a voter
+  public async dummy_register(voting_weight: bigint): Promise<void> {
+    await this.nc.add_voter(await this.signer.getAddress(), voting_weight);
   }
 
   /// Cast an (encrypted) vote in one direction, using the voting weight.  The
@@ -71,6 +84,8 @@ export class Voter {
 
     // Encrypt 3 votes.  One of which must be:
     //   voting_weight * G +
+
+    const voting_weight = await this.get_voting_weight();
 
     const order = groupOrder(this.babyjub);
     const PK: PublicKey = pointFromSolidity(await this.nc.get_PK());
@@ -105,7 +120,7 @@ export class Voter {
     encrypt_vote(Vote.Yay);     // 100
 
     const {proof /*, publicSignals */} = await generate_zkp_nvote(
-      PK, this.voting_weight, Rs, Ms, o, rs);
+      PK, voting_weight, Rs, Ms, o, rs);
 
     const address = await this.signer.getAddress();
     expect(await this.nc.has_voted(address)).to.be.false;
