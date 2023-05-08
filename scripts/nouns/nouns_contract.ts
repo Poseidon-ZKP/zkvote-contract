@@ -5,6 +5,7 @@ import {
 } from "../types";
 import { Signer, Contract } from "ethers";
 import { Provider } from "@ethersproject/providers";
+export { Nouns } from "../types";
 
 
 export type NounsContractDescriptor = {

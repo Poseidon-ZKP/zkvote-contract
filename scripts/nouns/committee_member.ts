@@ -62,10 +62,6 @@ export class CommitteeMember {
     this.PK_i = PK_i;
   }
 
-  log(msg: string) {
-    console.log("[C:" + this.id + "] " + msg);
-  }
-
   public async tallyVotes(): Promise<void> {
     // Query R from the contract and compute D_{i,k}, k=1,2,3, where:
     //
@@ -90,6 +86,10 @@ export class CommitteeMember {
       proof.a,
       proof.b,
       proof.c);
+  }
+
+  log(msg: string) {
+    console.log("[C:" + this.id + "] " + msg);
   }
 }
 

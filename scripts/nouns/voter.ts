@@ -1,11 +1,13 @@
 
 import {
-  PublicKey, groupOrder, pointFromScalar, pointMul, pointAdd
+  PublicKey, groupOrder, pointFromScalar, pointFromSolidity, pointMul, pointAdd
 } from "../crypto";
+import { Nouns, NounsContractDescriptor } from "./nouns_contract";
+import * as nouns_contract from "./nouns_contract";
 import { generate_zkp_nvote } from "./prover";
 import { hexlify } from "@ethersproject/bytes";
 import { randomBytes } from "@ethersproject/random";
-import { Signer, Contract } from "ethers";
+import { Signer, BigNumberish } from "ethers";
 import { expect } from "chai";
 
 
@@ -23,40 +25,56 @@ export type VoteRecord = {
 };
 
 
-function voteToO(v: Vote): bigint {
-  switch(v) {
-    case Vote.Yay: return 0b100n;
-    case Vote.Nay: return 0b010n;
-    case Vote.Abstain: return 0b001n;
-    default: throw "unrecognized Vote";
-  }
-}
+// Type of the R and M vectors submitted to the contract.
+type SolidityEncryptedVotes = [
+  [BigNumberish, BigNumberish],
+  [BigNumberish, BigNumberish],
+  [BigNumberish, BigNumberish]
+];
 
 
+
+/// Class exposing the Voter operations.  In the browser, Signer can be
+/// constructed with code of the form:
+///
+///   const provider = new ethers.providers.Web3Provider(window.ethereum);
+///   const signer = provider.getSigner();
 export class Voter {
 
+  babyjub: any;
+  signer: Signer;
+  nc: Nouns;
+  voting_weight: bigint;
+
   constructor(
-    private babyjub: any,
-    public signer: Signer,
-    private nc: Contract,
-    public voting_weight: bigint) {
-    this.nc = nc.connect(signer);
+    babyjub: any,
+    signer: Signer,
+    nouns_desc: NounsContractDescriptor,
+    voting_weight: bigint) {
+    this.babyjub = babyjub;
+    this.signer = signer;
+    this.nc = nouns_contract.from_descriptor(signer.provider, nouns_desc)
+      .connect(signer);
+    this.voting_weight = voting_weight;
   }
 
   public async get_voting_weight(): Promise<bigint> {
-    // For now, we just keep this on locally on the class.  Later, query the
-    // chain or some snapshot for this info.
+    // TODO: For now, we just keep this on locally on the class.  Later, query
+    // the chain or some snapshot for this info.
     return this.voting_weight;
   }
 
+  /// Cast an (encrypted) vote in one direction, using the voting weight.  The
+  /// returned structure is intended to be recorded by the caller, and should
+  /// not be made public.
   public async cast_vote(vote: Vote): Promise<VoteRecord | null> {
 
     // Encrypt 3 votes.  One of which must be:
     //   voting_weight * G +
 
     const order = groupOrder(this.babyjub);
-    const PK: PublicKey = (await this.nc.get_PK()).map((x: bigint) => x.toString());
-    const o = voteToO(vote);
+    const PK: PublicKey = pointFromSolidity(await this.nc.get_PK());
+    const o = Voter.voteToO(vote);
 
     const Rs: PublicKey[] = [];
     const Ms: PublicKey[] = [];
@@ -91,10 +109,23 @@ export class Voter {
 
     const address = await this.signer.getAddress();
     expect(await this.nc.has_voted(address)).to.be.false;
-    await this.nc.vote(Rs, Ms, proof.a, proof.b, proof.c);
+    await this.nc.vote(
+      <SolidityEncryptedVotes>Rs,
+      <SolidityEncryptedVotes>Ms,
+      proof.a,
+      proof.b,
+      proof.c);
     expect(await this.nc.has_voted(address)).to.be.true;
 
     return { vote, R: Rs, M: Ms };
   }
 
+  static voteToO(v: Vote): bigint {
+    switch(v) {
+      case Vote.Yay: return 0b100n;
+      case Vote.Nay: return 0b010n;
+      case Vote.Abstain: return 0b001n;
+      default: throw "unrecognized Vote";
+    }
+  }
 };

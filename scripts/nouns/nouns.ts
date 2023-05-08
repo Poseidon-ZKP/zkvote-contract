@@ -48,6 +48,7 @@ async function main(
     BigInt(t),
     10n, // total voting power
   );
+  const nc_descriptor = nouns_contract.get_descriptor(nc);
   for (let i = 0 ; i < V.length ; ++i) {
     await nc.add_voter(USERS[i].address, V[i]);
   }
@@ -135,11 +136,16 @@ async function main(
   console.log("\n\n---- VOTE ----");
 
   const voters: Voter[] = USERS.map((signer, i) => {
-    return new Voter(babyjub/*,poseidon */, signer, nc, V[i]);
+    return new Voter(babyjub, signer, nc_descriptor, V[i]);
   });
 
   const votes: Vote[] = [Vote.Abstain, Vote.Nay, Vote.Yay];
   const expect_vote_totals = [0n, 0n, 0n];
+
+  // TODO(duncan): gas cost seems to vary per voter (presumably based on how
+  // many votes have already been cast).  Hence these votes are cast serially,
+  // rather than async.
+
   // const vote_records: VoteRecord[] = await Promise.all(voters.map(async (voter, i) => {
   //   const my_vote = votes[i % votes.length];
   //   const public_vote = await voter.cast_vote(my_vote);
@@ -147,22 +153,24 @@ async function main(
   //   console.log("Voter " + (await voter.signer.getAddress()) + ": " + JSON.stringify(public_vote));
   //   return public_vote;
   // }));
+
   const vote_records: VoteRecord[] = [];
   for (let i = 0 ; i < voters.length; ++i) {
     const voter = voters[i];
     const my_vote = votes[i % votes.length];
-    const public_vote = await voter.cast_vote(my_vote);
+    const vote_record = await voter.cast_vote(my_vote);
 
-    console.log("Voter " + (await voter.signer.getAddress()) + ": " + JSON.stringify(public_vote));
+    console.log("Voter " + (await voter.signer.getAddress()) + ": " + JSON.stringify(vote_record));
     const Ms = (await nc.get_M()).map(pointFromSolidity);
     const Rs = (await nc.get_R()).map(pointFromSolidity);
     console.log("M[0]: " + Ms[0]);
     console.log("R[0]: " + Rs[0]);
 
-    vote_records.push(public_vote);
 
     // DEBUG: count the total votes we should see for each outcome:
     expect_vote_totals[i % votes.length] += voter.voting_weight;
+
+    vote_records.push(vote_record);
   }
 
   // Sanity check contract state
