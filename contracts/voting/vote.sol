@@ -132,7 +132,7 @@ contract Vote is ReentrancyGuard{
             privacy : privacy,
             asset : asset
         });
-        
+
         emit GroupInfo(groupId, name, description, icon, privacy, asset);
     }
 
@@ -155,7 +155,7 @@ contract Vote is ReentrancyGuard{
         emit MemberAdded(groupId, identityCommitment);
     }
 
-    function checkPrivacy(uint groupId) public {
+    function checkPrivacy(uint groupId) view public {
         if (groups[groupId].privacy == PRIVACY.NFT) {
             IERC721 nft = IERC721(groups[groupId].asset);
             require(nft.balanceOf(msg.sender) > 0, "missing nft!");

@@ -1,88 +1,78 @@
-poseidon-zk-contracts
-=====================
-The missing zk contracts layer for Ethereum.
-
-## Contracts
-<table>
-    <th>Contract</th>
-    <th>Version</th>
-    <th>Audit</th>
-    <th>Trusted Setup</th>
-    <tbody>
-        <tr>
-            <td>  
-                zkGroup
-            </td>
-            <td>
-                0.5.0
-            </td>
-            <td>
-                :construction:
-            </td>
-            <td>
-                not started
-            </td>
-        </tr>
-        <tr>
-            <td>
-                zkSignal
-            </td>
-            <td>
-               0.5.0
-            </td>
-            <td>
-               :construction:
-            </td>
-            <td>
-                not started
-            </td>
-        </tr>
-        <tr>
-            <td>
-                zkShuffle
-            </td>
-            <td>
-                0.5.0
-            </td>
-            <td>
-               :construction: 
-            </td>
-            <td>
-                not started
-            </td>
-        </tr>
-    <tbody>
-</table>
-
-## Deploy Contracts
-TBD
+zkVote demo
+===========
 
 ## Developer Setup
+
 ### Install dependencies
-1. Install [nvm](https://github.com/nvm-sh/nvm)
-2. Install [circom](https://docs.circom.io/getting-started/installation/)
 
-## Vote
-```shell
-nvm use
-npm install
-npm run postinstall
-npx hardhat run scripts/vote.ts
+1. Install [circom](https://docs.circom.io/getting-started/installation/)
+2. Run `yarn`
+
+### Build
+
+```console
+yarn build
+yarn tsc
 ```
 
-## Deploy(Verify) on optimism-goerli
-```shell
-    ONLY_DEPLOY=1 npx hardhat run scripts/vote.ts --network opGoerli
+### Run workflow test
+
+```console
+yarn test
 ```
 
-## Upgrade(Verify) on optimism-goerli
-```shell
-    ONLY_UPGRADE=1 npx hardhat run scripts/vote.ts --network opGoerli
+### Unit tests
+
+```console
+yarn hardhat test
 ```
 
-## Deploy on consesus zkevm
-```shell
-    ONLY_DEPLOY=1 npx hardhat run scripts/vote.ts --network consesusZkevmGoerli
+### Command-line Demo
+
+(Note, many of these commands are long-running and must be launched in their
+own terminal).
+
+Launch a development blockchain node:
+```console
+$ yarn hardhat node
 ```
 
-   
+Deploy the contract and write the configuration to a file `nouns.config.json`.
+This file is read by later commands to connect to the contract.
+
+```console
+$ yarn ts-node scripts/deploy.ts
+```
+
+Launch 3 committee daemons (each in it's own terminal, as the process will not
+terminate until votes are tallied)
+
+```console
+$ yarn ts-node scripts/committee.ts 1
+```
+```console
+$ yarn ts-node scripts/committee.ts 2
+```
+```console
+$ yarn ts-node scripts/committee.ts 3
+```
+
+In a new terminal, register some dummy voters and cast votes up to a total voting weight above 10
+(max total voting weight is 20).  For example:
+```console
+$ yarn ts-node scripts/vote.ts 1 yay 6
+```
+```console
+$ yarn ts-node scripts/vote.ts 2 nay 3
+```
+```console
+$ yarn ts-node scripts/vote.ts 3 yay 5
+```
+
+When the committee commands notice that the total voting weight used is at
+least 10, they begin the tallying, and will exit after the tallying process is
+complete.  To query the contract for the vote totals, run:
+
+```console
+$ yarn ts-node scripts/get_vote_tally.ts
+```

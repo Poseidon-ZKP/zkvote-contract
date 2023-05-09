@@ -3,113 +3,121 @@ pragma custom_templates;    // TODO : proof of plonk's custom gate
 
 include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../../node_modules/circomlib/circuits/poseidon.circom";
-include "../nouns/babyjubExtend.circom";
+include "../common/babyjubExtend.circom";
 
 template PoseidonEnc() {
-    signal input base[2];
+    signal input recip_PK[2];
     signal input msg;
-    signal input r;
+    signal input eph_sk;
 
     signal KS[2];
     signal output out;
-    signal output kb[2];
+    signal output eph_pk[2];
 
-    component mulG = BabyScaleGenerator();
-    mulG.in <== r;
-    kb[0] <== mulG.Ax;
-    kb[1] <== mulG.Ay;
+    // TODO(duncan): check eph_sk \in F_B?
 
-    component mulAny = JubScalarMulAny();
-    mulAny.in <== r;
-    mulAny.p[0] <== base[0];
-    mulAny.p[1] <== base[1];
-    KS[0] <== mulAny.out[0];
-    KS[1] <== mulAny.out[1];
+    // R = r * G
+    component comp_eph_PK = BabyScaleGenerator();
+    comp_eph_PK.in <== eph_sk;
+    eph_pk[0] <== comp_eph_PK.Ax;
+    eph_pk[1] <== comp_eph_PK.Ay;
 
-    component pos = Poseidon(1);
-    pos.inputs[0] <== KS[0];
-    out <== pos.out + msg;
+    // KS = r * C_0
+    component comp_KS = JubScalarMulAny();
+    comp_KS.in <== eph_sk;
+    comp_KS.p <== recip_PK;
+
+    // Blinding factor = Poseidon(KS[0])
+    component hash_KS = Poseidon(1);
+    hash_KS.inputs[0] <== comp_KS.out[0];
+
+    // out holds the original plaintext, "blinded" by the hash of the shared
+    // secret.
+    out <== hash_KS.out + msg;
 
     // TODO : complete poseidon enc (C.last == S[1]) to protect from "Tampering"
+
+    // TODO(duncan): The simple poseidon may be sufficient.  This proof will
+    // guarantee that the sender has encrypted the correct plaintext exactly
+    // as described here.
 }
 
-// Round2 : f(l)*G == sum(l^k * C[k])
-template SumScaleMul(t) {
-    signal input f_l;    // f(l)
-    signal input l;
+
+/// Use Horner's method for safe polynomial evaluation where x may be an
+/// element of a field with a different characteristic.
+template EncodedPolynomialEvaluation(t) {
+
+    assert(t > 1); // t < 2 not handled by this circuit.
+
+    signal input x;
     signal input C[t][2];
-
-    signal res[t][2];
     signal output out[2];
-    // signal output cmp[2];
 
-    var lk;
-    lk = 1;// 0^0 = 1
-    component mulAny[t];
-    component pvkBits[t];
-    component babyAdd[t];
-    for (var k = 0; k < t; k++) {
-        mulAny[k] = parallel JubScalarMulAny();
-        mulAny[k].in <-- lk;     // Do not need Constraints here, just witness
-        mulAny[k].p[0] <== C[k][0];
-        mulAny[k].p[1] <== C[k][1];
+    // 1. Start with C[t-1].
+    // 2. For each entry C[i] for i = t-2,...,0:
+    //   1. scalar mul by x
+    //   2. add C[i]
 
-        if (k == 0) {
-            res[k][0] <== mulAny[k].out[0];
-            res[k][1] <== mulAny[k].out[1];
+    // signal mul_result[t-1][2];
+    component scalar_mul[t-1];
+    // signal add_result[t-1][2];
+    component add[t-1];
+
+    for (var i = t-2 ; i >= 0 ; i--) {
+        // ScalarMul(prev_result, x);
+        scalar_mul[i] = JubScalarMulAny();
+        scalar_mul[i].in <== x;
+        if (i == t-2) {
+            scalar_mul[i].p <== C[t-1];
         } else {
-            babyAdd[k] = BabyAdd();
-            babyAdd[k].x1 <== mulAny[k].out[0];
-            babyAdd[k].y1 <== mulAny[k].out[1];
-            babyAdd[k].x2 <== res[k-1][0];
-            babyAdd[k].y2 <== res[k-1][1];
-            res[k][0] <== babyAdd[k].xout;
-            res[k][1] <== babyAdd[k].yout;
+            scalar_mul[i].p[0] <== add[i+1].xout;
+            scalar_mul[i].p[1] <== add[i+1].yout;
         }
 
-        lk = lk * l;
+        // Add(scalar_mul.out, C[i])
+        add[i] = BabyAdd();
+        add[i].x1 <== scalar_mul[i].out[0];
+        add[i].y1 <== scalar_mul[i].out[1];
+        add[i].x2 <== C[i][0];
+        add[i].y2 <== C[i][1];
     }
 
-    out[0] <== res[t-1][0];
-    out[1] <== res[t-1][1];
-
-    component scaleMulG = BabyScaleGenerator();
-    scaleMulG.in <== f_l;
-    scaleMulG.Ax === out[0];
-    scaleMulG.Ay === out[1];
+    out[0] <== add[0].xout;
+    out[1] <== add[0].yout;
 }
+
 
 template Round2(t) {
-    signal input f_l;
-    signal input l;
-    signal input C[t][2];
-    signal input CL0[2];
+    signal input recip_id;  // recipient's ID (l in the protocol spec)
+    signal input recip_PK[2]; // recipient's public key (C_{l,0} in the spec)
+    signal input PK_i_l[2]; // Encoded secret share for l (PK_{i,l} = f_l * G in spec)
+    signal input enc;  // encrypted f_l
+    signal input eph_pk[2];  // eph_pk to accompany the encrypted f_l
+    signal input C[t][2]; // The encoded coefficients (C_{i,.})
 
-    signal input r;
+    // Secrets
+    signal input f_l; // the encrypted value f_l
+    signal input eph_sk; // the ephemeral secret key for encryption
 
-    signal output out[2];
-    signal output enc;
-    signal output kb[2];
+    // f(l) * G = evaluation of committed poly at l
+    component encoded_poly_eval = EncodedPolynomialEvaluation(t);
+    encoded_poly_eval.x <== recip_id;
+    encoded_poly_eval.C <== C;
 
-    component S = SumScaleMul(t);
-    S.f_l <== f_l;
-    S.l <== l;
-    for (var i = 0; i < t; i++) {
-        S.C[i][0] <== C[i][0];
-        S.C[i][1] <== C[i][1];
-    }
-    out[0] <== S.out[0];
-    out[1] <== S.out[1];
+    component compute_f_l_times_G = BabyScaleGenerator();
+    compute_f_l_times_G.in <== f_l;
+    compute_f_l_times_G.Ax === encoded_poly_eval.out[0];
+    compute_f_l_times_G.Ay === encoded_poly_eval.out[1];
 
-    component E = PoseidonEnc();
-    E.base[0] <== CL0[0];
-    E.base[1] <== CL0[1];
-    E.msg <== f_l;
-    E.r <== r;
-    enc <== E.out;
-    kb[0] <== E.kb[0];
-    kb[1] <== E.kb[1];
-    log("round 2 circuit out[0] ", out[0]);
+    // Show that ENC(f(l), C_0) = (enc, eph_pk)
+    component compute_enc = PoseidonEnc();
+    compute_enc.recip_PK <== recip_PK;
+    compute_enc.msg <== f_l;
+    compute_enc.eph_sk <== eph_sk;
+
+    compute_enc.out === enc;
+    compute_enc.eph_pk === eph_pk;
 }
 
-component main {public [l, C, CL0]} = Round2(2);
+// TODO: enc, out
+component main {public [recip_id, recip_PK, PK_i_l, enc, eph_pk, C]} = Round2(2);

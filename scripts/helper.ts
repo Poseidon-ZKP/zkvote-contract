@@ -2,7 +2,6 @@ import * as snarkjs from "snarkjs"
 import { execSync } from "child_process";
 
 import * as ffjavascript from "ffjavascript";
-
 import * as r1csfile from "r1csfile";
 import * as blakejs from "blakejs";
 import * as fs from "fs";
@@ -20,7 +19,15 @@ export const REVERT_REASON_ONLY_ADMIN = REVERT_REASON_HEADER + "\'" + "only Admi
 export const REVERT_REASON_MISS_NFT = REVERT_REASON_HEADER + "\'" + "missing nft!" + "\'"
 export const REVERT_REASON_ALREADY_SIGNAL = REVERT_REASON_HEADER + "\'" + "already signal" + "\'"
 
-export async function compile_circom (fileName, options) {    
+type CircomOptions = {
+    sym: boolean;
+    r1cs: boolean;
+    json: boolean;
+    output: string;
+    O: number;
+}
+
+export async function compile_circom(fileName: string, options: CircomOptions) {
     var flags = "--wasm ";
     // flags += "--inspect ";
     if (options.sym) flags += "--sym ";
@@ -32,7 +39,7 @@ export async function compile_circom (fileName, options) {
     if (options.O === 2) flags += "--O2 "		// full constraint simplify
 
 	try {
-    	await execSync("./submodules/circom/target/release/circom "  + flags + fileName);
+    	execSync("circom "  + flags + fileName);
     	console.log("compile circom circuit done !")
 	} catch (error) {
 		console.log("error : ", error)
@@ -41,27 +48,27 @@ export async function compile_circom (fileName, options) {
 	}
 }
 
-export async function generate_ptau_fina_key(
+export async function generate_ptau_final_key(
     curve,
     FILE_PTAU_FINAL
 ) {
-		const ptau_0 = {type: "mem"};
-    	const ptau_1 = {type: "mem"};
-    	const ptau_2 = {type: "mem"};
-    	const ptau_beacon = {type: "mem"};
-    	const ptau_challenge2 = {type: "mem"};
-    	const ptau_response2 = {type: "mem"};
-        const ptau_final = {type: "mem", data: undefined};
-        console.log(new Date().toUTCString() + " ptau start...")
-        await snarkjs.powersOfTau.newAccumulator(curve, TREE_DEPTH, ptau_0);
-        await snarkjs.powersOfTau.contribute(ptau_0, ptau_1, "C1", "Entropy1");
-        await snarkjs.powersOfTau.exportChallenge(ptau_1, ptau_challenge2);
-        await snarkjs.powersOfTau.challengeContribute(curve, ptau_challenge2, ptau_response2, "Entropy2");
-        await snarkjs.powersOfTau.importResponse(ptau_1, ptau_response2, ptau_2, "C2", true);
-        await snarkjs.powersOfTau.beacon(ptau_2, ptau_beacon, "B3", "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20", 10);
-        await snarkjs.powersOfTau.preparePhase2(ptau_beacon, ptau_final);
-		fs.writeFileSync(FILE_PTAU_FINAL, Buffer.from(ptau_final.data))
-        console.log(new Date().toUTCString() + " ptau generated...")
+	const ptau_0 = {type: "mem"};
+  const ptau_1 = {type: "mem"};
+  const ptau_2 = {type: "mem"};
+  const ptau_beacon = {type: "mem"};
+  const ptau_challenge2 = {type: "mem"};
+  const ptau_response2 = {type: "mem"};
+  const ptau_final = {type: "mem", data: undefined};
+  console.log(new Date().toUTCString() + " ptau start...")
+  await snarkjs.powersOfTau.newAccumulator(curve, TREE_DEPTH, ptau_0);
+  await snarkjs.powersOfTau.contribute(ptau_0, ptau_1, "C1", "Entropy1");
+  await snarkjs.powersOfTau.exportChallenge(ptau_1, ptau_challenge2);
+  await snarkjs.powersOfTau.challengeContribute(curve, ptau_challenge2, ptau_response2, "Entropy2");
+  await snarkjs.powersOfTau.importResponse(ptau_1, ptau_response2, ptau_2, "C2", true);
+  await snarkjs.powersOfTau.beacon(ptau_2, ptau_beacon, "B3", "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20", 10);
+  await snarkjs.powersOfTau.preparePhase2(ptau_beacon, ptau_final);
+	fs.writeFileSync(FILE_PTAU_FINAL, Buffer.from(ptau_final.data))
+  console.log(new Date().toUTCString() + " ptau generated...")
 }
 
 export async function generate_zkey_final_key(
@@ -70,7 +77,6 @@ export async function generate_zkey_final_key(
     FILE_R1CS,
     FILE_ZKEY_FINAL
 ) {
-	
 	const zkey_0 = {type: "mem"};
 	const zkey_1 = {type: "mem"};
 	const zkey_2 = {type: "mem"};
@@ -102,45 +108,58 @@ export function get_circuit_wasm_file(
 
 export function get_circuit_zkey_file(
     CUR_CIRCUIT : string
-) {
+): { groth16: string, plonk: string } {
     const DIR = process.cwd()
     console.log("WORK DIR : ", DIR)
     const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
     const FILE_ZKEY_FINAL = CIRCUIT_TGT_DIR + "zkey.16"
     const FILE_ZKEY_PLONK = CIRCUIT_TGT_DIR + "zkey.plonk.16"
     return {
-        growth16 : FILE_ZKEY_FINAL,
+        groth16 : FILE_ZKEY_FINAL,
         plonk : FILE_ZKEY_PLONK
     }
 }
 
-export async function build_circuit(
-    CUR_CIRCUIT : string
-) {
-    const DIR = process.cwd()
-    console.log("WORK DIR : ", DIR)
-    const CIRCUIT_TGT_DIR = DIR + "/circuits/" + CUR_CIRCUIT + "/"
-	await compile_circom(CIRCUIT_TGT_DIR + CUR_CIRCUIT + ".circom", {
+export function ensure_dir(dir: string) {
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+  } catch(e) {
+  }
+}
+
+
+export async function build_circuit(circuit : string): Promise<void> {
+  const pwd = process.cwd();
+  // console.log("WORK DIR : ", pwd);
+
+  const src_dir = pwd + "/circuits/" + circuit + "/"
+  const circuit_dest_dir = pwd + "/artifacts/circuits/" + circuit + "/"
+  const sol_dest_dir = pwd + "/contracts/" + circuit + "/"
+  ensure_dir(circuit_dest_dir);
+  ensure_dir(sol_dest_dir);
+
+	await compile_circom(src_dir + circuit + ".circom", {
 		sym : true,
 		r1cs : true,
-		json : true,
-		O : 1,
-		output : CIRCUIT_TGT_DIR
+		json : false,
+		O : 2,
+		output : circuit_dest_dir
 	})
 
-    const FILE_R1CS = CIRCUIT_TGT_DIR + CUR_CIRCUIT + ".r1cs"
-    const FILE_PTAU_FINAL = DIR + "/circuits/ptau.16"
-    const FILE_ZKEY_FINAL = CIRCUIT_TGT_DIR + "zkey.16"
+  const FILE_R1CS = circuit_dest_dir + circuit + ".r1cs"
+  const FILE_PTAU_FINAL = pwd + "/circuits/ptau.16"
+  const FILE_ZKEY_FINAL = circuit_dest_dir + circuit + ".zkey.16"
 
-    const ptau_final = {type: "mem", data: undefined};
-    const zkey_final = {type: "mem", data : undefined};
+  const ptau_final = {type: "mem", data: undefined};
+  const zkey_final = {type: "mem", data : undefined};
 
-    const curve = await ffjavascript.getCurveFromName("bn128");
+  const curve = await ffjavascript.getCurveFromName("bn128");
 	console.log("curve.q : ", curve.q)
 	if (process.env.NEW_PTAU_FINAL_KEY) {
-        // Trust setup : need long time depand on circuit power
-		await generate_ptau_fina_key(curve, FILE_PTAU_FINAL)
+    // Trust setup : need long time depand on circuit power
+	  await generate_ptau_final_key(curve, FILE_PTAU_FINAL)
 	}
+
 	let ptau_data = Buffer.from(fs.readFileSync(FILE_PTAU_FINAL))
 	ptau_final.data = new Uint8Array(ptau_data)
 
@@ -148,24 +167,28 @@ export async function build_circuit(
 	let zkey_data = Buffer.from(fs.readFileSync(FILE_ZKEY_FINAL))
 	zkey_final.data = new Uint8Array(zkey_data)
 
-    // export/generate on-chain verifier
+  // export/generate on-chain verifier
 	const templates = {groth16 : undefined}
-	templates.groth16 = await fs.promises.readFile(DIR + "/snarkjs-templates/verifier_groth16.sol.ejs", "utf8");
+	templates.groth16 = await fs.promises.readFile(pwd + "/snarkjs-templates/verifier_groth16.sol.ejs", "utf8");
 	let verifierCode : string = await snarkjs.zKey.exportSolidityVerifier(zkey_final, templates)
-	verifierCode = verifierCode.replace("Verifier", CUR_CIRCUIT + "Verifier")
-	verifierCode = verifierCode.replace(new RegExp("Pairing", "g"), CUR_CIRCUIT + "Pairing")
-	fs.writeFileSync(DIR + "/contracts/" + CUR_CIRCUIT + "/" + CUR_CIRCUIT + "_verifier.sol", verifierCode, "utf-8");
+	verifierCode = verifierCode.replace("Verifier", circuit + "Verifier")
+	verifierCode = verifierCode.replace(new RegExp("Pairing", "g"), circuit + "Pairing")
 
-    // Plonk
-    const zkey_plonk = {type: "mem", data : undefined};
-    const FILE_ZKEY_PLONK = CIRCUIT_TGT_DIR + "zkey.plonk.16"
-    await snarkjs.plonk.setup(FILE_R1CS, ptau_final, zkey_plonk);
-	fs.writeFileSync(FILE_ZKEY_PLONK, Buffer.from(zkey_plonk.data))
-    console.log(new Date().toUTCString() + " zkey plonk generated...")
-    const plonk_templates = {plonk : undefined}
-	plonk_templates.plonk = await fs.promises.readFile(DIR + "/snarkjs-templates/verifier_plonk.sol.ejs", "utf8");
-	verifierCode = await snarkjs.zKey.exportSolidityVerifier(zkey_plonk, plonk_templates)
-	verifierCode = verifierCode.replace("PlonkVerifier", CUR_CIRCUIT + "PlonkVerifier")
-	fs.writeFileSync(DIR + "/contracts/" + CUR_CIRCUIT + "/" + CUR_CIRCUIT + "_plonk_verifier.sol", verifierCode, "utf-8");
+  // const verifierSolFile = pwd + "/contracts/" + circuit + "/" + circuit + "_verifier.sol";
+  const verifierSolFile = sol_dest_dir + circuit + "_verifier.sol";
+  console.log("writing: " + verifierSolFile + " ...");
+	fs.writeFileSync(verifierSolFile, verifierCode, "utf-8");
+  console.log("DONE");
 
+  // // Plonk
+  // const zkey_plonk = {type: "mem", data : undefined};
+  // const FILE_ZKEY_PLONK = CIRCUIT_TGT_DIR + "zkey.plonk.16"
+  // await snarkjs.plonk.setup(FILE_R1CS, ptau_final, zkey_plonk);
+  // fs.writeFileSync(FILE_ZKEY_PLONK, Buffer.from(zkey_plonk.data))
+  // console.log(new Date().toUTCString() + " zkey plonk generated...")
+  // const plonk_templates = {plonk : undefined}
+  // plonk_templates.plonk = await fs.promises.readFile(DIR + "/snarkjs-templates/verifier_plonk.sol.ejs", "utf8");
+  // verifierCode = await snarkjs.zKey.exportSolidityVerifier(zkey_plonk, plonk_templates)
+  // verifierCode = verifierCode.replace("PlonkVerifier", CUR_CIRCUIT + "PlonkVerifier")
+  // fs.writeFileSync(DIR + "/contracts/" + CUR_CIRCUIT + "/" + CUR_CIRCUIT + "_plonk_verifier.sol", verifierCode, "utf-8");
 }

@@ -1,157 +1,264 @@
-const { buildBabyjub } = require('circomlibjs');
-const polyval = require( 'compute-polynomial' );
+import {
+  PublicKey, pointFromSolidity, pointFromScalar, pointAdd, pointMul,
+  polynomial_evaluate_group,
+} from "../crypto";
+import * as nouns_contract from "./nouns_contract";
+import {
+    Nouns__factory, Round2Verifier__factory, NvoteVerifier__factory, TallyVerifier__factory,
+} from "../types";
+import { Vote, Voter, VoteRecord } from "./voter";
+import { CommitteeMemberDKG } from "./committee_member";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { BigNumber } from "ethers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { exit } from "process";
-import { Nouns__factory, NvoteVerifier__factory, Round2Verifier__factory } from "../types";
-import { Round2PlonkVerifier__factory } from "../types/factories/contracts/round2/round2_plonk_verifier.sol";
-import { poseidonDec, poseidonEnc } from "./poseidon";
-import { generate_zkp_nvote} from "./prover";
-import { round1 } from "./round1";
-import { round2 } from "./round2";
-const hre = require('hardhat');
+const { buildBabyjub, buildPoseidonReference } = require('circomlibjs');
+
 
 async function main(
 ) {
-    // init
-    const jub = await buildBabyjub()
-    const owners = await ethers.getSigners()
-    let owner : SignerWithAddress = owners[0]
-    console.log("owners : ", owners.length)
+  // init
+  const babyjub = await buildBabyjub()
+  const poseidon = await buildPoseidonReference();
+  const owners = await ethers.getSigners()
+  let deployer : SignerWithAddress = owners[0]
 
-    // const accounts: any = hre.config.networks.hardhat.accounts;
-    // for (let index = 0; index < owners.length; index++) {
-    //   const wallet = ethers.Wallet.fromMnemonic(accounts.mnemonic, accounts.path + `/${index}`);
-    //   console.log("`", wallet.privateKey + "`,")
-    // }
+  // Parameters
+  // voting power per user
+  const V = [1n, 2n, 3n, 4n]
+  const N_USER = V.length
+  const N_COMM = 3
+  expect(owners.length).to.be.greaterThanOrEqual(N_USER + N_COMM);
 
-    // Parameters
-    const V = [1, 2, 3]        // voting power per user
-    const N_USER = V.length
-    const N_COM = 3
-    const t = 2
-    let COMMITEE = []
-    for (let i = 0; i < N_COM; i++) {
-        COMMITEE.push(owners[i])
+  const t = 2
+  let COMMITEE: SignerWithAddress[] = [];
+  for (let i = 0; i < N_COMM; i++) {
+    COMMITEE.push(owners[i])
+  }
+
+  let USERS: SignerWithAddress[] = [];
+  for (let i = 0 ; i < N_USER ; i++) {
+    USERS.push(owners[N_COMM + i]);
+  }
+
+  // Deploy contract, and register voters
+  const nc = await nouns_contract.deploy(
+    deployer,
+    COMMITEE.map((e) => e.address),
+    BigInt(t),
+    10n, // total voting power
+  );
+  const nc_descriptor = await nouns_contract.get_descriptor(nc);
+
+  // 0. Create committee members
+  const committee_dkg: CommitteeMemberDKG[] = await Promise.all(COMMITEE.map(
+    async (signer, i) => CommitteeMemberDKG.initialize(
+      babyjub, poseidon, nc_descriptor, signer, i + 1)
+  ));
+
+  //
+  // 1. Key Generation Round 1 (Committee)
+  //
+
+  console.log("\n\n---- DKG ROUND1 ----");
+
+  // Submit coefficient commitments
+  committee_dkg.forEach(member => member.round1());
+
+  // Wait for others
+  await Promise.all(committee_dkg.map(member => member.round1_wait()));
+
+  // Sanity checks
+  console.log("");
+
+  // Get expected PK by querying committee members
+  const expect_PK = (() => {
+    let PK_sum = committee_dkg[0].C_coeff_commitments[0];
+    for (let i = 1 ; i < committee_dkg.length ; ++i) {
+      const member_C_0 = committee_dkg[i].C_coeff_commitments[0];
+      PK_sum = pointAdd(babyjub, PK_sum, member_C_0);
     }
+    return PK_sum;
+  })();
+  const PK = pointFromSolidity(await nc.get_PK());
+  expect(PK).to.eql(expect_PK)
+  console.log("PK: " + JSON.stringify(PK));
 
-    const r2v = await (new Round2PlonkVerifier__factory(owner)).deploy()
-    const nvv = await (new NvoteVerifier__factory(owner)).deploy()
-    const verifiers = [r2v.address, nvv.address]
-    const nc = await (new Nouns__factory(owner)).deploy(
-        verifiers,
-        COMMITEE.map((e) => e.address),
-        COMMITEE.map((e) => e.address),
-        V,
-        t
-    )
+  // Check the coefficients of the PK secret polynomial
+  const PK_coeffs = (await nc.PK_coefficients()).map(pointFromSolidity);
+  console.log("PK_coeffs: " + JSON.stringify(PK_coeffs));
 
-    // 1. Key Generation Round 1 (Committee)
-    const {a, C, edwards_twist_C, PK} = await round1(COMMITEE, t, jub, nc)
-    console.log("PK : ", [jub.F.toString(PK[0]), jub.F.toString(PK[1])])
-    const edwards_twist_PK = [jub.F.toString(PK[0]), jub.F.toString(PK[1])]
+  // Log the expected PK_i_ls
+  {
+    committee_dkg.forEach(member => {
+      const pk_share = polynomial_evaluate_group(
+        babyjub,
+        PK_coeffs,
+        BigInt(member.id));
+      console.log("PK_share for " + member.id + ": " + pk_share);
+    });
+  }
 
-    // 2. Key Generation Round 2 (Committee)
-    let r2r = []  // TODO : using a[i][j] directorly
-    for (let i = 0; i < N_COM; i++) {
-      r2r.push([])
-      for (let j = 0; j < N_COM; j++) {
-        r2r[i].push(Math.floor(Math.random() * 10)) // TODO: * jub.order
-      }
+  //
+  // 2. Key Generation Round 2 (Committee)
+  //
+
+  console.log("\n\n---- DKG ROUND2 ----");
+
+  // Compute and upload the encrypted shares
+  expect(await nc.round2_complete()).to.be.false;
+  committee_dkg.forEach(member => member.round2());
+
+  // Wait for round 2 to finish
+  await Promise.all(committee_dkg.map(
+    member => member.round2_wait()
+  ));
+  expect(await nc.round2_complete()).to.be.true;
+
+  // Construct our final secret share from the encrypted shares on-chain,
+  // yielding full committee member objects.
+  const committee = await Promise.all(committee_dkg.map(async member => {
+    const full_member = await member.constructSecretShare();
+    expect(full_member).is.not.null;
+    return full_member;
+  }));
+
+  //
+  // 3. User Voting
+  //
+
+  console.log("\n\n---- VOTE ----");
+
+  // Instantiate Voter classes
+  const voters: Voter[] = await Promise.all(USERS.map(async (signer) => {
+    return Voter.initialize(signer, nc_descriptor);
+  }));
+
+  // Dummy registration process
+  await Promise.all(voters.map(async (voter, i) => {
+    await voter.dummy_register(V[i]);
+    // await nc.add_voter(USERS[i].address, V[i]);
+    expect(await voter.get_voting_weight()).is.equal(V[i]);
+  }));
+
+  const votes: Vote[] = [Vote.Abstain, Vote.Nay, Vote.Yay];
+  const expect_vote_totals = [0n, 0n, 0n];
+
+  // TODO(duncan): gas cost seems to vary per voter (presumably based on how
+  // many votes have already been cast).  Hence these votes are cast serially,
+  // rather than async.
+
+  // const vote_records: VoteRecord[] = await Promise.all(voters.map(async (voter, i) => {
+  //   const my_vote = votes[i % votes.length];
+  //   const public_vote = await voter.cast_vote(my_vote);
+
+  //   console.log("Voter " + (await voter.signer.getAddress()) + ": " + JSON.stringify(public_vote));
+  //   return public_vote;
+  // }));
+
+  const vote_records: VoteRecord[] = [];
+  for (let i = 0 ; i < voters.length; ++i) {
+    const voter = voters[i];
+    const my_vote = votes[i % votes.length];
+    const vote_record = await voter.cast_vote(my_vote);
+
+    console.log(
+      "Voter " + (await voter.signer.getAddress()) + ": " +
+        JSON.stringify(vote_record));
+    const Ms = (await nc.get_M()).map(pointFromSolidity);
+    const Rs = (await nc.get_R()).map(pointFromSolidity);
+    console.log("M[0]: " + Ms[0]);
+    console.log("R[0]: " + Rs[0]);
+
+    // DEBUG: count the total votes we should see for each outcome:
+    expect_vote_totals[i % votes.length] += await voter.get_voting_weight();
+
+    vote_records.push(vote_record);
+  }
+
+  // Sanity check contract state
+  {
+    const Ms = (await nc.get_M()).map(pointFromSolidity);
+    const Rs = (await nc.get_R()).map(pointFromSolidity);
+
+    let expectM0 = pointFromScalar(babyjub, 0n);
+    let expectR0 = pointFromScalar(babyjub, 0n);
+    vote_records.forEach(vr => {
+      expectM0 = pointAdd(babyjub, expectM0, vr.M[0]);
+      expectR0 = pointAdd(babyjub, expectR0, vr.R[0]);
+    });
+
+    console.log("M[0]: " + Ms[0]);
+    console.log("expectM0: " + expectM0);
+    console.log("R[0]: " + Rs[0]);
+    console.log("expectR0: " + expectR0);
+
+    expect(Ms[0]).to.eql(expectM0);
+    expect(Rs[0]).to.eql(expectR0);
+  }
+
+  // 4. Vote Tally, using the first t committee members
+
+  console.log("\n\n---- TALLY ----");
+  if (1) {
+    await Promise.all(committee.slice(0, t).map(member => {
+      return member.tallyVotes();
+    }));
+  } else {
+    // For testing, deterministic vote order and check the tally data on the
+    // contract.
+
+    await committee[0].tallyVotes();
+    await committee[1].tallyVotes();
+
+    {
+      const [cids, lambdas, DIs] = await nc.get_tally_committee_debug();
+      const R: PublicKey[] = (await nc.get_R()).map(pointFromSolidity);
+      const M: PublicKey[] = (await nc.get_M()).map(pointFromSolidity);
+      console.log("cids: " + cids);
+      console.log("lambdas: " + lambdas);
+      console.log("DIs: " + DIs);
+      console.log("R[0]: " + R[0]);
+      console.log("M[0]: " + M[0]);
+
+      // Attempt to decrypt M[0] using R[0] and the DIs[i][0]s.
+
+      expect(cids.length).to.equal(2);
+      expect(lambdas.length).to.equal(2);
+      expect(DIs.length).to.equal(2);
+      expect(cids).to.eql([BigNumber.from(1),BigNumber.from(2)]);
+
+      const lambda_1 = BigInt(lambdas[0].toString());
+      const DI_1_0 = pointFromSolidity(DIs[0][0]);
+      const lambda_1_DI_1_0 = pointMul(babyjub, DI_1_0, lambda_1);
+      console.log("lambda_1_DI_1_0: " + lambda_1_DI_1_0);
+
+      const lambda_2 = BigInt(lambdas[1].toString());
+      const DI_2_0 = pointFromSolidity(DIs[1][0]);
+      const lambda_2_DI_2_0 = pointMul(babyjub, DI_2_0, lambda_2);
+      console.log("lambda_2_DI_2_0: " + lambda_2_DI_2_0);
+
+      const D = pointAdd(babyjub, lambda_1_DI_1_0, lambda_2_DI_2_0);
+      console.log("D: " + D);
+
+      const F = babyjub.F;
+      const minus_D = [D[0], F.toString(F.sub(F.e("0"), babyjub.F.e(D[1])))];
+      console.log("minus_D: " + minus_D);
+
+      const M_sub_D = pointAdd(babyjub, M[0], minus_D);
+      console.log("M_sub_D: " + M_sub_D);
+
+      const expect_M_sub_D = pointFromScalar(babyjub, 5n);
+      console.log("expect_M_sub_D: " + expect_M_sub_D);
     }
+  }
 
-    let f = []
-    for (let i = 0; i < N_COM; i++) {
-        f.push([])
-        for (let l = 0; l < N_COM; l++) {
-          f[i].push(polyval([...a[i]].reverse(), l))  // reverse copy(a)
-        }
-    }
-    console.log("f : ", f)
+  // 5. Recover the decrypted vote counts
 
-    await round2(COMMITEE, a, f, edwards_twist_C, r2r, nc, jub)
-    let sk = []
-    for (let i = 0; i < N_COM; i++) {
-        sk.push(0)
-        for (let l = 0; l < N_COM; l++) {
-            if (i == l) {
-              sk[i] += f[i][i]
-            } else {
-              const {dec} = await poseidonDec(await nc.ENC(l, i), a[i][0],
-                                            [await nc.KB(l, i, 0), await nc.KB(l, i, 1)], jub)
-              expect(Number(dec)).equal(f[l][i])
-              sk[i] += Number(dec)
-            }
-        }
-    }
-    console.log("sk : ", sk)
-
-    // 3. User Voting
-    let o = []
-    let r = []
-    let R = []
-    let R_SUM = [jub.F.e("0"), jub.F.e("1")]
-    let M = []
-    let M_SUM = [
-      [jub.F.e("0"), jub.F.e("1")],
-      [jub.F.e("0"), jub.F.e("1")],
-      [jub.F.e("0"), jub.F.e("1")]
-    ]
-    for (let i = 0; i < N_USER; i++) {
-        r.push(Math.floor(Math.random() * 10000)) // TODO: * jub.order)
-        R.push(jub.mulPointEscalar(jub.Generator, r[i]))
-        R_SUM = jub.addPoint(R_SUM, R[i])
-
-        let m = jub.mulPointEscalar(PK, r[i])
-        let vm = jub.addPoint(m, jub.mulPointEscalar(jub.Generator, V[i]))
-
-        if (i % 3 == 0) {
-          o.push(0b100)  // yes
-          M.push([m, m, vm]);
-        } else if (i % 3 == 1) {
-          o.push(0b010)  // no
-          M.push([m, vm, m]);
-        } else {
-          o.push(0b001)  // abstain
-          M.push([vm, m, m]);
-        }
-        
-        const {proof, publicSignals} = await generate_zkp_nvote(edwards_twist_PK, V[i], r[i], o[i])
-
-        await (await nc.connect(COMMITEE[i]).vote(
-          [publicSignals.R[0], publicSignals.R[1]],
-          [
-            [publicSignals.M[0][0], publicSignals.M[0][1]],
-            [publicSignals.M[1][0], publicSignals.M[1][1]],
-            [publicSignals.M[2][0], publicSignals.M[2][1]]
-          ],
-            proof
-        )).wait()
-
-        for (let j = 0; j < 3; j++) {
-          expect(jub.F.toString(M[i][j][0])).equal(publicSignals.M[j][0]);
-          M_SUM[j] = jub.addPoint(M_SUM[j], M[i][j])
-        }
-        console.log("nvote on-chain verify done!!")
-    }
-    expect(jub.F.toString(R_SUM[0])).equal(await nc.R(0))
-    for (let j = 0; j < 3; j++) {
-        expect(jub.F.toString(M_SUM[j][0])).equal(await nc.M(j, 0));
-    }
-
-    // 4. Tally & Reveal
-    const D = []
-    for (let i = 0; i < t; i++) {
-        D.push(jub.mulPointEscalar(R_SUM, sk[i]))
-        await (await nc.connect(COMMITEE[i]).tally([jub.F.toString(D[i][0]), jub.F.toString(D[i][1])])).wait()
-    }
-
-    console.log("Reveal Results : ")
-    console.log("Yes : ", await nc.voteStats(0))
-    console.log("No : ", await nc.voteStats(1))
-    console.log("Abstain : ", await nc.voteStats(2))
-    // expect(await nc.voteStats(0)).equal(V[0])
+  console.log("\n\n---- VOTE COUNTS ----");
+  const vote_totals = (await nc.get_vote_totals()).map((x: BigNumber) => BigInt(x.toString()));
+  console.log("vote_totals: " + vote_totals);
+  expect(vote_totals).to.eql(expect_vote_totals);
 }
 
 

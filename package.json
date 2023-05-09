@@ -4,13 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "circuits": "yarn ts-node scripts/build-circuit.ts",
+    "contracts": "yarn hardhat compile",
+    "build": "yarn circuits && yarn contracts",
+    "test": "yarn ts-node scripts/nouns/nouns.ts",
     "postinstall": "patch-package"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@ethereum-waffle/chai": "^4.0.10",
     "@nestjs/cli": "^9.1.5",
     "@nomiclabs/hardhat-ethers": "^2.2.1",
     "@nomiclabs/hardhat-etherscan": "^3.1.2",
@@ -32,6 +36,7 @@
     "@types/mocha": "^10.0.0",
     "@types/node": "^18.11.9",
     "@types/selenium-webdriver": "^4.1.9",
+    "@types/sinon-chai": "^3.2.9",
     "@uniswap/v2-periphery": "^1.1.0-beta.0",
     "antlr4": "^4.11.0",
     "async-lock": "^1.4.0",
@@ -55,8 +60,6 @@
     "typescript": "^4.8.4"
   },
   "dependencies": {
-    "@walletconnect/client": "^1.8.0",
-    "clipboardy": "^3.0.0",
-    "compute-polynomial": "^1.1.0"
+    "cmd-ts": "^0.12.1"
   }
 }
