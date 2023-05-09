@@ -2,9 +2,6 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   build:
@@ -18,13 +15,51 @@ jobs:
     steps:
       - name: check out git repo
         uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
+        with:
+          lfs: true
+      - run: git lfs pull
+
+      - name: Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Install NVM
-        uses: dcodeIO/setup-node-nvm@master
+          cache: 'yarn'
+
+      - name: Cache circom
+        id: cache-circom
+        uses: actions/cache@v3
         with:
-          node-version: ${{ matrix.node-version }}
-      - run: npm install
-      - run: npx hardhat run scripts/vote.ts
+          path: ~/.cargo/bin/circom
+          key: ${{ runner.os }}-circom
+
+      - name: Install circom
+        if: steps.cache-circom.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/iden3/circom.git
+          cd circom
+          cargo build --release
+          cargo install --path circom
+          circom --help
+
+      - name: Cache yarn install
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install
+        run: |
+          yarn install
+
+      - name: Build circuits and contracts
+        run: |
+          yarn build
+
+      - name: Compile Typescript
+        run: |
+          yarn tsc
+
+      - name: Test
+        run: |
+          yarn test

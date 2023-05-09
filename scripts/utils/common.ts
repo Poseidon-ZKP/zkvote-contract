@@ -1,13 +1,13 @@
-import { ethers } from "hardhat" 
+import { ethers } from "hardhat"
 
 import * as fs from 'fs';
 
 const hre = require('hardhat');
 export function is_hardhat_local_network() {
 	return hre.hardhatArguments.network == undefined ||
-		   hre.hardhatArguments.network == "localhost" ||
-		   hre.hardhatArguments.network == "ganache" ||
-		   hre.hardhatArguments.network == "hardhat"
+		hre.hardhatArguments.network == "localhost" ||
+		hre.hardhatArguments.network == "ganache" ||
+		hre.hardhatArguments.network == "hardhat"
 
 }
 
@@ -16,8 +16,8 @@ export function writeToEnv(name:string, value:string) {
 		name = "TEST_" + name
 	}
 	console.log(name, " : ", value)
-    let str = "\n" + name + " = " + value
-    fs.appendFileSync('.env', str)
+  let str = "\n" + name + " = " + value
+  fs.appendFileSync('.env', str)
 	process.env[name] = value
 }
 
@@ -30,7 +30,7 @@ export function readEnv(name:string) {
 
 export function sleep(ms) {
 	console.log("sleep ", ms, " ms")
-    return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export function deepCopy(obj) {
@@ -51,13 +51,13 @@ export function packPubData(data, size) : string {
 	let pubData = ethers.utils.hexlify("0x");
 	data.forEach((val, idx, array) => {
 		pubData = ethers.utils.hexConcat(
-    		[	ethers.utils.hexlify(pubData),
-        		ethers.utils.hexZeroPad(
-          			ethers.utils.hexlify(val), 
+    	[	ethers.utils.hexlify(pubData),
+        ethers.utils.hexZeroPad(
+          ethers.utils.hexlify(val),
 					size[idx])
-      		])
-  	});
-  	return pubData
+      ])
+  });
+  return pubData
 }
 
 
@@ -78,15 +78,14 @@ export const clipboard = {
 };
 
 async function waitEtherscan(addr: string) {
-
 	// wait deploy contract ready on chain
 	while(1) {
 	  const code = await ethers.provider.getCode(addr)
 	  if (code.length > 2) {
-		break
+		  break
 	  } else {
-		console.log("waiting ")
-		await utils.common.sleep(10000)
+		  console.log("waiting ")
+		  await sleep(10000)
 	  }
 	}
 }
