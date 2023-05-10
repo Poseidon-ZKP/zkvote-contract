@@ -43,7 +43,7 @@ const app = command({
       description: "RPC endpoint to connect to",
       long: 'rpc-endpoint',
       short: 'r',
-      defaultValue: () => 'http://localhost:8545/',
+      defaultValue: () => 'http://127.0.0.1:8545/',
       defaultValueIsSerializable: true,
     }),
   },
