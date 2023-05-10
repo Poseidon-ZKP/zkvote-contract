@@ -1,6 +1,6 @@
 import * as nouns_contract from "./nouns/nouns_contract";
-import {Nouns} from "./nouns/nouns_contract";
-import {CommitteeMemberDKG, CommitteeMember} from "./nouns/committee_member";
+import { Nouns } from "./nouns/nouns_contract";
+import { CommitteeMemberDKG, CommitteeMember } from "./nouns/committee_member";
 import { command, run, number, string, positional, option } from 'cmd-ts';
 import * as fs from 'fs';
 import * as ethers from "ethers";
@@ -77,7 +77,7 @@ const app = command({
       defaultValueIsSerializable: true,
     }),
   },
-  handler: async({my_id, descriptor_file, vote_threshold, endpoint}) => {
+  handler: async ({ my_id, descriptor_file, vote_threshold, endpoint }) => {
 
     expect(my_id).is.greaterThan(0);
 

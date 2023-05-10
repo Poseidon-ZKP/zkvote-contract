@@ -1,7 +1,7 @@
 import * as nouns_contract from "./nouns/nouns_contract";
-import {Vote, Voter} from "./nouns/voter";
-import {Nouns} from "./nouns/nouns_contract";
-import {CommitteeMemberDKG, CommitteeMember} from "./nouns/committee_member";
+import { Vote, Voter } from "./nouns/voter";
+import { Nouns } from "./nouns/nouns_contract";
+import { CommitteeMemberDKG, CommitteeMember } from "./nouns/committee_member";
 import { command, run, number, string, positional, option } from 'cmd-ts';
 import * as fs from 'fs';
 import * as ethers from "ethers";
@@ -28,7 +28,7 @@ const app = command({
       defaultValueIsSerializable: true,
     }),
   },
-  handler: async({descriptor_file, endpoint}) => {
+  handler: async ({ descriptor_file, endpoint }) => {
 
     // Load descriptor file
     const nouns_descriptor: nouns_contract.NounsContractDescriptor = JSON.parse(

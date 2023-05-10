@@ -48,7 +48,7 @@ const app = command({
     }),
   },
   handler: async (
-    {n_comm, threshold, total_voting_power, descriptor_file, endpoint}
+    { n_comm, threshold, total_voting_power, descriptor_file, endpoint }
   ) => {
     console.log("CONFIG: " + JSON.stringify({ n_comm, threshold, endpoint }));
 
