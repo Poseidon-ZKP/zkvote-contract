@@ -1,7 +1,7 @@
 import * as nouns_contract from "./nouns/nouns_contract";
-import {Vote, Voter} from "./nouns/voter";
-import {Nouns} from "./nouns/nouns_contract";
-import {CommitteeMemberDKG, CommitteeMember} from "./nouns/committee_member";
+import { Vote, Voter } from "./nouns/voter";
+import { Nouns } from "./nouns/nouns_contract";
+import { CommitteeMemberDKG, CommitteeMember } from "./nouns/committee_member";
 import { command, run, number, string, positional, option } from 'cmd-ts';
 import * as fs from 'fs';
 import * as ethers from "ethers";
@@ -9,7 +9,7 @@ import { expect } from "chai";
 
 
 function parse_vote(vote: string): Vote {
-  switch(vote.toLowerCase()) {
+  switch (vote.toLowerCase()) {
     case "yay": return Vote.Yay;
     case "nay": return Vote.Nay;
     case "abstain": return Vote.Abstain;
@@ -45,7 +45,7 @@ const app = command({
       description: "RPC endpoint to connect to",
       long: 'rpc-endpoint',
       short: 'r',
-      defaultValue: () => 'http://localhost:8545/',
+      defaultValue: () => 'http://127.0.0.1:8545/',
       defaultValueIsSerializable: true,
     }),
     my_id: positional({
@@ -64,7 +64,7 @@ const app = command({
       description: "Voting weight"
     }),
   },
-  handler: async({descriptor_file, endpoint, my_id, vote_str, vote_weight}) => {
+  handler: async ({ descriptor_file, endpoint, my_id, vote_str, vote_weight }) => {
 
     expect(my_id).is.greaterThan(0);
 

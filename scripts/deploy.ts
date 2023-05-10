@@ -43,12 +43,12 @@ const app = command({
       description: "RPC endpoint to connect to",
       long: 'rpc-endpoint',
       short: 'r',
-      defaultValue: () => 'http://localhost:8545/',
+      defaultValue: () => 'http://127.0.0.1:8545/',
       defaultValueIsSerializable: true,
     }),
   },
   handler: async (
-    {n_comm, threshold, total_voting_power, descriptor_file, endpoint}
+    { n_comm, threshold, total_voting_power, descriptor_file, endpoint }
   ) => {
     console.log("CONFIG: " + JSON.stringify({ n_comm, threshold, endpoint }));
 
