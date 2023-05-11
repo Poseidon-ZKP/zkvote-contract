@@ -1,4 +1,3 @@
-// 编译TS的输入/输出/编译选项 : https://segmentfault.com/a/1190000022809326
 {
     "compilerOptions": {
         "lib": [
