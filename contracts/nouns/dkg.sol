@@ -3,8 +3,9 @@ pragma solidity >=0.8.4;
 
 import "./babyjubjub/CurveBabyJubJub.sol";
 import "../interfaces/IVerifierRound2.sol";
+import "../interfaces/IDkg.sol";
 
-contract DKG {
+contract DKG is IDkg {
         uint constant babyjub_sub_order = 2736030358979909402780800718157159386076813972158567259200215660948447373041;
 
     IVerifierRound2 round2_verifier;
@@ -185,5 +186,9 @@ contract DKG {
         require((0 < participant_id) && (participant_id <= n_comm), "invalid participant_id");
         uint[2] storage pk_share = PK_shares[participant_id];
         return (pk_share[0], pk_share[1]);
+    }
+
+    function get_committee_id_from_address(address addr) public view returns (uint) {
+        return committee_ids[addr];
     }
 }
