@@ -372,7 +372,7 @@ export class CommitteeMemberDKG {
     expect(logs.length).to.equal(this.n_comm);
 
     // Parse
-    const intfc = this.nc.interface;
+    const intfc = this.dc.interface;
     const that = this;
     function parseLog(log: Log): ParsedRound2Event {
       const parsed = intfc.parseLog(log);
