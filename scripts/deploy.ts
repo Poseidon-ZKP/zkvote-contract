@@ -1,4 +1,5 @@
 import * as nouns_contract from "./nouns/nouns_contract";
+import * as dkg_contract from "./nouns/dkg_contract";
 import { command, run, number, string, option } from 'cmd-ts';
 import * as fs from 'fs';
 import * as ethers from "ethers";
@@ -30,9 +31,17 @@ const app = command({
       defaultValue: () => 20,
       defaultValueIsSerializable: true,
     }),
-    descriptor_file: option({
+    dc_descriptor_file: option({
       type: string,
-      description: "Descriptor file location to write",
+      description: "DKG descriptor file location",
+      long: 'dc_descriptor',
+      short: 'dc',
+      defaultValue: () => "./dkg.config.json",
+      defaultValueIsSerializable: true,
+    }),
+    nc_descriptor_file: option({
+      type: string,
+      description: "Nounds descriptor file location to write",
       long: 'descriptor',
       short: 'd',
       defaultValue: () => "./nouns.config.json",
@@ -48,7 +57,7 @@ const app = command({
     }),
   },
   handler: async (
-    { n_comm, threshold, total_voting_power, descriptor_file, endpoint }
+    { n_comm, threshold, total_voting_power, dc_descriptor_file, nc_descriptor_file, endpoint }
   ) => {
     console.log("CONFIG: " + JSON.stringify({ n_comm, threshold, endpoint }));
 
@@ -67,15 +76,23 @@ const app = command({
     console.log("COMMITTEE:");
     committee.forEach((c, i) => console.log("  " + i + ": " + c));
 
+    const dkg = await dkg_contract.deploy(deployer, threshold, committee);
+    console.log("DKG deployed at: " + dkg.address);
+
+    const dkg_desc = await dkg_contract.get_descriptor(dkg);
+    console.log("dkg_desc=" + JSON.stringify(dkg_desc));
+    fs.writeFileSync(dc_descriptor_file, JSON.stringify(dkg_desc));
+    console.log("Descriptor written at: " + dc_descriptor_file);
+
     const nouns = await nouns_contract.deploy(
-      deployer, committee, BigInt(threshold), BigInt(total_voting_power));
+      deployer, dkg.address, BigInt(total_voting_power));
     console.log("Nouns deployed at: " + nouns.address);
 
     // Write the description
-    const desc = await nouns_contract.get_descriptor(nouns);
-    console.log("desc=" + JSON.stringify(desc));
-    fs.writeFileSync(descriptor_file, JSON.stringify(desc));
-    console.log("Descriptor written at: " + descriptor_file);
+    const nouns_desc = await nouns_contract.get_descriptor(nouns);
+    console.log("nouns_desc=" + JSON.stringify(nouns_desc));
+    fs.writeFileSync(nc_descriptor_file, JSON.stringify(nouns_desc));
+    console.log("Descriptor written at: " + nc_descriptor_file);
   },
 });
 

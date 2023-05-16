@@ -1,4 +1,5 @@
 import * as nouns_contract from "./nouns/nouns_contract";
+import * as dkg_contract from "./nouns/dkg_contract";
 import { Nouns } from "./nouns/nouns_contract";
 import { CommitteeMemberDKG, CommitteeMember } from "./nouns/committee_member";
 import { command, run, number, string, positional, option } from 'cmd-ts';
@@ -52,11 +53,19 @@ const app = command({
       displayName: "my_id",
       description: "ID (from 1 up to n_voters) of this committee member",
     }),
-    descriptor_file: option({
+    dc_descriptor_file: option({
       type: string,
-      description: "Descriptor file location",
-      long: 'descriptor',
-      short: 'd',
+      description: "DKG descriptor file location",
+      long: 'dc_descriptor',
+      short: 'dc',
+      defaultValue: () => "./dkg.config.json",
+      defaultValueIsSerializable: true,
+    }),
+    nc_descriptor_file: option({
+      type: string,
+      description: "Nouns descriptor file location",
+      long: 'nc_descriptor',
+      short: 'nc',
       defaultValue: () => "./nouns.config.json",
       defaultValueIsSerializable: true,
     }),
@@ -77,14 +86,18 @@ const app = command({
       defaultValueIsSerializable: true,
     }),
   },
-  handler: async ({ my_id, descriptor_file, vote_threshold, endpoint }) => {
+  handler: async ({ my_id, dc_descriptor_file, nc_descriptor_file, vote_threshold, endpoint }) => {
 
     expect(my_id).is.greaterThan(0);
 
     // Load descriptor file
     const nouns_descriptor: nouns_contract.NounsContractDescriptor = JSON.parse(
-      fs.readFileSync(descriptor_file, 'utf8'));
-    expect(my_id).is.lessThanOrEqual(nouns_descriptor.n_comm);
+      fs.readFileSync(nc_descriptor_file, 'utf8'));
+
+    const dkg_descriptor: dkg_contract.DKGContractDescriptor  = JSON.parse(
+      fs.readFileSync(dc_descriptor_file, 'utf8'));
+
+    expect(my_id).is.lessThanOrEqual(dkg_descriptor.n_comm);
 
     // Connect
     const provider = new ethers.providers.JsonRpcProvider(endpoint);
@@ -94,6 +107,7 @@ const app = command({
     const dkg_member = await CommitteeMemberDKG.initialize(
       await buildBabyjub(),
       await buildPoseidonReference(),
+      dkg_descriptor,
       nouns_descriptor,
       provider.getSigner(my_id),
       my_id,
