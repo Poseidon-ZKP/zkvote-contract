@@ -13,17 +13,6 @@ enum CommitteeState {
     Ended
 }
 
-interface IVerifierRound2 {
-    function verifyProof(
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory c,
-        uint256[12] memory input
-        // bytes memory proof,
-        // uint[] memory pubSignals
-    ) external view;
-}
-
 interface IVerifierNvote {
     function verifyProof(
         uint256[2] memory a,
