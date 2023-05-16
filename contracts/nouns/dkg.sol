@@ -43,10 +43,13 @@ contract DKG is IDkg {
 
     constructor(
         address _round2_verifier,
+        uint _tally_threshold,
         address[] memory _committee
     ) {
         // require(_verifiers.length == 3, "invalid verifiers!");
         round2_verifier = IVerifierRound2(_round2_verifier);
+
+        tally_threshold = _tally_threshold;
 
         n_comm = _committee.length;
         PK_shares = new uint[2][](n_comm + 1);

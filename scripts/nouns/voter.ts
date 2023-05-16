@@ -4,6 +4,7 @@ import {
 } from "../crypto";
 import { Nouns, NounsContractDescriptor } from "./nouns_contract";
 import * as nouns_contract from "./nouns_contract";
+import * as dkg_contract from "./dkg_contract";
 import { generate_zkp_nvote } from "./prover";
 import { hexlify } from "@ethersproject/bytes";
 import { randomBytes } from "@ethersproject/random";
@@ -87,8 +88,10 @@ export class Voter {
 
     const voting_weight = await this.get_voting_weight();
 
+    const dc = await dkg_contract.from_address(this.signer, await this.nc.dkg());
+
     const order = groupOrder(this.babyjub);
-    const PK: PublicKey = pointFromSolidity(await this.nc.get_PK());
+    const PK: PublicKey = pointFromSolidity(await dc.get_PK());
     const o = Voter.voteToO(vote);
 
     const Rs: PublicKey[] = [];

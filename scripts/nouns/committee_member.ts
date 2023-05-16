@@ -7,7 +7,8 @@ import {
 import { generate_zkp_round2, generate_zkp_tally } from "./prover";
 import { NounsContractDescriptor } from "./nouns_contract";
 import * as nouns_contract from "./nouns_contract";
-import { Nouns } from "../types";
+import * as dkg_contract from "./dkg_contract";
+import { Nouns, DKG } from "../types";
 import { Signer, BigNumberish } from "ethers";
 import { randomBytes } from "@ethersproject/random";
 import { hexlify } from "@ethersproject/bytes";
@@ -35,6 +36,7 @@ export class CommitteeMember {
 
   babyjub: any;
   poseidon: any;
+  dc: DKG;
   nc: Nouns;
   signer: Signer;
   n_comm: number;
@@ -46,6 +48,7 @@ export class CommitteeMember {
   constructor(
     babyjub: any,
     poseidon: any,
+    dc: DKG,
     nc: Nouns,
     signer: Signer,
     n_comm: number,
@@ -55,6 +58,7 @@ export class CommitteeMember {
     PK_i: PublicKey) {
     this.babyjub = babyjub;
     this.poseidon = poseidon;
+    this.dc = dc;
     this.nc = nc;
     this.signer = signer;
     this.n_comm = n_comm;
@@ -116,6 +120,7 @@ export class CommitteeMemberDKG {
 
   babyjub: any;
   poseidon: any;
+  dc: DKG;
   nc: Nouns;
   signer: Signer;
   n_comm: number;
@@ -127,6 +132,7 @@ export class CommitteeMemberDKG {
   private constructor(
     babyjub: any,
     poseidon: any,
+    dc: DKG,
     nc: Nouns,
     signer: Signer,
     n_comm: number,
@@ -137,6 +143,7 @@ export class CommitteeMemberDKG {
   ) {
     this.babyjub = babyjub;
     this.poseidon = poseidon;
+    this.dc = dc.connect(signer);
     this.nc = nc.connect(signer);
     this.signer = signer;
     this.n_comm = n_comm;
@@ -151,34 +158,37 @@ export class CommitteeMemberDKG {
   public static async initialize(
     babyjub: any,
     poseidon: any,
+    dc_descriptor: dkg_contract.DKGContractDescriptor,
     nc_descriptor: NounsContractDescriptor,
     signer: Signer,
     // n_comm: number,
     // threshold: number,
     id: number
   ): Promise<CommitteeMemberDKG> {
-    expect(nc_descriptor.n_comm).to.be.greaterThanOrEqual(nc_descriptor.threshold);
+    expect(dc_descriptor.n_comm).to.be.greaterThanOrEqual(dc_descriptor.threshold);
 
     // TODO: determine a_0 from the eth private key
 
     let as: bigint[] = [];
     let Cs: PublicKey[] = [];
 
-    for (let i = 0 ; i < nc_descriptor.threshold ; ++i) {
+    for (let i = 0 ; i < dc_descriptor.threshold ; ++i) {
       const a = BigInt(hexlify(randomBytes(32))) % groupOrder(babyjub);
       as.push(a);
       Cs.push(pointFromScalar(babyjub, a));
     }
 
+    const dc = dkg_contract.from_descriptor(signer.provider, dc_descriptor);
     const nc = nouns_contract.from_descriptor(signer.provider, nc_descriptor);
 
     return new CommitteeMemberDKG(
       babyjub,
       poseidon,
+      dc.connect(signer),
       nc.connect(signer),
       signer,
-      nc_descriptor.n_comm,
-      nc_descriptor.threshold,
+      dc_descriptor.n_comm,
+      dc_descriptor.threshold,
       id,
       as,
       Cs);
@@ -215,7 +225,7 @@ export class CommitteeMemberDKG {
 
     this.log("posting Cs: " + JSON.stringify(this.C_coeff_commitments));
     try {
-      await this.nc.round1(<[BigNumberish, BigNumberish][]>(this.C_coeff_commitments));
+      await this.dc.round1(<[BigNumberish, BigNumberish][]>(this.C_coeff_commitments));
     } catch(e) {
       if (retry <= 0) {
         throw e;
@@ -235,7 +245,7 @@ export class CommitteeMemberDKG {
 
   public async round1_wait(): Promise<void> {
     // wait for all other participants to finish posting their coefficient commitments.
-    while (!(await this.nc.round1_complete())) {
+    while (!(await this.dc.round1_complete())) {
       await new Promise(r => setTimeout(r, 100));
     }
   }
@@ -274,7 +284,7 @@ export class CommitteeMemberDKG {
       const recip_id = idx + 1;
 
       const recip_PK = pointFromSolidity(
-        await this.nc.get_round1_PK_for(recip_id));
+        await this.dc.get_round1_PK_for(recip_id));
 
       this.log("round2: computing share for " + JSON.stringify({
         id: recip_id, pk: recip_PK}));
@@ -297,11 +307,11 @@ export class CommitteeMemberDKG {
       )
 
       // Post the share to the contract
-      expect(await that.nc.round2_share_received(our_id, recip_id)).to.be.false;
+      expect(await that.dc.round2_share_received(our_id, recip_id)).to.be.false;
 
       async function send_secret(retry: number = 10): Promise<void> {
         try {
-          await that.nc.round2(
+          await that.dc.round2(
             recip_id,
             enc,
               <[BigNumberish, BigNumberish]>eph_pk,
@@ -327,7 +337,7 @@ export class CommitteeMemberDKG {
   }
 
   public async round2_wait(): Promise<void> {
-    while (!(await this.nc.round2_complete())) {
+    while (!(await this.dc.round2_complete())) {
       await new Promise(r => setTimeout(r, 100));
     }
   }
@@ -355,7 +365,7 @@ export class CommitteeMemberDKG {
 
     // TODO: Pull in batches.
 
-    const filter: Filter = this.nc.filters.Round2Share(this.id);
+    const filter: Filter = this.dc.filters.Round2Share(this.id);
     filter.fromBlock = 0;
     filter.toBlock = cur_block;
     const logs = await provider.getLogs(filter);
@@ -406,7 +416,7 @@ export class CommitteeMemberDKG {
     // Check that PK matches the eval of the (encoded) polynomial, given the
     // coefficient sums.
     {
-      const PK_coeffs_sol = (await this.nc.PK_coefficients());
+      const PK_coeffs_sol = (await this.dc.PK_coefficients());
       const PK_coeffs = PK_coeffs_sol.map(pointFromSolidity);
       const PK_i_expect = polynomial_evaluate_group(
         this.babyjub, PK_coeffs, BigInt(this.id));
@@ -415,7 +425,7 @@ export class CommitteeMemberDKG {
 
     // Check that PK matches the sum of all public secret shares.
     {
-      const pk_i = pointFromSolidity(await this.nc.get_PK_for(this.id));
+      const pk_i = pointFromSolidity(await this.dc.get_PK_for(this.id));
       expect(pk_i).to.eql(PK_i);
     }
 
@@ -426,6 +436,7 @@ export class CommitteeMemberDKG {
     return new CommitteeMember(
       this.babyjub,
       this.poseidon,
+      this.dc,
       this.nc,
       this.signer,
       this.n_comm,

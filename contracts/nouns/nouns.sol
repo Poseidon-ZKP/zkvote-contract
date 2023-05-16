@@ -36,7 +36,7 @@ contract Nouns {
 
     uint constant babyjub_sub_order = 2736030358979909402780800718157159386076813972158567259200215660948447373041;
 
-    IDkg dkg;
+    IDkg public dkg;
     IVerifierNvote  nvote_verifier;
     IVerifierTally  tally_verifier;
 
@@ -67,8 +67,6 @@ contract Nouns {
     // DKG
     //
 
-    uint public tally_threshold;
-
     // Lookup table for vote counts
     mapping(uint => mapping(uint => uint)) public lookup_table;
 
@@ -81,7 +79,6 @@ contract Nouns {
     constructor(
         address dkg_address, // DKG contract
         address[] memory _verifiers,
-        uint _tally_threshold,
         uint _max_voting_power
     ) {
         dkg = IDkg(dkg_address);
@@ -95,7 +92,6 @@ contract Nouns {
         //     VOTE_POWER_TOTAL += _votePower[i];
         // }
 
-        tally_threshold = _tally_threshold;
         tallied_committee = 0;
         for (uint256 i = 0; i < 3; i++) {
             R[i][0] = 0;
@@ -203,7 +199,7 @@ contract Nouns {
     ) public {
         uint cid = dkg.get_committee_id_from_address(msg.sender);
         require((0 < cid) && (cid <= dkg.n_comm()), "invalid participant id");
-        require(tally_cid.length < tally_threshold, "votes already tallied");
+        require(tally_cid.length < dkg.tally_threshold(), "votes already tallied");
 
         (uint PK_i_0, uint PK_i_1) = dkg.get_PK_for(cid);
 
@@ -231,7 +227,7 @@ contract Nouns {
         tally_cid.push(cid);
         DI.push(DI_);
 
-        if (++tallied_committee == tally_threshold) {
+        if (++tallied_committee == dkg.tally_threshold()) {
             reveal();
         }
     }
@@ -247,7 +243,7 @@ contract Nouns {
         uint denominator = 1;
         int denom_sign = 1;
 
-        for (uint256 t = 0; t < tally_threshold; t++) {
+        for (uint256 t = 0; t < dkg.tally_threshold(); t++) {
             uint j = tally_cid[t];
             if (i == j) continue;
             numerator *= j;
@@ -294,7 +290,7 @@ contract Nouns {
         D[2][0] = 0;
         D[2][1] = 1;
 
-        for (uint256 i = 0; i < tally_threshold; i++) {
+        for (uint256 i = 0; i < dkg.tally_threshold(); i++) {
             uint cid = tally_cid[i];
             uint[2][3] storage D_t = DI[i];
 
