@@ -35,7 +35,7 @@ import {
   
   export async function get_descriptor(dkg: DKG): Promise<DKGContractDescriptor> {
     const n_comm = await dkg.n_comm();
-    const threshold = await dkg.tally_threshold();
+    const threshold = await dkg.threshold();
     console.log("threshold: " + threshold);
     console.log("address: " + dkg.address);
     return {

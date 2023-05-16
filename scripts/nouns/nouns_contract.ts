@@ -15,7 +15,7 @@ export type NounsContractDescriptor = {
 
 export async function deploy(
   deployer: Signer,
-  dkg_address: string,
+  _dkg_address: string,
   total_voting_power: bigint,
 ): Promise<Nouns> {
 
@@ -26,7 +26,7 @@ export async function deploy(
   const verifiers = verifier_contracts.map(c => c.address);
 
   return await (new Nouns__factory(deployer)).deploy(
-    dkg_address,
+    _dkg_address,
     verifiers,
     total_voting_power
   );

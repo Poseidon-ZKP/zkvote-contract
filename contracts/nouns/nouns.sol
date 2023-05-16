@@ -77,11 +77,11 @@ contract Nouns {
     uint public constant Gy = 16950150798460657717958625567821834550301663161624707787222815936182638968203;
 
     constructor(
-        address dkg_address, // DKG contract
+        address _dkg_address, // DKG contract
         address[] memory _verifiers,
         uint _max_voting_power
     ) {
-        dkg = IDkg(dkg_address);
+        dkg = IDkg(_dkg_address);
         // require(_verifiers.length == 3, "invalid verifiers!");
         nvote_verifier = IVerifierNvote(_verifiers[0]);
         tally_verifier = IVerifierTally(_verifiers[1]);
@@ -199,7 +199,7 @@ contract Nouns {
     ) public {
         uint cid = dkg.get_committee_id_from_address(msg.sender);
         require((0 < cid) && (cid <= dkg.n_comm()), "invalid participant id");
-        require(tally_cid.length < dkg.tally_threshold(), "votes already tallied");
+        require(tally_cid.length < dkg.threshold(), "votes already tallied");
 
         (uint PK_i_0, uint PK_i_1) = dkg.get_PK_for(cid);
 
@@ -227,7 +227,7 @@ contract Nouns {
         tally_cid.push(cid);
         DI.push(DI_);
 
-        if (++tallied_committee == dkg.tally_threshold()) {
+        if (++tallied_committee == dkg.threshold()) {
             reveal();
         }
     }
@@ -243,7 +243,7 @@ contract Nouns {
         uint denominator = 1;
         int denom_sign = 1;
 
-        for (uint256 t = 0; t < dkg.tally_threshold(); t++) {
+        for (uint256 t = 0; t < dkg.threshold(); t++) {
             uint j = tally_cid[t];
             if (i == j) continue;
             numerator *= j;
@@ -290,7 +290,7 @@ contract Nouns {
         D[2][0] = 0;
         D[2][1] = 1;
 
-        for (uint256 i = 0; i < dkg.tally_threshold(); i++) {
+        for (uint256 i = 0; i < dkg.threshold(); i++) {
             uint cid = tally_cid[i];
             uint[2][3] storage D_t = DI[i];
 

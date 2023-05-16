@@ -10,5 +10,5 @@ interface IDkg {
 
     function n_comm() external view returns (uint);
 
-    function tally_threshold() external view returns (uint);
+    function threshold() external view returns (uint);
 }

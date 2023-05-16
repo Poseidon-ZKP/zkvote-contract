@@ -15,7 +15,7 @@ contract DKG is IDkg {
     //
 
     uint public n_comm;
-    uint public tally_threshold;
+    uint public threshold;
     mapping(address => uint) public committee_ids;
 
     //
@@ -43,13 +43,13 @@ contract DKG is IDkg {
 
     constructor(
         address _round2_verifier,
-        uint _tally_threshold,
+        uint _threshold,
         address[] memory _committee
     ) {
         // require(_verifiers.length == 3, "invalid verifiers!");
         round2_verifier = IVerifierRound2(_round2_verifier);
 
-        tally_threshold = _tally_threshold;
+        threshold = _threshold;
 
         n_comm = _committee.length;
         PK_shares = new uint[2][](n_comm + 1);
@@ -75,12 +75,12 @@ contract DKG is IDkg {
     ) public {
         require(round1_received < n_comm, "round 1 already complete");
         require(!round1_done[msg.sender], "user already participated in round 1!");
-        require(C_coeffs.length == tally_threshold, "round 1 already done!");
+        require(C_coeffs.length == threshold, "round 1 already done!");
 
         uint sender_id = committee_ids[msg.sender];
         require((0 < sender_id) && (sender_id <= n_comm));
 
-        for (uint256 t = 0; t < tally_threshold; t++) {
+        for (uint256 t = 0; t < threshold; t++) {
             require(CurveBabyJubJub.isOnCurve(C_coeffs[t][0], C_coeffs[t][1]), "invalid point");
         }
         round1_C_coeffs[sender_id] = C_coeffs;
@@ -90,7 +90,7 @@ contract DKG is IDkg {
         if (round1_received == 0) {
             PK_coeffs = C_coeffs;
         } else {
-            for (uint256 t = 0; t < tally_threshold; t++) {
+            for (uint256 t = 0; t < threshold; t++) {
                 (uint256 x, uint256 y) = CurveBabyJubJub.pointAdd(
                     PK_coeffs[t][0], PK_coeffs[t][1], C_coeffs[t][0], C_coeffs[t][1]);
                 PK_coeffs[t] = [x, y];
@@ -143,8 +143,8 @@ contract DKG is IDkg {
 
         uint[2] memory recip_pk = round1_C_coeffs[recip_id][0];
 
-        // Num public inputs should be 1 + 2 + 1 + 2 + 2 + 2*tally_threshold
-        uint num_pub_inputs = 8 + (2 * tally_threshold);
+        // Num public inputs should be 1 + 2 + 1 + 2 + 2 + 2*threshold
+        uint num_pub_inputs = 8 + (2 * threshold);
         require(12 == num_pub_inputs, "invalid public input length");
         uint[12] memory pub;
         pub[0] = recip_id;
@@ -157,7 +157,7 @@ contract DKG is IDkg {
         pub[7] = eph_pk[1];
         // Copy the C_coeffs at the end of the public inputs.
         uint dest_idx = 8;
-        for (uint i = 0 ; i < tally_threshold ; ++i) {
+        for (uint i = 0 ; i < threshold ; ++i) {
             pub[dest_idx++] = round1_C_coeffs[sender_id][i][0];
             pub[dest_idx++] = round1_C_coeffs[sender_id][i][1];
         }
