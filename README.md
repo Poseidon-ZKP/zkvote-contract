@@ -8,6 +8,9 @@ zkVote demo
 1. Install [circom](https://docs.circom.io/getting-started/installation/)
 2. Run `yarn`
 
+## Download ptau file
+From the [snarkjs](https://github.com/iden3/snarkjs) repo, download the power 16 ptau file. Save the file as `ptau.16` in the `circuits` directory of this repo (i.e. the file should be located at `circuits/ptau.16`).
+
 ### Build
 
 ```console
