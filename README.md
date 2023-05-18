@@ -9,7 +9,9 @@ zkVote demo
 2. Run `yarn`
 
 ### Download ptau file
-From the [snarkjs](https://github.com/iden3/snarkjs) repo, download the power 16 ptau file. Save the file as `ptau.16` in the `circuits` directory of this repo (i.e. the file should be located at `circuits/ptau.16`).
+```console
+curl -o circuits/ptau.16 https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_16.ptau
+```
 
 ### Build
 
