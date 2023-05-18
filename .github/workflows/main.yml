@@ -19,6 +19,13 @@ jobs:
           lfs: true
       - run: git lfs pull
 
+      - name: download ptau 16
+        run: |
+          cd circuits
+          curl -O https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_16.ptau
+          mv powersOfTau28_hez_final_16.ptau ptau.16
+          cd ..
+
       - name: Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
