@@ -81,7 +81,14 @@ contract DKG is IDkg {
         require((0 < sender_id) && (sender_id <= n_comm));
 
         for (uint256 t = 0; t < threshold; t++) {
-            require(CurveBabyJubJub.isOnCurve(C_coeffs[t][0], C_coeffs[t][1]), "invalid point");
+            require(
+                CurveBabyJubJub.isOnCurve(C_coeffs[t][0], C_coeffs[t][1]),
+                "invalid point");
+            (uint256 x, uint256 y) = CurveBabyJubJub.pointMul(
+                C_coeffs[t][0], C_coeffs[t][1], babyjub_sub_order + 1);
+            require(
+                (x == C_coeffs[t][0]) && (y == C_coeffs[t][1]),
+                "point not in correct subgroup");
         }
         round1_C_coeffs[sender_id] = C_coeffs;
 
