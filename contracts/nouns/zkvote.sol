@@ -35,13 +35,6 @@ contract ZKVote is INounsPrivateVoting {
     IVerifierTally  tally_verifier;
 
     //
-    // Voters
-    //
-    mapping(address => uint) public vote_power;
-    uint public registered_voting_power;
-    uint public max_voting_power;
-
-    //
     // Voting state
     //
 
@@ -79,8 +72,7 @@ contract ZKVote is INounsPrivateVoting {
     constructor(
         address _dkg_address, // DKG contract
         address _nounsDAOProxy,
-        address[] memory _verifiers,
-        uint _max_voting_power
+        address[] memory _verifiers
     ) {
         dkg = IDkg(_dkg_address);
         nounsDAOProxy = INounsDAOProxy(_nounsDAOProxy);
@@ -105,11 +97,10 @@ contract ZKVote is INounsPrivateVoting {
         uint x = Gx;
         uint y = Gy;
         lookup_table[x][y] = 1;
-        for (uint i = 2; i <= _max_voting_power; i++) {
+        for (uint i = 2; i <= nounsDAOProxy.max_voting_power(); i++) {
             (x, y) = CurveBabyJubJub.pointAdd(x, y, Gx, Gy);
             lookup_table[x][y] = i;
         }
-        max_voting_power = _max_voting_power;
     }
 
     modifier onlyNounsDAOProxy() {
@@ -125,18 +116,6 @@ contract ZKVote is INounsPrivateVoting {
         proposalIdToEndBlock[proposalId] = endBlock;
     }
 
-    function add_voter(address voter, uint voter_weight) public {
-        // Temporary mechanism to define voter weights.
-        require(vote_power[voter] == 0, "voter already registered");
-        vote_power[voter] = voter_weight;
-        registered_voting_power += voter_weight;
-        require(registered_voting_power <= max_voting_power, "total voting power exceeded");
-    }
-
-    function get_voting_weight(address voter) public view returns (uint) {
-        return vote_power[voter];
-    }
-
     function castPrivateVote(
         uint256 proposalId, 
         uint256 votingWeight,
@@ -145,7 +124,7 @@ contract ZKVote is INounsPrivateVoting {
         uint256[2] calldata proof_a,
         uint256[2][2] calldata proof_b,
         uint256[2] calldata proof_c
-    ) public {
+    ) public onlyNounsDAOProxy override {
         require(votingWeight > 0, "invalid voter!");
         require(!voted[msg.sender], "already vote!");
         require(proposalIdToEndBlock[proposalId] > 0, "vote not setup");
@@ -340,7 +319,7 @@ contract ZKVote is INounsPrivateVoting {
 
         // Dummy ProposalId for now. TODO: Update this.
         uint256 dummyProposalId = 0;
-        INounsDAOProxy(nounsDAOProxy).receiveVoteTally(0, vote_totals[0], vote_totals[1], vote_totals[2]);
+        INounsDAOProxy(nounsDAOProxy).receiveVoteTally(dummyProposalId, vote_totals[0], vote_totals[1], vote_totals[2]);
         emit TallyComplete(vote_totals[0], vote_totals[1], vote_totals[2]);
     }
 
