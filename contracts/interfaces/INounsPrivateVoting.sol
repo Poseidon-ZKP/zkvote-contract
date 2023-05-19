@@ -6,8 +6,7 @@ pragma solidity >=0.8.4;
 interface INounsPrivateVoting {
   function setupVote(
         uint256 proposalId, 
-        uint256 endBlock, 
-        address governanceProxyContract
+        uint256 endBlock
   ) external;
   function castPrivateVote(
         uint256 proposalId, 

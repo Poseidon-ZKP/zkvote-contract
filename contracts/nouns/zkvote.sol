@@ -3,9 +3,9 @@ pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./babyjubjub/CurveBabyJubJub.sol";
-import "hardhat/console.sol";
 import "../interfaces/IDkg.sol";
 import "../interfaces/INounsPrivateVoting.sol";
+import "../interfaces/INounsDAOProxy.sol";
 
 
 interface IVerifierNvote {
@@ -26,7 +26,7 @@ interface IVerifierTally {
     ) external view;
 }
 
-contract ZKVote is  INounsPrivateVoting {
+contract ZKVote is INounsPrivateVoting {
 
     uint constant babyjub_sub_order = 2736030358979909402780800718157159386076813972158567259200215660948447373041;
 
@@ -54,6 +54,9 @@ contract ZKVote is  INounsPrivateVoting {
     uint public tallied_committee;
     uint[3] public vote_totals;
 
+
+    mapping (uint => uint) public proposalIdToEndBlock;
+
     // DEBUG
     uint[] lambdas;
 
@@ -70,12 +73,17 @@ contract ZKVote is  INounsPrivateVoting {
     uint public constant Gx = 5299619240641551281634865583518297030282874472190772894086521144482721001553;
     uint public constant Gy = 16950150798460657717958625567821834550301663161624707787222815936182638968203;
 
+
+    INounsDAOProxy nounsDAOProxy;
+
     constructor(
         address _dkg_address, // DKG contract
+        address _nounsDAOProxy,
         address[] memory _verifiers,
         uint _max_voting_power
     ) {
         dkg = IDkg(_dkg_address);
+        nounsDAOProxy = INounsDAOProxy(_nounsDAOProxy);
         // require(_verifiers.length == 3, "invalid verifiers!");
         nvote_verifier = IVerifierNvote(_verifiers[0]);
         tally_verifier = IVerifierTally(_verifiers[1]);
@@ -104,6 +112,19 @@ contract ZKVote is  INounsPrivateVoting {
         max_voting_power = _max_voting_power;
     }
 
+    modifier onlyNounsDAOProxy() {
+        require(msg.sender == address(nounsDAOProxy), "only nouns DAO proxy contract");
+        _;
+    }
+
+    function setupVote(
+        uint256 proposalId, 
+        uint256 endBlock
+    ) public override onlyNounsDAOProxy {
+        require(proposalIdToEndBlock[proposalId] == 0, "vote already setup");
+        proposalIdToEndBlock[proposalId] = endBlock;
+    }
+
     function add_voter(address voter, uint voter_weight) public {
         // Temporary mechanism to define voter weights.
         require(vote_power[voter] == 0, "voter already registered");
@@ -116,24 +137,26 @@ contract ZKVote is  INounsPrivateVoting {
         return vote_power[voter];
     }
 
-    function vote(
-        uint[2][3] calldata voter_R_i,
+    function castPrivateVote(
+        uint256 proposalId, 
+        uint256 votingWeight,
+        uint[2][3] calldata voter_R_i, 
         uint[2][3] calldata voter_M_i,
         uint256[2] calldata proof_a,
         uint256[2][2] calldata proof_b,
         uint256[2] calldata proof_c
     ) public {
-
-        uint vw = vote_power[msg.sender];
-        require(vw > 0, "invalid voter!");
+        require(votingWeight > 0, "invalid voter!");
         require(!voted[msg.sender], "already vote!");
+        require(proposalIdToEndBlock[proposalId] > 0, "vote not setup");
+        require(block.number <= proposalIdToEndBlock[proposalId], "vote ended");
         
         (uint pk_coeff_0_0, uint pk_coeff_0_1) = dkg.get_PK();
         // Verify ZKP
         uint[15] memory inputs = [
             pk_coeff_0_0,
             pk_coeff_0_1,
-            vw,
+            votingWeight,
             voter_R_i[0][0],
             voter_R_i[0][1],
             voter_R_i[1][0],
@@ -166,7 +189,7 @@ contract ZKVote is  INounsPrivateVoting {
             (M_k[0], M_k[1]) = CurveBabyJubJub.pointAdd(M_k[0], M_k[1], M_i_k[0], M_i_k[1]);
         }
 
-        voting_weight_used += vw;
+        voting_weight_used += votingWeight;
     }
 
     function get_R() public view returns (uint[2][3] memory) {
@@ -315,6 +338,9 @@ contract ZKVote is  INounsPrivateVoting {
             vote_totals[k] = lookup_table[VG[0]][VG[1]];
         }
 
+        // Dummy ProposalId for now. TODO: Update this.
+        uint256 dummyProposalId = 0;
+        INounsDAOProxy(nounsDAOProxy).receiveVoteTally(0, vote_totals[0], vote_totals[1], vote_totals[2]);
         emit TallyComplete(vote_totals[0], vote_totals[1], vote_totals[2]);
     }
 
@@ -325,4 +351,4 @@ contract ZKVote is  INounsPrivateVoting {
     function get_tally_committee_debug() public view returns(uint[] memory, uint[] memory, uint[2][3][] memory) {
         return (tally_cid, lambdas, DI);
     }
-    
+}
