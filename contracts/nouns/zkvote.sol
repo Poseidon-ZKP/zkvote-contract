@@ -325,3 +325,4 @@ contract ZKVote is  INounsPrivateVoting {
     function get_tally_committee_debug() public view returns(uint[] memory, uint[] memory, uint[2][3][] memory) {
         return (tally_cid, lambdas, DI);
     }
+    
