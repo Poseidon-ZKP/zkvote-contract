@@ -11,9 +11,9 @@ import { expect } from "chai";
 const app = command({
   name: 'get_vote_tally',
   args: {
-    descriptor_file: option({
+    nc_descriptor_file: option({
       type: string,
-      description: "Descriptor file location",
+      description: "Nouns descriptor file location",
       long: 'descriptor',
       short: 'd',
       defaultValue: () => "./nouns.config.json",
@@ -28,11 +28,11 @@ const app = command({
       defaultValueIsSerializable: true,
     }),
   },
-  handler: async ({ descriptor_file, endpoint }) => {
+  handler: async ({ nc_descriptor_file, endpoint }) => {
 
     // Load descriptor file
     const nouns_descriptor: nouns_contract.NounsContractDescriptor = JSON.parse(
-      fs.readFileSync(descriptor_file, 'utf8'));
+      fs.readFileSync(nc_descriptor_file, 'utf8'));
 
     // Connect
     const provider = new ethers.providers.JsonRpcProvider(endpoint);

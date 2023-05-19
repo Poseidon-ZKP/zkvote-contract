@@ -1,5 +1,6 @@
 import * as nouns_contract from "./nouns/nouns_contract";
 import { Vote, Voter } from "./nouns/voter";
+import * as dkg_contract from "./nouns/dkg_contract";
 import { Nouns } from "./nouns/nouns_contract";
 import { CommitteeMemberDKG, CommitteeMember } from "./nouns/committee_member";
 import { command, run, number, string, positional, option } from 'cmd-ts';
@@ -24,9 +25,17 @@ function parse_vote(vote: string): Vote {
 const app = command({
   name: 'voter',
   args: {
-    descriptor_file: option({
+    dc_descriptor_file: option({
       type: string,
-      description: "Descriptor file location",
+      description: "DKG descriptor file location",
+      long: 'dc_descriptor',
+      short: 'dc',
+      defaultValue: () => "./dkg.config.json",
+      defaultValueIsSerializable: true,
+    }),
+    nc_descriptor_file: option({
+      type: string,
+      description: "Nouns descriptor file location",
       long: 'descriptor',
       short: 'd',
       defaultValue: () => "./nouns.config.json",
@@ -64,7 +73,7 @@ const app = command({
       description: "Voting weight"
     }),
   },
-  handler: async ({ descriptor_file, endpoint, my_id, vote_str, vote_weight }) => {
+  handler: async ({ dc_descriptor_file, nc_descriptor_file, endpoint, my_id, vote_str, vote_weight }) => {
 
     expect(my_id).is.greaterThan(0);
 
@@ -72,9 +81,12 @@ const app = command({
     console.log("vote: " + vote);
 
     // Load descriptor file
+    const dkg_descriptor: dkg_contract.DKGContractDescriptor = JSON.parse(
+      fs.readFileSync(dc_descriptor_file, 'utf8'));
+
     const nouns_descriptor: nouns_contract.NounsContractDescriptor = JSON.parse(
-      fs.readFileSync(descriptor_file, 'utf8'));
-    expect(my_id).is.lessThanOrEqual(nouns_descriptor.n_comm);
+      fs.readFileSync(nc_descriptor_file, 'utf8'));
+    expect(my_id).is.lessThanOrEqual(dkg_descriptor.n_comm);
 
     // Connect
     const provider = new ethers.providers.JsonRpcProvider(endpoint);
@@ -82,7 +94,7 @@ const app = command({
     // Initialize the voter.  Assume committee members use accounts with index
     // 1 through n_comm (0 used for deployer).  Since voter indices are also
     // 1-based, voter 1 uses the signer with index n_comm + my_id.
-    const signer_idx = nouns_descriptor.n_comm + my_id;
+    const signer_idx = dkg_descriptor.n_comm + my_id;
     const signer = provider.getSigner(signer_idx);
     const voter = await Voter.initialize(signer, nouns_descriptor);
 

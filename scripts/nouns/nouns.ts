@@ -3,6 +3,7 @@ import {
   polynomial_evaluate_group,
 } from "../crypto";
 import * as nouns_contract from "./nouns_contract";
+import * as dkg_contract from "./dkg_contract";
 import {
     Nouns__factory, Round2Verifier__factory, NvoteVerifier__factory, TallyVerifier__factory,
 } from "../types";
@@ -41,19 +42,29 @@ async function main(
     USERS.push(owners[N_COMM + i]);
   }
 
+  // Deploy dkg contract
+
+  const dc = await dkg_contract.deploy(
+    deployer,
+    t,
+    COMMITEE.map((e) => e.address),
+  );
+
+  const dc_descriptor = await dkg_contract.get_descriptor(dc);
+
   // Deploy contract, and register voters
   const nc = await nouns_contract.deploy(
     deployer,
-    COMMITEE.map((e) => e.address),
-    BigInt(t),
+    dc_descriptor.address,
     10n, // total voting power
   );
+
   const nc_descriptor = await nouns_contract.get_descriptor(nc);
 
   // 0. Create committee members
   const committee_dkg: CommitteeMemberDKG[] = await Promise.all(COMMITEE.map(
     async (signer, i) => CommitteeMemberDKG.initialize(
-      babyjub, poseidon, nc_descriptor, signer, i + 1)
+      babyjub, poseidon, dc_descriptor, nc_descriptor, signer, i + 1)
   ));
 
   //
@@ -80,12 +91,12 @@ async function main(
     }
     return PK_sum;
   })();
-  const PK = pointFromSolidity(await nc.get_PK());
+  const PK = pointFromSolidity(await dc.get_PK());
   expect(PK).to.eql(expect_PK)
   console.log("PK: " + JSON.stringify(PK));
 
   // Check the coefficients of the PK secret polynomial
-  const PK_coeffs = (await nc.PK_coefficients()).map(pointFromSolidity);
+  const PK_coeffs = (await dc.PK_coefficients()).map(pointFromSolidity);
   console.log("PK_coeffs: " + JSON.stringify(PK_coeffs));
 
   // Log the expected PK_i_ls
@@ -106,14 +117,14 @@ async function main(
   console.log("\n\n---- DKG ROUND2 ----");
 
   // Compute and upload the encrypted shares
-  expect(await nc.round2_complete()).to.be.false;
+  expect(await dc.round2_complete()).to.be.false;
   committee_dkg.forEach(member => member.round2());
 
   // Wait for round 2 to finish
   await Promise.all(committee_dkg.map(
     member => member.round2_wait()
   ));
-  expect(await nc.round2_complete()).to.be.true;
+  expect(await dc.round2_complete()).to.be.true;
 
   // Construct our final secret share from the encrypted shares on-chain,
   // yielding full committee member objects.

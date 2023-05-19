@@ -15,9 +15,10 @@ jobs:
     steps:
       - name: check out git repo
         uses: actions/checkout@v3
-        with:
-          lfs: true
-      - run: git lfs pull
+      - run: git pull
+
+      - name: download ptau 16
+        run: curl -o circuits/ptau.16 https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_16.ptau
 
       - name: Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3

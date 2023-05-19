@@ -7,6 +7,7 @@
 .env*
 *.rej
 *.orig
+circuits/ptau.16
 scripts/types/
 .DS_Store
 *~

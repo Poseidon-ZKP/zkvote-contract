@@ -8,6 +8,11 @@ zkVote demo
 1. Install [circom](https://docs.circom.io/getting-started/installation/)
 2. Run `yarn`
 
+### Download ptau file
+```console
+curl -o circuits/ptau.16 https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_16.ptau
+```
+
 ### Build
 
 ```console
