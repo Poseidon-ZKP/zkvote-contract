@@ -38,6 +38,7 @@ contract ZKVote is INounsPrivateVoting {
     // Voting state
     //
 
+    mapping (uint256 => address) setupVoteCaller;
     mapping(uint256 => mapping (address => bool)) public voted;
     mapping (uint256 => uint[2][3]) public R;
     mapping (uint256 => uint[2][3]) public M;
@@ -66,16 +67,14 @@ contract ZKVote is INounsPrivateVoting {
     uint public constant Gx = 5299619240641551281634865583518297030282874472190772894086521144482721001553;
     uint public constant Gy = 16950150798460657717958625567821834550301663161624707787222815936182638968203;
 
-
-    INounsDAOProxy nounsDAOProxy;
+    uint256 public max_voting_power;
 
     constructor(
         address _dkg_address, // DKG contract
-        address _nounsDAOProxy,
+        uint256 _max_voting_power,
         address[] memory _verifiers
     ) {
         dkg = IDkg(_dkg_address);
-        nounsDAOProxy = INounsDAOProxy(_nounsDAOProxy);
         // require(_verifiers.length == 3, "invalid verifiers!");
         nvote_verifier = IVerifierNvote(_verifiers[0]);
         tally_verifier = IVerifierTally(_verifiers[1]);
@@ -86,24 +85,26 @@ contract ZKVote is INounsPrivateVoting {
         //     VOTE_POWER_TOTAL += _votePower[i];
         // }
 
+        max_voting_power = _max_voting_power;
+
         uint x = Gx;
         uint y = Gy;
         lookup_table[x][y] = 1;
-        for (uint i = 2; i <= nounsDAOProxy.max_voting_power(); i++) {
+        for (uint i = 2; i <= max_voting_power; i++) {
             (x, y) = CurveBabyJubJub.pointAdd(x, y, Gx, Gy);
             lookup_table[x][y] = i;
         }
     }
 
-    modifier onlyNounsDAOProxy() {
-        require(msg.sender == address(nounsDAOProxy), "only nouns DAO proxy contract");
+    modifier onlySetupVoteCaller(uint256 proposalId) {
+        require(msg.sender == address(setupVoteCaller[proposalId]), "only nouns DAO proxy contract");
         _;
     }
 
     function setupVote(
         uint256 proposalId, 
         uint256 endBlock
-    ) public override onlyNounsDAOProxy {
+    ) public override {
         require(proposalIdToEndBlock[proposalId] == 0, "vote already setup");
         for (uint256 i = 0; i < 3; i++) {
             R[proposalId][i][0] = 0;
@@ -112,6 +113,7 @@ contract ZKVote is INounsPrivateVoting {
             M[proposalId][i][1] = 1;
         }
         proposalIdToEndBlock[proposalId] = endBlock;
+        setupVoteCaller[proposalId] = msg.sender;
     }
 
     function castPrivateVote(
@@ -122,7 +124,7 @@ contract ZKVote is INounsPrivateVoting {
         uint256[2] calldata proof_a,
         uint256[2][2] calldata proof_b,
         uint256[2] calldata proof_c
-    ) public onlyNounsDAOProxy override {
+    ) public onlySetupVoteCaller(proposalId) override {
         require(votingWeight > 0, "invalid voter!");
         require(!voted[proposalId][msg.sender], "already vote!");
         require(proposalIdToEndBlock[proposalId] > 0, "vote not setup");
@@ -320,7 +322,7 @@ contract ZKVote is INounsPrivateVoting {
 
         // Dummy ProposalId for now. TODO: Update this.
         uint256 dummyProposalId = 0;
-        INounsDAOProxy(nounsDAOProxy).receiveVoteTally(dummyProposalId, vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
+        INounsDAOProxy(setupVoteCaller[proposalId]).receiveVoteTally(dummyProposalId, vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
         emit TallyComplete(vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
     }
 

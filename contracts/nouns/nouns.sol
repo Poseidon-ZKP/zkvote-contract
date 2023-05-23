@@ -3,9 +3,8 @@ pragma solidity >=0.8.4;
 
 import "../interfaces/INounsDAOProxy.sol";
 import "../interfaces/INounsPrivateVoting.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-contract Nouns is INounsDAOProxy, Initializable {
+contract Nouns is INounsDAOProxy {
     INounsPrivateVoting zkvote;
     struct VoteTally {
         uint256 forVotes;
@@ -19,19 +18,8 @@ contract Nouns is INounsDAOProxy, Initializable {
     //
     mapping(uint => mapping(address => uint)) public vote_power;
     mapping (uint256 => uint256) public registered_voting_power;
-    uint public max_voting_power;
 
-    constructor (uint _max_voting_power) {
-        zkvote = INounsPrivateVoting(_zkvote);
-    }
-
-    function initialize (address _zkvote) public initializer {
-        zkvote = INounsPrivateVoting(_zkvote);
-    }
-
-    // Allows current zkvote contract to change to a new one (if a new dkg committee is being used)
-    // TODO: Workout details of how this will work
-    function changeZKVote(address _zkvote) public onlyZKVote {
+    constructor (address _zkvote) {
         zkvote = INounsPrivateVoting(_zkvote);
     }
 
@@ -40,7 +28,7 @@ contract Nouns is INounsDAOProxy, Initializable {
         require(vote_power[proposalId][voter] == 0, "voter already registered");
         vote_power[proposalId][voter] = voter_weight;
         registered_voting_power[proposalId] += voter_weight;
-        require(registered_voting_power[proposalId] <= max_voting_power, "total voting power exceeded");
+        require(registered_voting_power[proposalId] <= zkvote.max_voting_power(), "total voting power exceeded");
     }
 
     function get_voting_weight(uint256 proposalId, address voter) public view returns (uint) {
@@ -59,7 +47,7 @@ contract Nouns is INounsDAOProxy, Initializable {
         uint256[2][2] calldata proof_b,
         uint256[2] calldata proof_c
     ) public {
-        uint256 votingWeight = get_voting_weight(proposalId, msg.sender);
+        uint256 votingWeight = get_voting_weight(proposalId,msg.sender);
         zkvote.castPrivateVote(proposalId, votingWeight, voter_R_i, voter_M_i, proof_a, proof_b, proof_c);
     }
 
