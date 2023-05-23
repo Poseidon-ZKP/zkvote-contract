@@ -38,20 +38,20 @@ contract ZKVote is INounsPrivateVoting {
     // Voting state
     //
 
-    mapping(address => bool) public voted;
-    uint[2][3] public R;
-    uint[2][3] public M;
-    uint[2][3][] DI;
-    uint[] tally_cid;
-    uint public voting_weight_used;
-    uint public tallied_committee;
-    uint[3] public vote_totals;
+    mapping(uint256 => mapping (address => bool)) public voted;
+    mapping (uint256 => uint[2][3]) public R;
+    mapping (uint256 => uint[2][3]) public M;
+    mapping (uint256 => uint[2][3][]) DI;
+    mapping (uint256 => uint[]) tally_cid;
+    mapping (uint256 => uint256) public voting_weight_used;
+    mapping (uint256 => uint256) public tallied_committee;
+    mapping (uint256 => uint[3]) public vote_totals;
 
 
     mapping (uint => uint) public proposalIdToEndBlock;
 
     // DEBUG
-    uint[] lambdas;
+    mapping (uint256 => uint[]) lambdas;
 
     //
     // DKG
@@ -86,14 +86,6 @@ contract ZKVote is INounsPrivateVoting {
         //     VOTE_POWER_TOTAL += _votePower[i];
         // }
 
-        tallied_committee = 0;
-        for (uint256 i = 0; i < 3; i++) {
-            R[i][0] = 0;
-            R[i][1] = 1;
-            M[i][0] = 0;
-            M[i][1] = 1;
-        }
-
         uint x = Gx;
         uint y = Gy;
         lookup_table[x][y] = 1;
@@ -113,6 +105,12 @@ contract ZKVote is INounsPrivateVoting {
         uint256 endBlock
     ) public override onlyNounsDAOProxy {
         require(proposalIdToEndBlock[proposalId] == 0, "vote already setup");
+        for (uint256 i = 0; i < 3; i++) {
+            R[proposalId][i][0] = 0;
+            R[proposalId][i][1] = 1;
+            M[proposalId][i][0] = 0;
+            M[proposalId][i][1] = 1;
+        }
         proposalIdToEndBlock[proposalId] = endBlock;
     }
 
@@ -126,7 +124,7 @@ contract ZKVote is INounsPrivateVoting {
         uint256[2] calldata proof_c
     ) public onlyNounsDAOProxy override {
         require(votingWeight > 0, "invalid voter!");
-        require(!voted[msg.sender], "already vote!");
+        require(!voted[proposalId][msg.sender], "already vote!");
         require(proposalIdToEndBlock[proposalId] > 0, "vote not setup");
         require(block.number <= proposalIdToEndBlock[proposalId], "vote ended");
         
@@ -153,12 +151,12 @@ contract ZKVote is INounsPrivateVoting {
         nvote_verifier.verifyProof(proof_a, proof_b, proof_c, inputs);
 
         // Mark the voter as having voted
-        voted[msg.sender] = true;
+        voted[proposalId][msg.sender] = true;
 
         // Sum the M and R values for each vote type.
         for (uint256 k = 0; k < 3; k++) {
-            uint[2] storage R_k = R[k];
-            uint[2] storage M_k = M[k];
+            uint[2] storage R_k = R[proposalId][k];
+            uint[2] storage M_k = M[proposalId][k];
             uint[2] memory R_i_k = voter_R_i[k];
             uint[2] memory M_i_k = voter_M_i[k];
             // R_k = R_k + R_{i,k}
@@ -168,19 +166,19 @@ contract ZKVote is INounsPrivateVoting {
             (M_k[0], M_k[1]) = CurveBabyJubJub.pointAdd(M_k[0], M_k[1], M_i_k[0], M_i_k[1]);
         }
 
-        voting_weight_used += votingWeight;
+        voting_weight_used[proposalId] += votingWeight;
     }
 
-    function get_R() public view returns (uint[2][3] memory) {
-        return R;
+    function get_R(uint256 proposalId) public view returns (uint[2][3] memory) {
+        return R[proposalId];
     }
 
-    function get_M() public view returns (uint[2][3] memory) {
-        return M;
+    function get_M(uint256 proposalId) public view returns (uint[2][3] memory) {
+        return M[proposalId];
     }
 
-    function has_voted(address voter) public view returns(bool) {
-        return voted[voter];
+    function has_voted(uint256 proposalId, address voter) public view returns(bool) {
+        return voted[proposalId][voter];
     }
 
     // function pointSub(uint256 _x1, uint256 _y1, uint256 _x2, uint256 _y2) public view returns (uint256 x3, uint256 y3) {
@@ -188,6 +186,7 @@ contract ZKVote is INounsPrivateVoting {
     // }
 
     function tally(
+        uint256 proposalId,
         uint[2][3] calldata DI_,
         uint[2] calldata proof_a,
         uint[2][2] calldata proof_b,
@@ -195,20 +194,22 @@ contract ZKVote is INounsPrivateVoting {
     ) public {
         uint cid = dkg.get_committee_id_from_address(msg.sender);
         require((0 < cid) && (cid <= dkg.n_comm()), "invalid participant id");
-        require(tally_cid.length < dkg.threshold(), "votes already tallied");
+        require(tally_cid[proposalId].length < dkg.threshold(), "votes already tallied");
 
         (uint PK_i_0, uint PK_i_1) = dkg.get_PK_for(cid);
+
+        uint[2][3] storage tally_R = R[proposalId];
 
         uint[14] memory inputs = [
             PK_i_0,
             PK_i_1,
             // R[0] ~ R[2]
-            R[0][0],
-            R[0][1],
-            R[1][0],
-            R[1][1],
-            R[2][0],
-            R[2][1],
+            tally_R[0][0],
+            tally_R[0][1],
+            tally_R[1][0],
+            tally_R[1][1],
+            tally_R[2][0],
+            tally_R[2][1],
             // D[0] ~ D[2]
             DI_[0][0],
             DI_[0][1],
@@ -220,15 +221,15 @@ contract ZKVote is INounsPrivateVoting {
 
         tally_verifier.verifyProof(proof_a, proof_b, proof_c, inputs);
 
-        tally_cid.push(cid);
-        DI.push(DI_);
+        tally_cid[proposalId].push(cid);
+        DI[proposalId].push(DI_);
 
-        if (++tallied_committee == dkg.threshold()) {
-            reveal();
+        if (++tallied_committee[proposalId] == dkg.threshold()) {
+            reveal(proposalId);
         }
     }
 
-    function Lagrange_coeff(uint i) internal view returns (uint lamda) {
+    function Lagrange_coeff(uint proposalId, uint i) internal view returns (uint lamda) {
 
         // For denominator we may have -ve factors. Track the number of
         // +ve / -ve factors and perform modulo at the end.
@@ -240,7 +241,7 @@ contract ZKVote is INounsPrivateVoting {
         int denom_sign = 1;
 
         for (uint256 t = 0; t < dkg.threshold(); t++) {
-            uint j = tally_cid[t];
+            uint j = tally_cid[proposalId][t];
             if (i == j) continue;
             numerator *= j;
             int denom_factor = int(j) - int(i);
@@ -261,7 +262,7 @@ contract ZKVote is INounsPrivateVoting {
         return mulmod(numerator, denominator_inv, babyjub_sub_order);
     }
 
-    function reveal() internal {
+    function reveal(uint256 proposalId) internal {
         // For each k=0,1,2, we must compute:
         //
         //   sum_{i \in I} \lambda_i D_{i,k}
@@ -287,12 +288,12 @@ contract ZKVote is INounsPrivateVoting {
         D[2][1] = 1;
 
         for (uint256 i = 0; i < dkg.threshold(); i++) {
-            uint cid = tally_cid[i];
-            uint[2][3] storage D_t = DI[i];
+            uint cid = tally_cid[proposalId][i];
+            uint[2][3] storage D_t = DI[proposalId][i];
 
-            uint lambda = Lagrange_coeff(cid);
+            uint lambda = Lagrange_coeff(proposalId, cid);
             // DEBUG:
-            lambdas.push(lambda);
+            lambdas[proposalId].push(lambda);
             require(lambda >= 0, "invalid lambda");
 
             for (uint k = 0 ; k < 3 ; ++k) {
@@ -313,21 +314,21 @@ contract ZKVote is INounsPrivateVoting {
 
         for (uint256 k = 0; k < 3; k++) {
             uint[2] memory VG;
-            (VG[0], VG[1]) = CurveBabyJubJub.pointSub(M[k][0], M[k][1], D[k][0], D[k][1]);
-            vote_totals[k] = lookup_table[VG[0]][VG[1]];
+            (VG[0], VG[1]) = CurveBabyJubJub.pointSub(M[proposalId][k][0], M[proposalId][k][1], D[k][0], D[k][1]);
+            vote_totals[proposalId][k] = lookup_table[VG[0]][VG[1]];
         }
 
         // Dummy ProposalId for now. TODO: Update this.
         uint256 dummyProposalId = 0;
-        INounsDAOProxy(nounsDAOProxy).receiveVoteTally(dummyProposalId, vote_totals[0], vote_totals[1], vote_totals[2]);
-        emit TallyComplete(vote_totals[0], vote_totals[1], vote_totals[2]);
+        INounsDAOProxy(nounsDAOProxy).receiveVoteTally(dummyProposalId, vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
+        emit TallyComplete(vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
     }
 
-    function get_vote_totals() public view returns (uint[3] memory) {
-        return vote_totals;
+    function get_vote_totals(uint256 proposalId) public view returns (uint[3] memory) {
+        return vote_totals[proposalId];
     }
 
-    function get_tally_committee_debug() public view returns(uint[] memory, uint[] memory, uint[2][3][] memory) {
-        return (tally_cid, lambdas, DI);
+    function get_tally_committee_debug(uint256 proposalId) public view returns(uint[] memory, uint[] memory, uint[2][3][] memory) {
+        return (tally_cid[proposalId], lambdas[proposalId], DI[proposalId]);
     }
 }

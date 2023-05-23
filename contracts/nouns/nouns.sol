@@ -16,8 +16,8 @@ contract Nouns is INounsDAOProxy {
     //
     // Voters
     //
-    mapping(address => uint) public vote_power;
-    uint public registered_voting_power;
+    mapping(uint => mapping(address => uint)) public vote_power;
+    mapping (uint256 => uint256) public registered_voting_power;
     uint public max_voting_power;
 
     constructor (address _zkvote, uint _max_voting_power) {
@@ -25,16 +25,16 @@ contract Nouns is INounsDAOProxy {
         max_voting_power = _max_voting_power;
     }
 
-    function add_voter(address voter, uint voter_weight) public {
+    function add_voter(address voter, uint voter_weight, uint proposalId) public {
         // Temporary mechanism to define voter weights.
-        require(vote_power[voter] == 0, "voter already registered");
-        vote_power[voter] = voter_weight;
-        registered_voting_power += voter_weight;
-        require(registered_voting_power <= max_voting_power, "total voting power exceeded");
+        require(vote_power[proposalId][voter] == 0, "voter already registered");
+        vote_power[proposalId][voter] = voter_weight;
+        registered_voting_power[proposalId] += voter_weight;
+        require(registered_voting_power[proposalId] <= max_voting_power, "total voting power exceeded");
     }
 
-    function get_voting_weight(address voter) public view returns (uint) {
-        return vote_power[voter];
+    function get_voting_weight(uint256 proposalId, address voter) public view returns (uint) {
+        return vote_power[proposalId][voter];
     }
 
     function receiveVoteTally(uint256 proposalId, uint256 forVotes, uint256 againstVotes, uint256 abstainVotes) public onlyZKVote override {
@@ -49,7 +49,7 @@ contract Nouns is INounsDAOProxy {
         uint256[2][2] calldata proof_b,
         uint256[2] calldata proof_c
     ) public {
-        uint256 votingWeight = get_voting_weight(msg.sender);
+        uint256 votingWeight = get_voting_weight(proposalId, msg.sender);
         zkvote.castPrivateVote(proposalId, votingWeight, voter_R_i, voter_M_i, proof_a, proof_b, proof_c);
     }
 
