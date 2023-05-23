@@ -3,8 +3,9 @@ pragma solidity >=0.8.4;
 
 import "../interfaces/INounsDAOProxy.sol";
 import "../interfaces/INounsPrivateVoting.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-contract Nouns is INounsDAOProxy {
+contract Nouns is INounsDAOProxy, Initializable {
     INounsPrivateVoting zkvote;
     struct VoteTally {
         uint256 forVotes;
@@ -20,9 +21,18 @@ contract Nouns is INounsDAOProxy {
     mapping (uint256 => uint256) public registered_voting_power;
     uint public max_voting_power;
 
-    constructor (address _zkvote, uint _max_voting_power) {
+    constructor (uint _max_voting_power) {
         zkvote = INounsPrivateVoting(_zkvote);
-        max_voting_power = _max_voting_power;
+    }
+
+    function initialize (address _zkvote) public initializer {
+        zkvote = INounsPrivateVoting(_zkvote);
+    }
+
+    // Allows current zkvote contract to change to a new one (if a new dkg committee is being used)
+    // TODO: Workout details of how this will work
+    function changeZKVote(address _zkvote) public onlyZKVote {
+        zkvote = INounsPrivateVoting(_zkvote);
     }
 
     function add_voter(address voter, uint voter_weight, uint proposalId) public {

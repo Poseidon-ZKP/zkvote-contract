@@ -1,4 +1,3 @@
-
 import {
   Nouns, Nouns__factory, NvoteVerifier__factory,
   TallyVerifier__factory,
