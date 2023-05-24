@@ -53,6 +53,12 @@ jobs:
         run: |
           yarn install
 
+      - name: Syntax checkers
+        run: |
+          yarn run check
+          yarn run format
+          git diff --no-ext-diff > format.diff && ! [ -s format.diff ]
+
       - name: Build circuits and contracts
         run: |
           yarn build
