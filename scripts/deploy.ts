@@ -85,7 +85,7 @@ const app = command({
     console.log("Descriptor written at: " + dc_descriptor_file);
 
     const nouns = await nouns_contract.deploy(
-      deployer, dkg.address, BigInt(total_voting_power));
+      deployer, dkg.address);
     console.log("Nouns deployed at: " + nouns.address);
 
     // Write the description

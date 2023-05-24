@@ -1,4 +1,5 @@
 import * as nouns_contract from "./nouns/nouns_contract";
+import * as zkvote_contract from "./nouns/zkvote_contract";
 import { Vote, Voter } from "./nouns/voter";
 import { Nouns } from "./nouns/nouns_contract";
 import { CommitteeMemberDKG, CommitteeMember } from "./nouns/committee_member";
@@ -31,19 +32,21 @@ const app = command({
   handler: async ({ nc_descriptor_file, endpoint }) => {
 
     // Load descriptor file
-    const nouns_descriptor: nouns_contract.NounsContractDescriptor = JSON.parse(
+    const zkv_descriptor: nouns_contract.NounsContractDescriptor = JSON.parse(
       fs.readFileSync(nc_descriptor_file, 'utf8'));
 
     // Connect
     const provider = new ethers.providers.JsonRpcProvider(endpoint);
-    const nc = nouns_contract.from_descriptor(provider, nouns_descriptor);
+    const zkv = zkvote_contract.from_descriptor(provider, zkv_descriptor);
+
+    const dummyProposalId = 0;
 
 
     console.log("Waiting for tally ...");
 
     // Loop until the vote totals come in
     while (true) {
-      const vote_totals_bn = await nc.get_vote_totals();
+      const vote_totals_bn = await zkv.get_vote_totals(dummyProposalId);
       const vote_totals = vote_totals_bn.map(x => parseInt(x.toString()));
       if (vote_totals[0] + vote_totals[1] + vote_totals[2]) {
         console.log("vote totals:");

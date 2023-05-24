@@ -25,10 +25,10 @@ async function run_DKG(member: CommitteeMemberDKG): Promise<CommitteeMember> {
 }
 
 
-async function wait_for_votes(zkv: ZKVote, vote_threshold: bigint): Promise<void> {
+async function wait_for_votes(zkv: ZKVote, proposalId: bigint, vote_threshold: bigint): Promise<void> {
 
   while (true) {
-    const cur_vote_weight_str = (await zkv.voting_weight_used()).toString();
+    const cur_vote_weight_str = (await zkv.voting_weight_used(proposalId)).toString();
     const cur_vote_weight = BigInt(cur_vote_weight_str);
     console.log("cur vote weight_str: " + cur_vote_weight_str);
     console.log("cur vote weight: " + cur_vote_weight.toString());
@@ -117,11 +117,12 @@ const app = command({
     const member = await run_DKG(dkg_member);
     console.log("DKG complete.");
 
+    const dummyProposalId = BigInt(0);
     // Wait for voting power
-    await wait_for_votes(dkg_member.zkv, BigInt(vote_threshold));
+    await wait_for_votes(dkg_member.zkv, dummyProposalId, BigInt(vote_threshold));
 
     // Run the tally algorithm
-    await member.tallyVotes();
+    await member.tallyVotes(Number(dummyProposalId));
     console.log("tallied");
     process.exit(0);
   }

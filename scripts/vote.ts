@@ -97,12 +97,13 @@ const app = command({
     const signer_idx = dkg_descriptor.n_comm + my_id;
     const signer = provider.getSigner(signer_idx);
     const voter = await Voter.initialize(signer, nouns_descriptor);
+    const dummyProposalId = 0;
 
     // Register the voter
-    await voter.dummy_register(BigInt(vote_weight));
+    await voter.dummy_register(dummyProposalId, BigInt(vote_weight));
 
     // Vote and wait
-    const vote_record = await voter.cast_vote(vote);
+    const vote_record = await voter.cast_vote(dummyProposalId, vote);
     console.log(JSON.stringify(vote_record));
 
     process.exit(0);
