@@ -8,7 +8,9 @@
     "contracts": "yarn hardhat compile",
     "build": "yarn circuits && yarn contracts",
     "test": "yarn ts-node scripts/nouns/nouns.ts",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "check": "yarn run solhint 'contracts/interfaces/*.sol' 'contracts/nouns/*.sol'",
+    "format": "./node_modules/.bin/prettier --write 'contracts/**/*.sol'"
   },
   "keywords": [],
   "author": "",
