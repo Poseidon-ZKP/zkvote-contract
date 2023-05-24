@@ -5,10 +5,10 @@ import {
   polynomial_evaluate, polynomial_evaluate_group
 } from "../crypto";
 import { generate_zkp_round2, generate_zkp_tally } from "./prover";
-import { NounsContractDescriptor } from "./nouns_contract";
-import * as nouns_contract from "./nouns_contract";
+import { ZKVoteContractDescriptor } from "./zkvote_contract";
+import * as zkvote_contract from "./zkvote_contract";
 import * as dkg_contract from "./dkg_contract";
-import { Nouns, DKG } from "../types";
+import { ZKVote, DKG } from "../types";
 import { Signer, BigNumberish } from "ethers";
 import { randomBytes } from "@ethersproject/random";
 import { hexlify } from "@ethersproject/bytes";
@@ -37,7 +37,7 @@ export class CommitteeMember {
   babyjub: any;
   poseidon: any;
   dc: DKG;
-  nc: Nouns;
+  zkv: ZKVote;
   signer: Signer;
   n_comm: number;
   threshold: number;
@@ -49,7 +49,7 @@ export class CommitteeMember {
     babyjub: any,
     poseidon: any,
     dc: DKG,
-    nc: Nouns,
+    zkv: ZKVote,
     signer: Signer,
     n_comm: number,
     threshold: number,
@@ -59,7 +59,7 @@ export class CommitteeMember {
     this.babyjub = babyjub;
     this.poseidon = poseidon;
     this.dc = dc;
-    this.nc = nc;
+    this.zkv = zkv;
     this.signer = signer;
     this.n_comm = n_comm;
     this.threshold = threshold;
@@ -68,14 +68,14 @@ export class CommitteeMember {
     this.PK_i = PK_i;
   }
 
-  public async tallyVotes(): Promise<void> {
+  public async tallyVotes(proposalId: number): Promise<void> {
     // Query R from the contract and compute D_{i,k}, k=1,2,3, where:
     //
     //  D_{i,k} = sk_i * R_{i,k}
 
     this.log("tally:");
 
-    const R: PublicKey[] = (await this.nc.get_R()).map(pointFromSolidity);
+    const R: PublicKey[] = (await this.zkv.get_R(proposalId)).map(pointFromSolidity);
     this.log("  R (from contract): " + JSON.stringify(R));
 
     const D_i = R.map(R_i => pointMul(this.babyjub, R_i, this.sk_i));
@@ -90,7 +90,8 @@ export class CommitteeMember {
     const that = this;
     async function send_tally(retry: number = 10): Promise<void> {
       try {
-        await that.nc.tally(
+        await that.zkv.tally(
+          proposalId,
           <any>D_i,
           proof.a,
           proof.b,
@@ -121,7 +122,7 @@ export class CommitteeMemberDKG {
   babyjub: any;
   poseidon: any;
   dc: DKG;
-  nc: Nouns;
+  zkv: ZKVote;
   signer: Signer;
   n_comm: number;
   threshold: number;
@@ -133,7 +134,7 @@ export class CommitteeMemberDKG {
     babyjub: any,
     poseidon: any,
     dc: DKG,
-    nc: Nouns,
+    zkv: ZKVote,
     signer: Signer,
     n_comm: number,
     threshold: number,
@@ -144,7 +145,7 @@ export class CommitteeMemberDKG {
     this.babyjub = babyjub;
     this.poseidon = poseidon;
     this.dc = dc.connect(signer);
-    this.nc = nc.connect(signer);
+    this.zkv = zkv.connect(signer);
     this.signer = signer;
     this.n_comm = n_comm;
     this.threshold = threshold;
@@ -159,7 +160,7 @@ export class CommitteeMemberDKG {
     babyjub: any,
     poseidon: any,
     dc_descriptor: dkg_contract.DKGContractDescriptor,
-    nc_descriptor: NounsContractDescriptor,
+    zkv_descriptor: ZKVoteContractDescriptor,
     signer: Signer,
     // n_comm: number,
     // threshold: number,
@@ -179,13 +180,13 @@ export class CommitteeMemberDKG {
     }
 
     const dc = dkg_contract.from_descriptor(signer.provider, dc_descriptor);
-    const nc = nouns_contract.from_descriptor(signer.provider, nc_descriptor);
+    const zkv = zkvote_contract.from_descriptor(signer.provider, zkv_descriptor);
 
     return new CommitteeMemberDKG(
       babyjub,
       poseidon,
       dc.connect(signer),
-      nc.connect(signer),
+      zkv.connect(signer),
       signer,
       dc_descriptor.n_comm,
       dc_descriptor.threshold,
@@ -437,7 +438,7 @@ export class CommitteeMemberDKG {
       this.babyjub,
       this.poseidon,
       this.dc,
-      this.nc,
+      this.zkv,
       this.signer,
       this.n_comm,
       this.threshold,

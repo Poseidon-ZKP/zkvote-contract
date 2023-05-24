@@ -97,7 +97,7 @@ contract ZKVote is INounsPrivateVoting {
     }
 
     modifier onlySetupVoteCaller(uint256 proposalId) {
-        require(msg.sender == address(setupVoteCaller[proposalId]), "only nouns DAO proxy contract");
+        require(msg.sender == address(setupVoteCaller[proposalId]), "only setupVoteCaller");
         _;
     }
 
@@ -118,6 +118,7 @@ contract ZKVote is INounsPrivateVoting {
 
     function castPrivateVote(
         uint256 proposalId, 
+        address voterAddress,
         uint256 votingWeight,
         uint[2][3] calldata voter_R_i, 
         uint[2][3] calldata voter_M_i,
@@ -125,47 +126,45 @@ contract ZKVote is INounsPrivateVoting {
         uint256[2][2] calldata proof_b,
         uint256[2] calldata proof_c
     ) public onlySetupVoteCaller(proposalId) override {
-        require(votingWeight > 0, "invalid voter!");
-        require(!voted[proposalId][msg.sender], "already vote!");
-        require(proposalIdToEndBlock[proposalId] > 0, "vote not setup");
-        require(block.number <= proposalIdToEndBlock[proposalId], "vote ended");
-        
-        (uint pk_coeff_0_0, uint pk_coeff_0_1) = dkg.get_PK();
-        // Verify ZKP
-        uint[15] memory inputs = [
-            pk_coeff_0_0,
-            pk_coeff_0_1,
-            votingWeight,
-            voter_R_i[0][0],
-            voter_R_i[0][1],
-            voter_R_i[1][0],
-            voter_R_i[1][1],
-            voter_R_i[2][0],
-            voter_R_i[2][1],
-            voter_M_i[0][0],
-            voter_M_i[0][1],
-            voter_M_i[1][0],
-            voter_M_i[1][1],
-            voter_M_i[2][0],
-            voter_M_i[2][1]
-        ];
+        {
+            require(votingWeight > 0, "invalid voter!");
+            require(!voted[proposalId][voterAddress], "already vote!");
+            require(proposalIdToEndBlock[proposalId] > 0, "vote not setup");
+            require(block.number <= proposalIdToEndBlock[proposalId], "vote ended");
+            
+            (uint pk_coeff_0_0, uint pk_coeff_0_1) = dkg.get_PK();
+            // Verify ZKP
+            uint[15] memory inputs = [
+                pk_coeff_0_0,
+                pk_coeff_0_1,
+                votingWeight,
+                voter_R_i[0][0],
+                voter_R_i[0][1],
+                voter_R_i[1][0],
+                voter_R_i[1][1],
+                voter_R_i[2][0],
+                voter_R_i[2][1],
+                voter_M_i[0][0],
+                voter_M_i[0][1],
+                voter_M_i[1][0],
+                voter_M_i[1][1],
+                voter_M_i[2][0],
+                voter_M_i[2][1]
+            ];
 
-        nvote_verifier.verifyProof(proof_a, proof_b, proof_c, inputs);
+            nvote_verifier.verifyProof(proof_a, proof_b, proof_c, inputs);
+        }
 
         // Mark the voter as having voted
-        voted[proposalId][msg.sender] = true;
+        voted[proposalId][voterAddress] = true;
 
         // Sum the M and R values for each vote type.
         for (uint256 k = 0; k < 3; k++) {
-            uint[2] storage R_k = R[proposalId][k];
-            uint[2] storage M_k = M[proposalId][k];
-            uint[2] memory R_i_k = voter_R_i[k];
-            uint[2] memory M_i_k = voter_M_i[k];
             // R_k = R_k + R_{i,k}
-            (R_k[0], R_k[1]) = CurveBabyJubJub.pointAdd(
-                R_k[0], R_k[1], R_i_k[0], R_i_k[1]);
+            (R[proposalId][k][0], R[proposalId][k][1]) = CurveBabyJubJub.pointAdd(
+                R[proposalId][k][0], R[proposalId][k][1], voter_R_i[k][0], voter_R_i[k][1]);
             // M_k = M_k + M_{i,k}
-            (M_k[0], M_k[1]) = CurveBabyJubJub.pointAdd(M_k[0], M_k[1], M_i_k[0], M_i_k[1]);
+            (M[proposalId][k][0], M[proposalId][k][1]) = CurveBabyJubJub.pointAdd(M[proposalId][k][0], M[proposalId][k][1], voter_M_i[k][0], voter_M_i[k][1]);
         }
 
         voting_weight_used[proposalId] += votingWeight;

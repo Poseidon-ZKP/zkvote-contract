@@ -1,6 +1,6 @@
-import * as nouns_contract from "./nouns/nouns_contract";
+import * as zkvote_contract from "./nouns/zkvote_contract";
 import * as dkg_contract from "./nouns/dkg_contract";
-import { Nouns } from "./nouns/nouns_contract";
+import { ZKVote } from "./nouns/zkvote_contract";
 import { CommitteeMemberDKG, CommitteeMember } from "./nouns/committee_member";
 import { command, run, number, string, positional, option } from 'cmd-ts';
 import * as fs from 'fs';
@@ -25,10 +25,10 @@ async function run_DKG(member: CommitteeMemberDKG): Promise<CommitteeMember> {
 }
 
 
-async function wait_for_votes(nc: Nouns, vote_threshold: bigint): Promise<void> {
+async function wait_for_votes(zkv: ZKVote, vote_threshold: bigint): Promise<void> {
 
   while (true) {
-    const cur_vote_weight_str = (await nc.voting_weight_used()).toString();
+    const cur_vote_weight_str = (await zkv.voting_weight_used()).toString();
     const cur_vote_weight = BigInt(cur_vote_weight_str);
     console.log("cur vote weight_str: " + cur_vote_weight_str);
     console.log("cur vote weight: " + cur_vote_weight.toString());
@@ -65,7 +65,7 @@ const app = command({
       type: string,
       description: "Nouns descriptor file location",
       long: 'nc_descriptor',
-      short: 'nc',
+      short: 'zkv',
       defaultValue: () => "./nouns.config.json",
       defaultValueIsSerializable: true,
     }),
@@ -91,7 +91,7 @@ const app = command({
     expect(my_id).is.greaterThan(0);
 
     // Load descriptor file
-    const nouns_descriptor: nouns_contract.NounsContractDescriptor = JSON.parse(
+    const zkv_descriptor: zkvote_contract.ZKVoteContractDescriptor = JSON.parse(
       fs.readFileSync(nc_descriptor_file, 'utf8'));
 
     const dkg_descriptor: dkg_contract.DKGContractDescriptor  = JSON.parse(
@@ -108,7 +108,7 @@ const app = command({
       await buildBabyjub(),
       await buildPoseidonReference(),
       dkg_descriptor,
-      nouns_descriptor,
+      zkv_descriptor,
       provider.getSigner(my_id),
       my_id,
     );
@@ -118,7 +118,7 @@ const app = command({
     console.log("DKG complete.");
 
     // Wait for voting power
-    await wait_for_votes(dkg_member.nc, BigInt(vote_threshold));
+    await wait_for_votes(dkg_member.zkv, BigInt(vote_threshold));
 
     // Run the tally algorithm
     await member.tallyVotes();

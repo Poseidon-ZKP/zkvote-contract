@@ -5,7 +5,7 @@ import "../interfaces/INounsDAOProxy.sol";
 import "../interfaces/INounsPrivateVoting.sol";
 
 contract Nouns is INounsDAOProxy {
-    INounsPrivateVoting zkvote;
+    INounsPrivateVoting public zkVote;
     struct VoteTally {
         uint256 forVotes;
         uint256 againstVotes;
@@ -19,16 +19,16 @@ contract Nouns is INounsDAOProxy {
     mapping(uint => mapping(address => uint)) public vote_power;
     mapping (uint256 => uint256) public registered_voting_power;
 
-    constructor (address _zkvote) {
-        zkvote = INounsPrivateVoting(_zkvote);
+    constructor (address _zkVote) {
+        zkVote = INounsPrivateVoting(_zkVote);
     }
 
-    function add_voter(address voter, uint voter_weight, uint proposalId) public {
+    function add_voter(uint proposalId, address voter, uint voter_weight) public {
         // Temporary mechanism to define voter weights.
         require(vote_power[proposalId][voter] == 0, "voter already registered");
         vote_power[proposalId][voter] = voter_weight;
         registered_voting_power[proposalId] += voter_weight;
-        require(registered_voting_power[proposalId] <= zkvote.max_voting_power(), "total voting power exceeded");
+        require(registered_voting_power[proposalId] <= zkVote.max_voting_power(), "total voting power exceeded");
     }
 
     function get_voting_weight(uint256 proposalId, address voter) public view returns (uint) {
@@ -37,6 +37,13 @@ contract Nouns is INounsDAOProxy {
 
     function receiveVoteTally(uint256 proposalId, uint256 forVotes, uint256 againstVotes, uint256 abstainVotes) public onlyZKVote override {
         voteTallies[proposalId] = VoteTally(forVotes, againstVotes, abstainVotes);
+    }
+
+    function setupVote(
+        uint256 proposalId, 
+        uint256 endBlock
+    ) public {
+        zkVote.setupVote(proposalId, endBlock);
     }
 
     function castPrivateVote(
@@ -48,11 +55,11 @@ contract Nouns is INounsDAOProxy {
         uint256[2] calldata proof_c
     ) public {
         uint256 votingWeight = get_voting_weight(proposalId,msg.sender);
-        zkvote.castPrivateVote(proposalId, votingWeight, voter_R_i, voter_M_i, proof_a, proof_b, proof_c);
+        zkVote.castPrivateVote(proposalId, msg.sender, votingWeight, voter_R_i, voter_M_i, proof_a, proof_b, proof_c);
     }
 
     modifier onlyZKVote() {
-        require(msg.sender == address(zkvote), "Nouns::onlyZKVote: Only ZKVote can call this function.");
+        require(msg.sender == address(zkVote), "Nouns::onlyZKVote: Only ZKVote can call this function.");
         _;
     }
 }
