@@ -14,11 +14,11 @@ export type NounsContractDescriptor = {
 
 export async function deploy(
   deployer: Signer,
-  _zkVote: string,
+  zkVote: string,
 ): Promise<Nouns> {
 
   return await (new Nouns__factory(deployer)).deploy(
-    _zkVote,
+    zkVote,
   );
 }
 

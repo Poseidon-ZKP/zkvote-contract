@@ -5,7 +5,7 @@ import {
 import { Nouns, NounsContractDescriptor } from "./nouns_contract";
 import * as nouns_contract from "./nouns_contract";
 import * as dkg_contract from "./dkg_contract";
-import * as zkvote__contract from "./zkvote_contract";
+import * as zkvote_contract from "./zkvote_contract";
 import { generate_zkp_nvote } from "./prover";
 import { hexlify } from "@ethersproject/bytes";
 import { randomBytes } from "@ethersproject/random";
@@ -89,7 +89,7 @@ export class Voter {
 
     const voting_weight = await this.get_voting_weight(proposalId);
 
-    const zkVote = await zkvote__contract.from_address(this.signer, await this.nc.zkVote());
+    const zkVote = await zkvote_contract.from_address(this.signer, await this.nc.zkVote());
 
     const dc = await dkg_contract.from_address(this.signer, await zkVote.dkg());
 

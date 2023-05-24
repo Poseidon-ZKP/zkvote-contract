@@ -4,7 +4,7 @@ import {
 } from "../crypto";
 import * as nouns_contract from "./nouns_contract";
 import * as dkg_contract from "./dkg_contract";
-import * as zkvote__contract from "./zkvote_contract";
+import * as zkvote_contract from "./zkvote_contract";
 import {
     Nouns__factory, Round2Verifier__factory, NvoteVerifier__factory, TallyVerifier__factory,
 } from "../types";
@@ -55,13 +55,13 @@ async function main(
 
   // Deploy ZKVote contract
 
-  const zkv = await zkvote__contract.deploy(
+  const zkv = await zkvote_contract.deploy(
     deployer,
     dc.address,
     10n, // total voting power
   );
 
-  const zkv_descriptor = await zkvote__contract.get_descriptor(zkv);
+  const zkv_descriptor = await zkvote_contract.get_descriptor(zkv);
 
   // Deploy contract, and register voters
   const nc = await nouns_contract.deploy(
