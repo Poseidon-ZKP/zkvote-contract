@@ -10,7 +10,7 @@
     "test": "yarn ts-node scripts/nouns/nouns.ts",
     "postinstall": "patch-package",
     "check": "yarn run solhint 'contracts/interfaces/*.sol' 'contracts/nouns/*.sol'",
-    "format": "./node_modules/.bin/prettier --write 'contracts/**/*.sol'"
+    "format": "./node_modules/.bin/prettier --write 'contracts/**/*.sol' && ./node_modules/.bin/tsfmt -r `git ls-files '*.ts'`"
   },
   "keywords": [],
   "author": "",
@@ -63,7 +63,8 @@
     "solidity-bytes-utils": "^0.8.0",
     "ts-node": "^10.9.1",
     "typechain": "^8.1.1",
-    "typescript": "^4.8.4"
+    "typescript": "^4.8.4",
+    "typescript-formatter": "^7.2.2"
   },
   "dependencies": {
     "cmd-ts": "^0.12.1",
