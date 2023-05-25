@@ -1,23 +1,18 @@
-import * as nouns_contract from "./nouns/nouns_contract";
 import * as zkvote_contract from "./nouns/zkvote_contract";
-import { Vote, Voter } from "./nouns/voter";
-import { Nouns } from "./nouns/nouns_contract";
-import { CommitteeMemberDKG, CommitteeMember } from "./nouns/committee_member";
-import { command, run, number, string, positional, option } from 'cmd-ts';
+import { command, run, string, option } from 'cmd-ts';
 import * as fs from 'fs';
 import * as ethers from "ethers";
-import { expect } from "chai";
 
 
 const app = command({
   name: 'get_vote_tally',
   args: {
-    nc_descriptor_file: option({
+    zkv_descriptor_file: option({
       type: string,
-      description: "Nouns descriptor file location",
+      description: "ZKVote descriptor file location",
       long: 'descriptor',
-      short: 'd',
-      defaultValue: () => "./nouns.config.json",
+      short: 'zkv',
+      defaultValue: () => "./zkv.config.json",
       defaultValueIsSerializable: true,
     }),
     endpoint: option({
@@ -29,11 +24,11 @@ const app = command({
       defaultValueIsSerializable: true,
     }),
   },
-  handler: async ({ nc_descriptor_file, endpoint }) => {
+  handler: async ({ zkv_descriptor_file, endpoint }) => {
 
     // Load descriptor file
-    const zkv_descriptor: nouns_contract.NounsContractDescriptor = JSON.parse(
-      fs.readFileSync(nc_descriptor_file, 'utf8'));
+    const zkv_descriptor: zkvote_contract.ZKVoteContractDescriptor = JSON.parse(
+      fs.readFileSync(zkv_descriptor_file, 'utf8'));
 
     // Connect
     const provider = new ethers.providers.JsonRpcProvider(endpoint);
