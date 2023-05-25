@@ -46,6 +46,7 @@ contract ZKVote is IZKVote {
     mapping (uint256 => uint256) public voting_weight_used;
     mapping (uint256 => uint256) public tallied_committee;
     mapping (uint256 => uint[3]) public vote_totals;
+    mapping (uint256 => bool) public completed_tallies;
 
 
     mapping (uint => uint) public proposalIdToEndBlock;
@@ -62,7 +63,7 @@ contract ZKVote is IZKVote {
 
     event SetupVote(uint indexed proposalId, uint256 endBlock);
 
-    event TallyComplete(/*uint indexed vote_id, */ uint yay, uint nay, uint abstain);
+    event TallyComplete(uint indexed proposalId, uint yay, uint nay, uint abstain);
 
     // Generator Point
     uint public constant Gx = 5299619240641551281634865583518297030282874472190772894086521144482721001553;
@@ -186,9 +187,11 @@ contract ZKVote is IZKVote {
         uint[2][2] calldata proof_b,
         uint[2] calldata proof_c
     ) public {
+        if (completed_tallies[proposalId]) {
+            return;
+        }
         uint cid = dkg.get_committee_id_from_address(msg.sender);
         require((0 < cid) && (cid <= dkg.n_comm()), "invalid participant id");
-        require(tally_cid[proposalId].length < dkg.threshold(), "votes already tallied");
 
         (uint PK_i_0, uint PK_i_1) = dkg.get_PK_for(cid);
 
@@ -315,7 +318,8 @@ contract ZKVote is IZKVote {
         // Dummy ProposalId for now. TODO: Update this.
         uint256 dummyProposalId = 0;
         IDAOProxy(setupVoteCaller[proposalId]).receiveVoteTally(dummyProposalId, vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
-        emit TallyComplete(vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
+        completed_tallies[proposalId] = true;
+        emit TallyComplete(proposalId, vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
     }
 
     function get_vote_totals(uint256 proposalId) public view returns (uint[3] memory) {

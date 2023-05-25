@@ -23,8 +23,8 @@ async function run_DKG(member: CommitteeMemberDKG): Promise<CommitteeMember> {
   return await member.constructSecretShare();
 }
 
-async function wait_for_vote_and_tally(member: CommitteeMember, zkv: ZKVote, proposalId: number, vote_threshold: bigint): Promise<void> {
-
+async function wait_for_vote_and_tally(provider: Provider, member: CommitteeMember, zkv: ZKVote, proposalId: number, vote_threshold: bigint): Promise<void> {
+  const intfc = zkv.interface;
   while (true) {
     const cur_vote_weight_str = (await zkv.voting_weight_used(proposalId)).toString();
     const cur_vote_weight = BigInt(cur_vote_weight_str);
@@ -32,8 +32,16 @@ async function wait_for_vote_and_tally(member: CommitteeMember, zkv: ZKVote, pro
     console.log("cur vote weight: " + cur_vote_weight.toString());
     console.log("vote_threshold: " + vote_threshold.toString());
     if (cur_vote_weight >= vote_threshold) {
-      console.log("threshold reached... tallying");
-      await member.tallyVotes(proposalId);
+      const filter: Filter = zkv.filters.TallyComplete(proposalId);
+      filter.fromBlock = 0;
+      filter.toBlock = "latest";
+      const logs = await provider.getLogs(filter);
+      if (logs.length == 0) {
+        console.log(`threshold reached for proposal id ${proposalId}... tallying`);
+        await member.tallyVotes(proposalId);
+      } else {
+        console.log(`threshold reached for proposal id ${proposalId} but vote already tallied by another committee member`);
+      }
       break;
     }
 
@@ -45,7 +53,7 @@ async function wait_for_vote_and_tally(member: CommitteeMember, zkv: ZKVote, pro
 
 async function run_vote_tallier(provider: Provider, member: CommitteeMember, zkv: ZKVote, vote_threshold: bigint): Promise<void> {
   let lastBlockFiltered = 0;
-
+  const intfc = zkv.interface;
   while (true) {
     const newProposalIdSet = new Set<number>();
     // Query for new setup proposal events
@@ -53,8 +61,7 @@ async function run_vote_tallier(provider: Provider, member: CommitteeMember, zkv
     filter.fromBlock = lastBlockFiltered;
     filter.toBlock = "latest";
     const logs = await provider.getLogs(filter);
-    lastBlockFiltered = logs[logs.length - 1].blockNumber;
-    const intfc = zkv.interface;
+    lastBlockFiltered = logs.length > 0 ? logs[logs.length - 1].blockNumber : lastBlockFiltered;
     for (const log of logs) {
       const parsedLog = intfc.parseLog(log);
       const proposalId = parsedLog.args.proposalId;
@@ -62,10 +69,11 @@ async function run_vote_tallier(provider: Provider, member: CommitteeMember, zkv
     }
     // wait_for_vote_and_tally
     for (const proposalId of newProposalIdSet) {
-      await wait_for_vote_and_tally(member, zkv, proposalId, vote_threshold);
+      console.log("waiting for votes for proposalId: " + proposalId.toString());
+      wait_for_vote_and_tally(provider, member, zkv, proposalId, vote_threshold);
     }
     // Sleep for 300ms
-    console.log("sleeping 300ms ...");
+    // console.log("sleeping 300ms ...");
     await new Promise(r => setTimeout(r, 300));
   }
 }
@@ -143,6 +151,8 @@ const app = command({
 
     const zkv = zkvote_contract.from_descriptor(provider, zkv_descriptor);
 
+    // Run the vote tallyer
+    console.log("Running vote tallier...");
     await run_vote_tallier(provider, member, zkv, BigInt(vote_threshold));
 
     process.exit(0);

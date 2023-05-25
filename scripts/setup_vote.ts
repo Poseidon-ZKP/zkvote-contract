@@ -1,4 +1,4 @@
-import * as zkvote_contract from "./nouns/zkvote_contract";
+import * as nouns_contract from "./nouns/nouns_contract";
 import { command, run, number, string, positional, option } from 'cmd-ts';
 import * as fs from 'fs';
 import * as ethers from "ethers";
@@ -16,12 +16,12 @@ const app = command({
         displayName: 'end_block',
         description: "end block for proposal",
     }),
-    zkv_descriptor_file: option({
+    nc_descriptor_file: option({
       type: string,
-      description: "ZKVote contract descriptor file location",
-      long: 'zkv_descriptor',
-      short: 'zkv',
-      defaultValue: () => "./zkv.config.json",
+      description: "Nounds descriptor file location to write",
+      long: 'descriptor',
+      short: 'd',
+      defaultValue: () => "./nouns.config.json",
       defaultValueIsSerializable: true,
     }),
     endpoint: option({
@@ -33,19 +33,21 @@ const app = command({
       defaultValueIsSerializable: true,
     }),
   },
-  handler: async ({ proposal_id, end_block, zkv_descriptor_file, endpoint }) => {
+  handler: async ({ proposal_id, end_block, nc_descriptor_file, endpoint }) => {
     // Load descriptor file
-    const zkv_descriptor: zkvote_contract.ZKVoteContractDescriptor = JSON.parse(
-      fs.readFileSync(zkv_descriptor_file, 'utf8'));
+    const nc_descriptor: nouns_contract.NounsContractDescriptor = JSON.parse(
+      fs.readFileSync(nc_descriptor_file, 'utf8'));
 
     // Connect
     const provider = new ethers.providers.JsonRpcProvider(endpoint);
-
+    const signer = provider.getSigner();
     // Load contract
-    const zkv = zkvote_contract.from_descriptor(provider, zkv_descriptor);
+    let nc = nouns_contract.from_descriptor(provider, nc_descriptor);
+
+    nc = nc.connect(signer);
 
     // Setup Vote
-    const tx = await zkv.setupVote(proposal_id, end_block);
+    const tx = await nc.setupVote(proposal_id, end_block);
     await tx.wait();
     console.log("Setup vote for proposal ID", proposal_id);
     process.exit(0);
