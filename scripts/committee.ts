@@ -9,8 +9,6 @@ import { expect } from "chai";
 const { buildBabyjub, buildPoseidonReference } = require('circomlibjs');
 import { Provider, Filter, Log } from "@ethersproject/providers";
 
-
-
 async function run_DKG(member: CommitteeMemberDKG): Promise<CommitteeMember> {
   member.round1();
   await member.round1_wait();
