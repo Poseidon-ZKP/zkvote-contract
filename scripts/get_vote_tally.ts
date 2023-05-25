@@ -1,5 +1,5 @@
 import * as zkvote_contract from "./nouns/zkvote_contract";
-import { command, run, string, option } from 'cmd-ts';
+import { command, run, string, option, positional, number } from 'cmd-ts';
 import * as fs from 'fs';
 import * as ethers from "ethers";
 
@@ -7,6 +7,11 @@ import * as ethers from "ethers";
 const app = command({
   name: 'get_vote_tally',
   args: {
+    proposal_id: positional({
+      type: number,
+      displayName: 'proposal_id',
+      description: "Proposal ID to get tally for",
+    }),
     zkv_descriptor_file: option({
       type: string,
       description: "ZKVote descriptor file location",
