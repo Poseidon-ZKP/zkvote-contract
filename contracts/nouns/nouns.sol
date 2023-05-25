@@ -28,7 +28,7 @@ contract Nouns is IDAOProxy {
         require(vote_power[proposalId][voter] == 0, "voter already registered");
         vote_power[proposalId][voter] = voter_weight;
         registered_voting_power[proposalId] += voter_weight;
-        require(registered_voting_power[proposalId] <= zkVote.max_voting_power(), "total voting power exceeded");
+        require(registered_voting_power[proposalId] <= zkVote.maxTotalVotingWeight(), "total voting power exceeded");
     }
 
     function get_voting_weight(uint256 proposalId, address voter) public view returns (uint) {

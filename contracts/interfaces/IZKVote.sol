@@ -18,5 +18,5 @@ interface IZKVote {
             uint256[2][2] calldata proof_b,
             uint256[2] calldata proof_c
     ) external;
-    function max_voting_power() external view returns (uint256);
+    function maxTotalVotingWeight() external view returns (uint256);
 }

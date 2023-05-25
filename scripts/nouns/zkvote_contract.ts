@@ -13,7 +13,7 @@ export type ZKVoteContractDescriptor = {
 export async function deploy(
   deployer: Signer,
   _dkg_address: string,
-  total_voting_power: bigint,
+  max_total_voting_weight: bigint,
 ): Promise<ZKVote> {
 
   const verifier_contracts: Contract[] = await Promise.all([
@@ -24,7 +24,7 @@ export async function deploy(
 
   return await (new ZKVote__factory(deployer)).deploy(
     _dkg_address,
-    total_voting_power,
+    max_total_voting_weight,
     verifiers,
   );
 }

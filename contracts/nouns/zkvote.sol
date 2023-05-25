@@ -67,11 +67,11 @@ contract ZKVote is IZKVote {
     uint public constant Gx = 5299619240641551281634865583518297030282874472190772894086521144482721001553;
     uint public constant Gy = 16950150798460657717958625567821834550301663161624707787222815936182638968203;
 
-    uint256 public max_voting_power;
+    uint256 public maxTotalVotingWeight;
 
     constructor(
         address _dkg_address, // DKG contract
-        uint256 _max_voting_power,
+        uint256 _maxTotalVotingWeight,
         address[] memory _verifiers
     ) {
         dkg = IDkg(_dkg_address);
@@ -85,12 +85,12 @@ contract ZKVote is IZKVote {
         //     VOTE_POWER_TOTAL += _votePower[i];
         // }
 
-        max_voting_power = _max_voting_power;
+        maxTotalVotingWeight = _maxTotalVotingWeight;
 
         uint x = Gx;
         uint y = Gy;
         lookup_table[x][y] = 1;
-        for (uint i = 2; i <= max_voting_power; i++) {
+        for (uint i = 2; i <= maxTotalVotingWeight; i++) {
             (x, y) = CurveBabyJubJub.pointAdd(x, y, Gx, Gy);
             lookup_table[x][y] = i;
         }

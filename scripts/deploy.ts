@@ -23,7 +23,7 @@ const app = command({
       defaultValue: () => 2,
       defaultValueIsSerializable: true,
     }),
-    total_voting_power: option({
+    max_total_voting_weight: option({
       type: number,
       description: "Total voting power supported",
       long: 'total-voting-power',
@@ -57,7 +57,7 @@ const app = command({
     }),
   },
   handler: async (
-    { n_comm, threshold, total_voting_power, dc_descriptor_file, nc_descriptor_file, endpoint }
+    { n_comm, threshold, max_total_voting_weight, dc_descriptor_file, nc_descriptor_file, endpoint }
   ) => {
     console.log("CONFIG: " + JSON.stringify({ n_comm, threshold, endpoint }));
 
