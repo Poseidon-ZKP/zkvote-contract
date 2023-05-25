@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import * as ethers from "ethers";
 import { expect } from "chai";
 const { buildBabyjub, buildPoseidonReference } = require('circomlibjs');
+import { Provider, Filter, Log } from "@ethersproject/providers";
 
 
 
@@ -24,8 +25,7 @@ async function run_DKG(member: CommitteeMemberDKG): Promise<CommitteeMember> {
   return await member.constructSecretShare();
 }
 
-
-async function wait_for_votes(zkv: ZKVote, proposalId: bigint, vote_threshold: bigint): Promise<void> {
+async function wait_for_vote_and_tally(member: CommitteeMember, zkv: ZKVote, proposalId: number, vote_threshold: bigint): Promise<void> {
 
   while (true) {
     const cur_vote_weight_str = (await zkv.voting_weight_used(proposalId)).toString();
@@ -34,7 +34,8 @@ async function wait_for_votes(zkv: ZKVote, proposalId: bigint, vote_threshold: b
     console.log("cur vote weight: " + cur_vote_weight.toString());
     console.log("vote_threshold: " + vote_threshold.toString());
     if (cur_vote_weight >= vote_threshold) {
-      console.log("threshold reached");
+      console.log("threshold reached... tallying");
+      await member.tallyVotes(proposalId);
       break;
     }
 
@@ -44,6 +45,32 @@ async function wait_for_votes(zkv: ZKVote, proposalId: bigint, vote_threshold: b
   }
 }
 
+async function run_vote_tallier(provider: Provider, member: CommitteeMember, zkv: ZKVote, vote_threshold: bigint): Promise<void> {
+  let lastBlockFiltered = 0;
+
+  while (true) {
+    const newProposalIdSet = new Set<number>();
+    // Query for new setup proposal events
+    const filter: Filter = zkv.filters.SetupVote();
+    filter.fromBlock = lastBlockFiltered;
+    filter.toBlock = "latest";
+    const logs = await provider.getLogs(filter);
+    lastBlockFiltered = logs[logs.length - 1].blockNumber;
+    const intfc = zkv.interface;
+    for (const log of logs) {
+      const parsedLog = intfc.parseLog(log);
+      const proposalId = parsedLog.args.proposalId;
+      newProposalIdSet.add(proposalId);
+    }
+    // wait_for_vote_and_tally
+    for (const proposalId of newProposalIdSet) {
+      await wait_for_vote_and_tally(member, zkv, proposalId, vote_threshold);
+    }
+    // Sleep for 300ms
+    console.log("sleeping 300ms ...");
+    await new Promise(r => setTimeout(r, 300));
+  }
+}
 
 const app = command({
   name: 'committee',
@@ -61,12 +88,12 @@ const app = command({
       defaultValue: () => "./dkg.config.json",
       defaultValueIsSerializable: true,
     }),
-    nc_descriptor_file: option({
+    zkv_descriptor_file: option({
       type: string,
-      description: "Nouns descriptor file location",
-      long: 'nc_descriptor',
+      description: "ZKVote descriptor file location",
+      long: 'descriptor',
       short: 'zkv',
-      defaultValue: () => "./nouns.config.json",
+      defaultValue: () => "./zkv.config.json",
       defaultValueIsSerializable: true,
     }),
     vote_threshold: option({
@@ -86,13 +113,13 @@ const app = command({
       defaultValueIsSerializable: true,
     }),
   },
-  handler: async ({ my_id, dc_descriptor_file, nc_descriptor_file, vote_threshold, endpoint }) => {
+  handler: async ({ my_id, dc_descriptor_file, zkv_descriptor_file, vote_threshold, endpoint }) => {
 
     expect(my_id).is.greaterThan(0);
 
     // Load descriptor file
     const zkv_descriptor: zkvote_contract.ZKVoteContractDescriptor = JSON.parse(
-      fs.readFileSync(nc_descriptor_file, 'utf8'));
+      fs.readFileSync(zkv_descriptor_file, 'utf8'));
 
     const dkg_descriptor: dkg_contract.DKGContractDescriptor  = JSON.parse(
       fs.readFileSync(dc_descriptor_file, 'utf8'));
@@ -101,7 +128,6 @@ const app = command({
 
     // Connect
     const provider = new ethers.providers.JsonRpcProvider(endpoint);
-    const accounts = await provider.listAccounts();
 
     // Initialize the committee member object
     const dkg_member = await CommitteeMemberDKG.initialize(
@@ -117,16 +143,12 @@ const app = command({
     const member = await run_DKG(dkg_member);
     console.log("DKG complete.");
 
-    const dummyProposalId = BigInt(0);
-    // Wait for voting power
-    await wait_for_votes(dkg_member.zkv, dummyProposalId, BigInt(vote_threshold));
+    const zkv = zkvote_contract.from_descriptor(provider, zkv_descriptor);
 
-    // Run the tally algorithm
-    await member.tallyVotes(Number(dummyProposalId));
-    console.log("tallied");
+    await run_vote_tallier(provider, member, zkv, BigInt(vote_threshold));
+
     process.exit(0);
   }
 });
-
 
 run(app, process.argv.slice(2));

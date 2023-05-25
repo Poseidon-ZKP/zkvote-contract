@@ -60,6 +60,8 @@ contract ZKVote is IZKVote {
     // Lookup table for vote counts
     mapping(uint => mapping(uint => uint)) public lookup_table;
 
+    event SetupVote(uint indexed proposalId, uint256 endBlock);
+
     event TallyComplete(/*uint indexed vote_id, */ uint yay, uint nay, uint abstain);
 
     // Generator Point
@@ -113,6 +115,7 @@ contract ZKVote is IZKVote {
         }
         proposalIdToEndBlock[proposalId] = endBlock;
         setupVoteCaller[proposalId] = msg.sender;
+        emit SetupVote(proposalId, endBlock);
     }
 
     function castPrivateVote(
