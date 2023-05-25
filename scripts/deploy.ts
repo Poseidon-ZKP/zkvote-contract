@@ -1,5 +1,6 @@
 import * as nouns_contract from "./nouns/nouns_contract";
 import * as dkg_contract from "./nouns/dkg_contract";
+import * as zkvote_contract from "./nouns/zkvote_contract";
 import { command, run, number, string, option } from 'cmd-ts';
 import * as fs from 'fs';
 import * as ethers from "ethers";
@@ -39,6 +40,14 @@ const app = command({
       defaultValue: () => "./dkg.config.json",
       defaultValueIsSerializable: true,
     }),
+    zkv_descriptor_file: option({
+      type: string,
+      description: "ZKVote contract descriptor file location",
+      long: 'zkv_descriptor',
+      short: 'zkv',
+      defaultValue: () => "./zkv.config.json",
+      defaultValueIsSerializable: true,
+    }),
     nc_descriptor_file: option({
       type: string,
       description: "Nounds descriptor file location to write",
@@ -57,7 +66,7 @@ const app = command({
     }),
   },
   handler: async (
-    { n_comm, threshold, max_total_voting_weight, dc_descriptor_file, nc_descriptor_file, endpoint }
+    { n_comm, threshold, max_total_voting_weight, dc_descriptor_file, zkv_descriptor_file, nc_descriptor_file, endpoint }
   ) => {
     console.log("CONFIG: " + JSON.stringify({ n_comm, threshold, endpoint }));
 
@@ -84,8 +93,16 @@ const app = command({
     fs.writeFileSync(dc_descriptor_file, JSON.stringify(dkg_desc));
     console.log("Descriptor written at: " + dc_descriptor_file);
 
+    const zkv = await zkvote_contract.deploy(deployer, dkg.address, BigInt(max_total_voting_weight));
+    console.log("ZKVote deployed at: " + zkv.address);
+
+    const zkv_desc = await zkvote_contract.get_descriptor(zkv);
+    console.log("zkv_desc=" + JSON.stringify(zkv_desc));
+    fs.writeFileSync(zkv_descriptor_file, JSON.stringify(zkv_desc));
+    console.log("Descriptor written at: " + zkv_descriptor_file);
+
     const nouns = await nouns_contract.deploy(
-      deployer, dkg.address);
+      deployer, zkv.address);
     console.log("Nouns deployed at: " + nouns.address);
 
     // Write the description
