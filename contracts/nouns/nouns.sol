@@ -1,11 +1,11 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "../interfaces/INounsDAOProxy.sol";
-import "../interfaces/INounsPrivateVoting.sol";
+import "../interfaces/IDAOProxy.sol";
+import "../interfaces/IZKVote.sol";
 
-contract Nouns is INounsDAOProxy {
-    INounsPrivateVoting public zkVote;
+contract Nouns is IDAOProxy {
+    IZKVote public zkVote;
     struct VoteTally {
         uint256 forVotes;
         uint256 againstVotes;
@@ -20,7 +20,7 @@ contract Nouns is INounsDAOProxy {
     mapping (uint256 => uint256) public registered_voting_power;
 
     constructor (address _zkVote) {
-        zkVote = INounsPrivateVoting(_zkVote);
+        zkVote = IZKVote(_zkVote);
     }
 
     function add_voter(uint proposalId, address voter, uint voter_weight) public {

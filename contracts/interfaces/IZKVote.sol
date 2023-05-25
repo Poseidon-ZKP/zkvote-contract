@@ -3,7 +3,7 @@
 
 pragma solidity >=0.8.4;
 
-interface INounsPrivateVoting {
+interface IZKVote {
     function setupVote(
             uint256 proposalId, 
             uint256 endBlock

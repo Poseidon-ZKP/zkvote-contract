@@ -4,8 +4,8 @@ pragma solidity >=0.8.4;
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./babyjubjub/CurveBabyJubJub.sol";
 import "../interfaces/IDkg.sol";
-import "../interfaces/INounsPrivateVoting.sol";
-import "../interfaces/INounsDAOProxy.sol";
+import "../interfaces/IZKVote.sol";
+import "../interfaces/IDAOProxy.sol";
 
 
 interface IVerifierNvote {
@@ -26,7 +26,7 @@ interface IVerifierTally {
     ) external view;
 }
 
-contract ZKVote is INounsPrivateVoting {
+contract ZKVote is IZKVote {
 
     uint constant babyjub_sub_order = 2736030358979909402780800718157159386076813972158567259200215660948447373041;
 
@@ -321,7 +321,7 @@ contract ZKVote is INounsPrivateVoting {
 
         // Dummy ProposalId for now. TODO: Update this.
         uint256 dummyProposalId = 0;
-        INounsDAOProxy(setupVoteCaller[proposalId]).receiveVoteTally(dummyProposalId, vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
+        IDAOProxy(setupVoteCaller[proposalId]).receiveVoteTally(dummyProposalId, vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
         emit TallyComplete(vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
     }
 
