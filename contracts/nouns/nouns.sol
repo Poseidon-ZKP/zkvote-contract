@@ -18,6 +18,7 @@ contract Nouns is IDAOProxy {
     //
     mapping(uint => mapping(address => uint)) public vote_power;
     mapping (uint256 => uint256) public registered_voting_power;
+    mapping(uint256 => mapping (address => bool)) public voted;
 
     constructor (address _zkVote) {
         zkVote = IZKVote(_zkVote);
@@ -54,8 +55,17 @@ contract Nouns is IDAOProxy {
         uint256[2][2] calldata proof_b,
         uint256[2] calldata proof_c
     ) public {
-        uint256 votingWeight = get_voting_weight(proposalId,msg.sender);
-        zkVote.castPrivateVote(proposalId, msg.sender, votingWeight, voter_R_i, voter_M_i, proof_a, proof_b, proof_c);
+        address voter = msg.sender;
+        require(!voted[proposalId][voter], "already voted!");
+        uint256 votingWeight = get_voting_weight(proposalId, voter);
+        zkVote.castPrivateVote(proposalId, votingWeight, voter_R_i, voter_M_i, proof_a, proof_b, proof_c);
+        // Mark the voter as having voted
+        voted[proposalId][voter] = true;
+    }
+
+
+    function has_voted(uint256 proposalId, address voter) public view returns(bool) {
+        return voted[proposalId][voter];
     }
 
     modifier onlyZKVote() {

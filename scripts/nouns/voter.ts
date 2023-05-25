@@ -129,7 +129,7 @@ export class Voter {
       PK, voting_weight, Rs, Ms, o, rs);
 
     const address = await this.signer.getAddress();
-    expect(await zkVote.has_voted(proposalId, address)).to.be.false;
+    expect(await this.nc.has_voted(proposalId, address)).to.be.false;
     await this.nc.castPrivateVote(
       proposalId,
       <SolidityEncryptedVotes>Rs,
@@ -137,7 +137,7 @@ export class Voter {
       proof.a,
       proof.b,
       proof.c);
-    expect(await zkVote.has_voted(proposalId, address)).to.be.true;
+    expect(await this.nc.has_voted(proposalId, address)).to.be.true;
 
     return { vote, R: Rs, M: Ms };
   }

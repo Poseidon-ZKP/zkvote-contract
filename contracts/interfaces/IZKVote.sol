@@ -10,7 +10,6 @@ interface IZKVote {
     ) external;
     function castPrivateVote(
             uint256 proposalId, 
-            address voterAddress,
             uint256 votingWeight,
             uint[2][3] calldata voter_R_i, 
             uint[2][3] calldata voter_M_i,

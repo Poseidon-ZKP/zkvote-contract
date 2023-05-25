@@ -39,7 +39,6 @@ contract ZKVote is IZKVote {
     //
 
     mapping (uint256 => address) setupVoteCaller;
-    mapping(uint256 => mapping (address => bool)) public voted;
     mapping (uint256 => uint[2][3]) public R;
     mapping (uint256 => uint[2][3]) public M;
     mapping (uint256 => uint[2][3][]) DI;
@@ -118,7 +117,6 @@ contract ZKVote is IZKVote {
 
     function castPrivateVote(
         uint256 proposalId, 
-        address voterAddress,
         uint256 votingWeight,
         uint[2][3] calldata voter_R_i, 
         uint[2][3] calldata voter_M_i,
@@ -128,7 +126,6 @@ contract ZKVote is IZKVote {
     ) public onlySetupVoteCaller(proposalId) override {
         {
             require(votingWeight > 0, "invalid voter!");
-            require(!voted[proposalId][voterAddress], "already vote!");
             require(proposalIdToEndBlock[proposalId] > 0, "vote not setup");
             require(block.number <= proposalIdToEndBlock[proposalId], "vote ended");
             
@@ -155,9 +152,6 @@ contract ZKVote is IZKVote {
             nvote_verifier.verifyProof(proof_a, proof_b, proof_c, inputs);
         }
 
-        // Mark the voter as having voted
-        voted[proposalId][voterAddress] = true;
-
         // Sum the M and R values for each vote type.
         for (uint256 k = 0; k < 3; k++) {
             // R_k = R_k + R_{i,k}
@@ -176,10 +170,6 @@ contract ZKVote is IZKVote {
 
     function get_M(uint256 proposalId) public view returns (uint[2][3] memory) {
         return M[proposalId];
-    }
-
-    function has_voted(uint256 proposalId, address voter) public view returns(bool) {
-        return voted[proposalId][voter];
     }
 
     // function pointSub(uint256 _x1, uint256 _y1, uint256 _x2, uint256 _y2) public view returns (uint256 x3, uint256 y3) {
