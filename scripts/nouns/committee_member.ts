@@ -90,6 +90,7 @@ export class CommitteeMember {
     const that = this;
     async function send_tally(retry: number = 10): Promise<void> {
       try {
+        console.log("sending tally tx ...");
         await that.zkv.tally(
           proposalId,
           <any>D_i,

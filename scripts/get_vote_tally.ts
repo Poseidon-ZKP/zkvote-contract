@@ -29,7 +29,7 @@ const app = command({
       defaultValueIsSerializable: true,
     }),
   },
-  handler: async ({ zkv_descriptor_file, endpoint }) => {
+  handler: async ({ proposal_id, zkv_descriptor_file, endpoint }) => {
 
     // Load descriptor file
     const zkv_descriptor: zkvote_contract.ZKVoteContractDescriptor = JSON.parse(
@@ -39,15 +39,13 @@ const app = command({
     const provider = new ethers.providers.JsonRpcProvider(endpoint);
     const zkv = zkvote_contract.from_descriptor(provider, zkv_descriptor);
 
-    const dummyProposalId = 0;
-
-
-    console.log("Waiting for tally ...");
+    console.log(`Waiting for tally for proposal id ${proposal_id}...`);
 
     // Loop until the vote totals come in
     while (true) {
-      const vote_totals_bn = await zkv.get_vote_totals(dummyProposalId);
+      const vote_totals_bn = await zkv.get_vote_totals(proposal_id);
       const vote_totals = vote_totals_bn.map(x => parseInt(x.toString()));
+      console.log("vote totals:", vote_totals);
       if (vote_totals[0] + vote_totals[1] + vote_totals[2]) {
         console.log("vote totals:");
         console.log("  Abstain: " + vote_totals[0]);

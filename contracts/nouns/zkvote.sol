@@ -46,8 +46,6 @@ contract ZKVote is IZKVote {
     mapping (uint256 => uint256) public voting_weight_used;
     mapping (uint256 => uint256) public tallied_committee;
     mapping (uint256 => uint[3]) public vote_totals;
-    mapping (uint256 => bool) public completed_tallies;
-
 
     mapping (uint => uint) public proposalIdToEndBlock;
 
@@ -187,11 +185,9 @@ contract ZKVote is IZKVote {
         uint[2][2] calldata proof_b,
         uint[2] calldata proof_c
     ) public {
-        if (completed_tallies[proposalId]) {
-            return;
-        }
         uint cid = dkg.get_committee_id_from_address(msg.sender);
         require((0 < cid) && (cid <= dkg.n_comm()), "invalid participant id");
+        require(tally_cid[proposalId].length < dkg.threshold(), "votes already tallied");
 
         (uint PK_i_0, uint PK_i_1) = dkg.get_PK_for(cid);
 
@@ -315,10 +311,7 @@ contract ZKVote is IZKVote {
             vote_totals[proposalId][k] = lookup_table[VG[0]][VG[1]];
         }
 
-        // Dummy ProposalId for now. TODO: Update this.
-        uint256 dummyProposalId = 0;
-        IDAOProxy(setupVoteCaller[proposalId]).receiveVoteTally(dummyProposalId, vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
-        completed_tallies[proposalId] = true;
+        IDAOProxy(setupVoteCaller[proposalId]).receiveVoteTally(proposalId, vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
         emit TallyComplete(proposalId, vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
     }
 
