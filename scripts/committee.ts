@@ -23,25 +23,6 @@ async function run_DKG(member: CommitteeMemberDKG): Promise<CommitteeMember> {
   return await member.constructSecretShare();
 }
 
-async function wait_for_vote_and_tally(member: CommitteeMember, zkv: ZKVote, proposalId: number, vote_threshold: bigint): Promise<void> {
-  while (true) {
-    const cur_vote_weight_str = (await zkv.voting_weight_used(proposalId)).toString();
-    const cur_vote_weight = BigInt(cur_vote_weight_str);
-    console.log("cur vote weight_str: " + cur_vote_weight_str);
-    console.log("cur vote weight: " + cur_vote_weight.toString());
-    console.log("vote_threshold: " + vote_threshold.toString());
-    if (cur_vote_weight >= vote_threshold) {
-      await member.tallyVotes(proposalId);
-      console.log("done waiting for vote and tally");
-      break;
-    }
-
-    // Sleep 100ms
-    console.log("sleeping 100ms ...");
-    await new Promise(r => setTimeout(r, 100));
-  }
-}
-
 const app = command({
   name: 'committee',
   args: {
@@ -120,10 +101,8 @@ const app = command({
     
     let lastBlockFiltered = 0;
     const intfc = zkv.interface;
-    let counter = 0;
+    let proposalIdToEndBlock: Map<number, number> = new Map<number, number>();
     while (true) {
-      counter++;
-      console.log("counter: " + counter.toString(), "lastBlockFiltered: " + lastBlockFiltered.toString(), "current block: " + (await provider.getBlockNumber()).toString());
       const newProposalIdSet = new Set<number>();
       // Query for new setup proposal events
       const currentBlockNumber = await provider.getBlockNumber();
@@ -134,15 +113,25 @@ const app = command({
         const logs = await provider.getLogs(filter);
         lastBlockFiltered = currentBlockNumber;
         for (const log of logs) {
-          console.log("found new setup vote event at block number" + log.blockNumber.toString() + "counter: " + counter.toString() + "lastBlockFiltered: " + lastBlockFiltered.toString());
           const parsedLog = intfc.parseLog(log);
           const proposalId = parsedLog.args.proposalId;
-          newProposalIdSet.add(proposalId);
+          const endBlock = parsedLog.args.endBlock;
+          proposalIdToEndBlock.set(proposalId, endBlock);
         }
         // wait_for_vote_and_tally
-        for (const proposalId of newProposalIdSet) {
-          console.log("waiting for votes for proposalId: " + proposalId.toString());
-          wait_for_vote_and_tally(member, zkv, proposalId, BigInt(vote_threshold));
+        for (const [proposalId, endBlock] of proposalIdToEndBlock.entries()) {
+          if (currentBlockNumber >= endBlock) {
+            proposalIdToEndBlock.delete(proposalId);
+          } else {
+            const cur_vote_weight_str = (await zkv.voting_weight_used(proposalId)).toString();
+            const cur_vote_weight = BigInt(cur_vote_weight_str);
+            console.log("cur vote weight_str: " + cur_vote_weight_str, "proposalId: " + proposalId.toString());
+            console.log("vote_threshold: " + vote_threshold.toString());
+            if (cur_vote_weight >= vote_threshold) {
+              await member.tallyVotes(proposalId);
+              proposalIdToEndBlock.delete(proposalId);
+            }
+          }
         }
       }
       // Sleep for 300ms
