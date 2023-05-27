@@ -62,22 +62,26 @@ $ yarn ts-node scripts/committee.ts 2
 $ yarn ts-node scripts/committee.ts 3
 ```
 
-In a new terminal, register some dummy voters and cast votes up to a total voting weight above 10
+In a new terminal, setup a vote with proposal Id 1 and end block 12345678, register some dummy voters and cast votes up to a total voting weight above 10
 (max total voting weight is 20).  For example:
 ```console
-$ yarn ts-node scripts/vote.ts 1 yay 6
+$ yarn ts-node scripts/setup_vote.ts 1 12345678
+```
+
+```console
+$ yarn ts-node scripts/vote.ts 1 1 yay 6
 ```
 ```console
-$ yarn ts-node scripts/vote.ts 2 nay 3
+$ yarn ts-node scripts/vote.ts 1 2 nay 3
 ```
 ```console
-$ yarn ts-node scripts/vote.ts 3 yay 5
+$ yarn ts-node scripts/vote.ts 1 3 yay 5
 ```
 
 When the committee commands notice that the total voting weight used is at
 least 10, they begin the tallying, and will exit after the tallying process is
-complete.  To query the contract for the vote totals, run:
+complete.  To query the contract for the vote totals for proposal Id 1, run:
 
 ```console
-$ yarn ts-node scripts/get_vote_tally.ts
+$ yarn ts-node scripts/get_vote_tally.ts 1
 ```
