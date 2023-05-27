@@ -185,6 +185,9 @@ contract ZKVote is IZKVote {
         uint[2][2] calldata proof_b,
         uint[2] calldata proof_c
     ) public {
+        if (tallied_committee[proposalId] == dkg.threshold()) {
+            return;
+        }
         uint cid = dkg.get_committee_id_from_address(msg.sender);
         require((0 < cid) && (cid <= dkg.n_comm()), "invalid participant id");
         require(tally_cid[proposalId].length < dkg.threshold(), "votes already tallied");

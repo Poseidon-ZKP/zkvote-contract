@@ -76,7 +76,8 @@ export class Voter {
 
   /// DUMMY register as a voter
   public async dummy_register(proposalId: BigNumberish, voting_weight: bigint): Promise<void> {
-    await this.nc.add_voter(proposalId, await this.signer.getAddress(), voting_weight);
+    const tx = await this.nc.add_voter(proposalId, await this.signer.getAddress(), voting_weight);
+    await tx.wait();
   }
   
   /// Cast an (encrypted) vote in one direction, using the voting weight.  The
@@ -89,9 +90,9 @@ export class Voter {
 
     const voting_weight = await this.get_voting_weight(proposalId);
 
-    const zkVote = await zkvote_contract.from_address(this.signer, await this.nc.zkVote());
+    const zkVote = zkvote_contract.from_address(this.signer, await this.nc.zkVote());
 
-    const dc = await dkg_contract.from_address(this.signer, await zkVote.dkg());
+    const dc = dkg_contract.from_address(this.signer, await zkVote.dkg());
 
     const order = groupOrder(this.babyjub);
     const PK: PublicKey = pointFromSolidity(await dc.get_PK());
@@ -130,13 +131,14 @@ export class Voter {
 
     const address = await this.signer.getAddress();
     expect(await this.nc.has_voted(proposalId, address)).to.be.false;
-    await this.nc.castPrivateVote(
+    const tx = await this.nc.castPrivateVote(
       proposalId,
       <SolidityEncryptedVotes>Rs,
       <SolidityEncryptedVotes>Ms,
       proof.a,
       proof.b,
       proof.c);
+    await tx.wait();
     expect(await this.nc.has_voted(proposalId, address)).to.be.true;
 
     return { vote, R: Rs, M: Ms };

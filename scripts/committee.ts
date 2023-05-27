@@ -103,7 +103,6 @@ const app = command({
     const intfc = zkv.interface;
     let proposalIdToEndBlock: Map<number, number> = new Map<number, number>();
     while (true) {
-      const newProposalIdSet = new Set<number>();
       // Query for new setup proposal events
       const currentBlockNumber = await provider.getBlockNumber();
       if (currentBlockNumber > lastBlockFiltered) {
@@ -118,19 +117,20 @@ const app = command({
           const endBlock = parsedLog.args.endBlock;
           proposalIdToEndBlock.set(proposalId, endBlock);
         }
-        // wait_for_vote_and_tally
-        for (const [proposalId, endBlock] of proposalIdToEndBlock.entries()) {
-          if (currentBlockNumber >= endBlock) {
+      }
+      // wait_for_vote_and_tally
+      for (const [proposalId, endBlock] of proposalIdToEndBlock.entries()) {
+        if (currentBlockNumber >= endBlock) {
+          proposalIdToEndBlock.delete(proposalId);
+        } else {
+          const cur_vote_weight_str = (await zkv.voting_weight_used(proposalId)).toString();
+          const cur_vote_weight = BigInt(cur_vote_weight_str);
+          console.log("cur vote weight_str: " + cur_vote_weight_str, "proposalId: " + proposalId.toString());
+          console.log("vote_threshold: " + vote_threshold.toString());
+          if (cur_vote_weight >= vote_threshold) {
+            await member.tallyVotes(proposalId);
+            console.log("Tally complete for proposalId: " + proposalId.toString());
             proposalIdToEndBlock.delete(proposalId);
-          } else {
-            const cur_vote_weight_str = (await zkv.voting_weight_used(proposalId)).toString();
-            const cur_vote_weight = BigInt(cur_vote_weight_str);
-            console.log("cur vote weight_str: " + cur_vote_weight_str, "proposalId: " + proposalId.toString());
-            console.log("vote_threshold: " + vote_threshold.toString());
-            if (cur_vote_weight >= vote_threshold) {
-              await member.tallyVotes(proposalId);
-              proposalIdToEndBlock.delete(proposalId);
-            }
           }
         }
       }
@@ -138,8 +138,6 @@ const app = command({
       // console.log("sleeping 300ms ...");
       await new Promise(r => setTimeout(r, 300));
     }
-
-    process.exit(0);
   }
 });
 

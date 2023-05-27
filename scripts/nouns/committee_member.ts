@@ -91,13 +91,16 @@ export class CommitteeMember {
     async function send_tally(retry: number = 10): Promise<void> {
       try {
         console.log("sending tally tx ...");
-        await that.zkv.tally(
+        const tx = await that.zkv.tally(
           proposalId,
           <any>D_i,
           proof.a,
           proof.b,
           proof.c);
+        
+        await tx.wait();
       } catch (e) {
+        console.log("retry: " + retry + "error: " + e)
         if (retry <= 0) {
           throw e;
         }
@@ -227,7 +230,8 @@ export class CommitteeMemberDKG {
 
     this.log("posting Cs: " + JSON.stringify(this.C_coeff_commitments));
     try {
-      await this.dc.round1(<[BigNumberish, BigNumberish][]>(this.C_coeff_commitments));
+      const tx = await this.dc.round1(<[BigNumberish, BigNumberish][]>(this.C_coeff_commitments));
+      await tx.wait();
     } catch(e) {
       if (retry <= 0) {
         throw e;
@@ -313,7 +317,7 @@ export class CommitteeMemberDKG {
 
       async function send_secret(retry: number = 10): Promise<void> {
         try {
-          await that.dc.round2(
+          const tx = await that.dc.round2(
             recip_id,
             enc,
               <[BigNumberish, BigNumberish]>eph_pk,
@@ -321,7 +325,8 @@ export class CommitteeMemberDKG {
             proof.a,
             proof.b,
             proof.c,
-          )
+          );
+          await tx.wait();
         } catch(e) {
           if (retry <= 0) {
             throw e;
