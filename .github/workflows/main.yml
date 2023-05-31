@@ -57,7 +57,9 @@ jobs:
         run: |
           yarn run check
           yarn run format
-          git diff --no-ext-diff > format.diff && ! [ -s format.diff ]
+          git diff --no-ext-diff > format.diff
+          echo "DIFF:" && cat format.diff
+          ! [ -s format.diff ]
 
       - name: Build circuits and contracts
         run: |
