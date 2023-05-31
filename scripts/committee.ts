@@ -107,7 +107,7 @@ const app = command({
       const currentBlockNumber = await provider.getBlockNumber();
       if (currentBlockNumber > lastBlockFiltered) {
         const filter: Filter = zkv.filters.SetupVote();
-        filter.fromBlock = lastBlockFiltered;
+        filter.fromBlock = lastBlockFiltered + 1;
         filter.toBlock = currentBlockNumber;
         const logs = await provider.getLogs(filter);
         lastBlockFiltered = currentBlockNumber;
