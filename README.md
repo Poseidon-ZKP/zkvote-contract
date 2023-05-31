@@ -85,3 +85,15 @@ complete.  To query the contract for the vote totals for proposal Id 1, run:
 ```console
 $ yarn ts-node scripts/get_vote_tally.ts 1
 ```
+
+## Development
+
+Run syntax checkers and linters:
+```console
+$ yarn run check
+```
+
+Use `tsfmt` and `prettier-plugin-solidity` to format all code.  Run these manually with:
+```console
+$ yarn run format
+```
