@@ -1,4 +1,3 @@
-
 import {
   Nouns, Nouns__factory, NvoteVerifier__factory,
   TallyVerifier__factory,
@@ -15,20 +14,11 @@ export type NounsContractDescriptor = {
 
 export async function deploy(
   deployer: Signer,
-  _dkg_address: string,
-  total_voting_power: bigint,
+  zkVote: string,
 ): Promise<Nouns> {
 
-  const verifier_contracts: Contract[] = await Promise.all([
-    (new NvoteVerifier__factory(deployer)).deploy(),
-    (new TallyVerifier__factory(deployer)).deploy(),
-  ]);
-  const verifiers = verifier_contracts.map(c => c.address);
-
   return await (new Nouns__factory(deployer)).deploy(
-    _dkg_address,
-    verifiers,
-    total_voting_power
+    zkVote,
   );
 }
 

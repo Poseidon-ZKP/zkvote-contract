@@ -1,22 +1,23 @@
-import * as nouns_contract from "./nouns/nouns_contract";
-import { Vote, Voter } from "./nouns/voter";
-import { Nouns } from "./nouns/nouns_contract";
-import { CommitteeMemberDKG, CommitteeMember } from "./nouns/committee_member";
-import { command, run, number, string, positional, option } from 'cmd-ts';
+import * as zkvote_contract from "./nouns/zkvote_contract";
+import { command, run, string, option, positional, number } from 'cmd-ts';
 import * as fs from 'fs';
 import * as ethers from "ethers";
-import { expect } from "chai";
 
 
 const app = command({
   name: 'get_vote_tally',
   args: {
-    nc_descriptor_file: option({
+    proposal_id: positional({
+      type: number,
+      displayName: 'proposal_id',
+      description: "Proposal ID to get tally for",
+    }),
+    zkv_descriptor_file: option({
       type: string,
-      description: "Nouns descriptor file location",
+      description: "ZKVote descriptor file location",
       long: 'descriptor',
-      short: 'd',
-      defaultValue: () => "./nouns.config.json",
+      short: 'zkv',
+      defaultValue: () => "./zkv.config.json",
       defaultValueIsSerializable: true,
     }),
     endpoint: option({
@@ -28,23 +29,23 @@ const app = command({
       defaultValueIsSerializable: true,
     }),
   },
-  handler: async ({ nc_descriptor_file, endpoint }) => {
+  handler: async ({ proposal_id, zkv_descriptor_file, endpoint }) => {
 
     // Load descriptor file
-    const nouns_descriptor: nouns_contract.NounsContractDescriptor = JSON.parse(
-      fs.readFileSync(nc_descriptor_file, 'utf8'));
+    const zkv_descriptor: zkvote_contract.ZKVoteContractDescriptor = JSON.parse(
+      fs.readFileSync(zkv_descriptor_file, 'utf8'));
 
     // Connect
     const provider = new ethers.providers.JsonRpcProvider(endpoint);
-    const nc = nouns_contract.from_descriptor(provider, nouns_descriptor);
+    const zkv = zkvote_contract.from_descriptor(provider, zkv_descriptor);
 
-
-    console.log("Waiting for tally ...");
+    console.log(`Waiting for tally for proposal id ${proposal_id}...`);
 
     // Loop until the vote totals come in
     while (true) {
-      const vote_totals_bn = await nc.get_vote_totals();
+      const vote_totals_bn = await zkv.get_vote_totals(proposal_id);
       const vote_totals = vote_totals_bn.map(x => parseInt(x.toString()));
+      console.log("vote totals:", vote_totals);
       if (vote_totals[0] + vote_totals[1] + vote_totals[2]) {
         console.log("vote totals:");
         console.log("  Abstain: " + vote_totals[0]);

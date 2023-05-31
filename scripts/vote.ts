@@ -25,6 +25,11 @@ function parse_vote(vote: string): Vote {
 const app = command({
   name: 'voter',
   args: {
+    proposal_id: positional({
+      type: number,
+      displayName: 'proposal_id',
+      description: "Proposal ID to get tally for",
+    }),
     dc_descriptor_file: option({
       type: string,
       description: "DKG descriptor file location",
@@ -73,7 +78,7 @@ const app = command({
       description: "Voting weight"
     }),
   },
-  handler: async ({ dc_descriptor_file, nc_descriptor_file, endpoint, my_id, vote_str, vote_weight }) => {
+  handler: async ({ proposal_id, dc_descriptor_file, nc_descriptor_file, endpoint, my_id, vote_str, vote_weight }) => {
 
     expect(my_id).is.greaterThan(0);
 
@@ -99,10 +104,10 @@ const app = command({
     const voter = await Voter.initialize(signer, nouns_descriptor);
 
     // Register the voter
-    await voter.dummy_register(BigInt(vote_weight));
+    await voter.dummy_register(proposal_id, BigInt(vote_weight));
 
     // Vote and wait
-    const vote_record = await voter.cast_vote(vote);
+    const vote_record = await voter.cast_vote(proposal_id, vote);
     console.log(JSON.stringify(vote_record));
 
     process.exit(0);

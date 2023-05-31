@@ -5,6 +5,7 @@ import {
 import { Nouns, NounsContractDescriptor } from "./nouns_contract";
 import * as nouns_contract from "./nouns_contract";
 import * as dkg_contract from "./dkg_contract";
+import * as zkvote_contract from "./zkvote_contract";
 import { generate_zkp_nvote } from "./prover";
 import { hexlify } from "@ethersproject/bytes";
 import { randomBytes } from "@ethersproject/random";
@@ -66,29 +67,32 @@ export class Voter {
       nouns_desc);
   }
 
-  public async get_voting_weight(): Promise<bigint> {
+  public async get_voting_weight(proposalId: BigNumberish): Promise<bigint> {
     // TODO: For now, we just keep this on locally on the class.  Later, query
     // the chain or some snapshot for this info.
-    const weight = await this.nc.get_voting_weight(await this.signer.getAddress());
+    const weight = await this.nc.get_voting_weight(proposalId, await this.signer.getAddress());
     return BigInt(weight.toString());
   }
 
   /// DUMMY register as a voter
-  public async dummy_register(voting_weight: bigint): Promise<void> {
-    await this.nc.add_voter(await this.signer.getAddress(), voting_weight);
+  public async dummy_register(proposalId: BigNumberish, voting_weight: bigint): Promise<void> {
+    const tx = await this.nc.add_voter(proposalId, await this.signer.getAddress(), voting_weight);
+    await tx.wait();
   }
-
+  
   /// Cast an (encrypted) vote in one direction, using the voting weight.  The
   /// returned structure is intended to be recorded by the caller, and should
-  /// not be made public.
-  public async cast_vote(vote: Vote): Promise<VoteRecord | null> {
+  /// not be made public
+  public async cast_vote(proposalId: BigNumberish, vote: Vote): Promise<VoteRecord | null> {
 
     // Encrypt 3 votes.  One of which must be:
     //   voting_weight * G +
 
-    const voting_weight = await this.get_voting_weight();
+    const voting_weight = await this.get_voting_weight(proposalId);
 
-    const dc = await dkg_contract.from_address(this.signer, await this.nc.dkg());
+    const zkVote = zkvote_contract.from_address(this.signer, await this.nc.zkVote());
+
+    const dc = dkg_contract.from_address(this.signer, await zkVote.dkg());
 
     const order = groupOrder(this.babyjub);
     const PK: PublicKey = pointFromSolidity(await dc.get_PK());
@@ -99,7 +103,7 @@ export class Voter {
     const rs: bigint[] = [];
 
     const babyjub = this.babyjub;
-    const vw = await this.get_voting_weight();
+    const vw = await this.get_voting_weight(proposalId);
     function encrypt_vote(v: Vote) {
       // r_i <- random
       // R_i = r_i*G
@@ -126,14 +130,16 @@ export class Voter {
       PK, voting_weight, Rs, Ms, o, rs);
 
     const address = await this.signer.getAddress();
-    expect(await this.nc.has_voted(address)).to.be.false;
-    await this.nc.vote(
+    expect(await this.nc.has_voted(proposalId, address)).to.be.false;
+    const tx = await this.nc.castPrivateVote(
+      proposalId,
       <SolidityEncryptedVotes>Rs,
       <SolidityEncryptedVotes>Ms,
       proof.a,
       proof.b,
       proof.c);
-    expect(await this.nc.has_voted(address)).to.be.true;
+    await tx.wait();
+    expect(await this.nc.has_voted(proposalId, address)).to.be.true;
 
     return { vote, R: Rs, M: Ms };
   }

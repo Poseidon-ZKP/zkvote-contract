@@ -4,6 +4,7 @@ import {
 } from "../crypto";
 import * as nouns_contract from "./nouns_contract";
 import * as dkg_contract from "./dkg_contract";
+import * as zkvote_contract from "./zkvote_contract";
 import {
     Nouns__factory, Round2Verifier__factory, NvoteVerifier__factory, TallyVerifier__factory,
 } from "../types";
@@ -52,11 +53,20 @@ async function main(
 
   const dc_descriptor = await dkg_contract.get_descriptor(dc);
 
+  // Deploy ZKVote contract
+
+  const zkv = await zkvote_contract.deploy(
+    deployer,
+    dc.address,
+    10n, // total voting power
+  );
+
+  const zkv_descriptor = await zkvote_contract.get_descriptor(zkv);
+
   // Deploy contract, and register voters
   const nc = await nouns_contract.deploy(
     deployer,
-    dc_descriptor.address,
-    10n, // total voting power
+    zkv_descriptor.address,
   );
 
   const nc_descriptor = await nouns_contract.get_descriptor(nc);
@@ -64,7 +74,7 @@ async function main(
   // 0. Create committee members
   const committee_dkg: CommitteeMemberDKG[] = await Promise.all(COMMITEE.map(
     async (signer, i) => CommitteeMemberDKG.initialize(
-      babyjub, poseidon, dc_descriptor, nc_descriptor, signer, i + 1)
+      babyjub, poseidon, dc_descriptor, zkv_descriptor, signer, i + 1)
   ));
 
   //
@@ -140,6 +150,13 @@ async function main(
 
   console.log("\n\n---- VOTE ----");
 
+  // Dummy Proposal Id for testing
+  const dummyProposalId = 1234;
+  const dummyEndBlock = 123456;
+
+  // Setup Vote
+  await nc.setupVote(dummyProposalId, dummyEndBlock);
+
   // Instantiate Voter classes
   const voters: Voter[] = await Promise.all(USERS.map(async (signer) => {
     return Voter.initialize(signer, nc_descriptor);
@@ -147,9 +164,9 @@ async function main(
 
   // Dummy registration process
   await Promise.all(voters.map(async (voter, i) => {
-    await voter.dummy_register(V[i]);
+    await voter.dummy_register(dummyProposalId, V[i]);
     // await nc.add_voter(USERS[i].address, V[i]);
-    expect(await voter.get_voting_weight()).is.equal(V[i]);
+    expect(await voter.get_voting_weight(dummyProposalId)).is.equal(V[i]);
   }));
 
   const votes: Vote[] = [Vote.Abstain, Vote.Nay, Vote.Yay];
@@ -171,26 +188,26 @@ async function main(
   for (let i = 0 ; i < voters.length; ++i) {
     const voter = voters[i];
     const my_vote = votes[i % votes.length];
-    const vote_record = await voter.cast_vote(my_vote);
+    const vote_record = await voter.cast_vote(dummyProposalId, my_vote);
 
     console.log(
       "Voter " + (await voter.signer.getAddress()) + ": " +
         JSON.stringify(vote_record));
-    const Ms = (await nc.get_M()).map(pointFromSolidity);
-    const Rs = (await nc.get_R()).map(pointFromSolidity);
+    const Ms = (await zkv.get_M(dummyProposalId)).map(pointFromSolidity);
+    const Rs = (await zkv.get_R(dummyProposalId)).map(pointFromSolidity);
     console.log("M[0]: " + Ms[0]);
     console.log("R[0]: " + Rs[0]);
 
     // DEBUG: count the total votes we should see for each outcome:
-    expect_vote_totals[i % votes.length] += await voter.get_voting_weight();
+    expect_vote_totals[i % votes.length] += await voter.get_voting_weight(dummyProposalId);
 
     vote_records.push(vote_record);
   }
 
   // Sanity check contract state
   {
-    const Ms = (await nc.get_M()).map(pointFromSolidity);
-    const Rs = (await nc.get_R()).map(pointFromSolidity);
+    const Ms = (await zkv.get_M(dummyProposalId)).map(pointFromSolidity);
+    const Rs = (await zkv.get_R(dummyProposalId)).map(pointFromSolidity);
 
     let expectM0 = pointFromScalar(babyjub, 0n);
     let expectR0 = pointFromScalar(babyjub, 0n);
@@ -213,61 +230,61 @@ async function main(
   console.log("\n\n---- TALLY ----");
   if (1) {
     await Promise.all(committee.slice(0, t).map(member => {
-      return member.tallyVotes();
+      return member.tallyVotes(dummyProposalId);
     }));
   } else {
     // For testing, deterministic vote order and check the tally data on the
     // contract.
 
-    await committee[0].tallyVotes();
-    await committee[1].tallyVotes();
+    await committee[0].tallyVotes(dummyProposalId);
+    await committee[1].tallyVotes(dummyProposalId);
 
-    {
-      const [cids, lambdas, DIs] = await nc.get_tally_committee_debug();
-      const R: PublicKey[] = (await nc.get_R()).map(pointFromSolidity);
-      const M: PublicKey[] = (await nc.get_M()).map(pointFromSolidity);
-      console.log("cids: " + cids);
-      console.log("lambdas: " + lambdas);
-      console.log("DIs: " + DIs);
-      console.log("R[0]: " + R[0]);
-      console.log("M[0]: " + M[0]);
+    // {
+    //   const [cids, lambdas, DIs] = await zkv.get_tally_committee_debug(dummyProposalId);
+    //   const R: PublicKey[] = (await zkv.get_R(dummyProposalId)).map(pointFromSolidity);
+    //   const M: PublicKey[] = (await zkv.get_M(dummyProposalId)).map(pointFromSolidity);
+    //   // console.log("cids: " + cids);
+    //   // console.log("lambdas: " + lambdas);
+    //   console.log("DIs: " + DIs);
+    //   console.log("R[0]: " + R[0]);
+    //   console.log("M[0]: " + M[0]);
 
-      // Attempt to decrypt M[0] using R[0] and the DIs[i][0]s.
+    //   // Attempt to decrypt M[0] using R[0] and the DIs[i][0]s.
 
-      expect(cids.length).to.equal(2);
-      expect(lambdas.length).to.equal(2);
-      expect(DIs.length).to.equal(2);
-      expect(cids).to.eql([BigNumber.from(1),BigNumber.from(2)]);
+    //   expect(cids.length).to.equal(2);
+    //   expect(lambdas.length).to.equal(2);
+    //   expect(DIs.length).to.equal(2);
+    //   expect(cids).to.eql([BigNumber.from(1),BigNumber.from(2)]);
 
-      const lambda_1 = BigInt(lambdas[0].toString());
-      const DI_1_0 = pointFromSolidity(DIs[0][0]);
-      const lambda_1_DI_1_0 = pointMul(babyjub, DI_1_0, lambda_1);
-      console.log("lambda_1_DI_1_0: " + lambda_1_DI_1_0);
+    //   const lambda_1 = BigInt(lambdas[0].toString());
+    //   const DI_1_0 = pointFromSolidity(DIs[0][0]);
+    //   const lambda_1_DI_1_0 = pointMul(babyjub, DI_1_0, lambda_1);
+    //   console.log("lambda_1_DI_1_0: " + lambda_1_DI_1_0);
 
-      const lambda_2 = BigInt(lambdas[1].toString());
-      const DI_2_0 = pointFromSolidity(DIs[1][0]);
-      const lambda_2_DI_2_0 = pointMul(babyjub, DI_2_0, lambda_2);
-      console.log("lambda_2_DI_2_0: " + lambda_2_DI_2_0);
+    //   const lambda_2 = BigInt(lambdas[1].toString());
+    //   const DI_2_0 = pointFromSolidity(DIs[1][0]);
+    //   const lambda_2_DI_2_0 = pointMul(babyjub, DI_2_0, lambda_2);
+    //   console.log("lambda_2_DI_2_0: " + lambda_2_DI_2_0);
 
-      const D = pointAdd(babyjub, lambda_1_DI_1_0, lambda_2_DI_2_0);
-      console.log("D: " + D);
+    //   const D = pointAdd(babyjub, lambda_1_DI_1_0, lambda_2_DI_2_0);
+    //   console.log("D: " + D);
 
-      const F = babyjub.F;
-      const minus_D = [D[0], F.toString(F.sub(F.e("0"), babyjub.F.e(D[1])))];
-      console.log("minus_D: " + minus_D);
+    //   const F = babyjub.F;
+    //   const minus_D = [D[0], F.toString(F.sub(F.e("0"), babyjub.F.e(D[1])))];
+    //   console.log("minus_D: " + minus_D);
 
-      const M_sub_D = pointAdd(babyjub, M[0], minus_D);
-      console.log("M_sub_D: " + M_sub_D);
+    //   const M_sub_D = pointAdd(babyjub, M[0], minus_D);
+    //   console.log("M_sub_D: " + M_sub_D);
 
-      const expect_M_sub_D = pointFromScalar(babyjub, 5n);
-      console.log("expect_M_sub_D: " + expect_M_sub_D);
-    }
+    //   const expect_M_sub_D = pointFromScalar(babyjub, 5n);
+    //   console.log("expect_M_sub_D: " + expect_M_sub_D);
+    // }
   }
 
   // 5. Recover the decrypted vote counts
 
   console.log("\n\n---- VOTE COUNTS ----");
-  const vote_totals = (await nc.get_vote_totals()).map((x: BigNumber) => BigInt(x.toString()));
+  const vote_totals = (await zkv.get_vote_totals(dummyProposalId)).map((x: BigNumber) => BigInt(x.toString()));
   console.log("vote_totals: " + vote_totals);
   expect(vote_totals).to.eql(expect_vote_totals);
 }
