@@ -6,7 +6,8 @@ import "../interfaces/IVerifierRound2.sol";
 import "../interfaces/IDkg.sol";
 
 contract DKG is IDkg {
-        uint constant babyjub_sub_order = 2736030358979909402780800718157159386076813972158567259200215660948447373041;
+    uint constant babyjub_sub_order =
+        2736030358979909402780800718157159386076813972158567259200215660948447373041;
 
     IVerifierRound2 round2_verifier;
 
@@ -39,7 +40,12 @@ contract DKG is IDkg {
 
     // Events
     event Round1Complete();
-    event Round2Share(uint indexed recip_id, uint sender_id, uint enc_sk_share, uint[2] enc_eph_PK);
+    event Round2Share(
+        uint indexed recip_id,
+        uint sender_id,
+        uint enc_sk_share,
+        uint[2] enc_eph_PK
+    );
 
     constructor(
         address _round2_verifier,
@@ -53,10 +59,10 @@ contract DKG is IDkg {
 
         n_comm = _committee.length;
         PK_shares = new uint[2][](n_comm + 1);
-        for (uint i=0; i < _committee.length; ++i) {
+        for (uint i = 0; i < _committee.length; ++i) {
             uint id = i + 1;
             committee_ids[_committee[i]] = id;
-            PK_shares[id] = [0,1];
+            PK_shares[id] = [0, 1];
         }
     }
 
@@ -70,11 +76,12 @@ contract DKG is IDkg {
         return PK_coeffs;
     }
 
-    function round1(
-        uint[2][] memory C_coeffs
-    ) public {
+    function round1(uint[2][] memory C_coeffs) public {
         require(round1_received < n_comm, "round 1 already complete");
-        require(!round1_done[msg.sender], "user already participated in round 1!");
+        require(
+            !round1_done[msg.sender],
+            "user already participated in round 1!"
+        );
         require(C_coeffs.length == threshold, "round 1 already done!");
 
         uint sender_id = committee_ids[msg.sender];
@@ -83,12 +90,17 @@ contract DKG is IDkg {
         for (uint256 t = 0; t < threshold; t++) {
             require(
                 CurveBabyJubJub.isOnCurve(C_coeffs[t][0], C_coeffs[t][1]),
-                "invalid point");
+                "invalid point"
+            );
             (uint256 x, uint256 y) = CurveBabyJubJub.pointMul(
-                C_coeffs[t][0], C_coeffs[t][1], babyjub_sub_order + 1);
+                C_coeffs[t][0],
+                C_coeffs[t][1],
+                babyjub_sub_order + 1
+            );
             require(
                 (x == C_coeffs[t][0]) && (y == C_coeffs[t][1]),
-                "point not in correct subgroup");
+                "point not in correct subgroup"
+            );
         }
         round1_C_coeffs[sender_id] = C_coeffs;
 
@@ -99,7 +111,11 @@ contract DKG is IDkg {
         } else {
             for (uint256 t = 0; t < threshold; t++) {
                 (uint256 x, uint256 y) = CurveBabyJubJub.pointAdd(
-                    PK_coeffs[t][0], PK_coeffs[t][1], C_coeffs[t][0], C_coeffs[t][1]);
+                    PK_coeffs[t][0],
+                    PK_coeffs[t][1],
+                    C_coeffs[t][0],
+                    C_coeffs[t][1]
+                );
                 PK_coeffs[t] = [x, y];
             }
         }
@@ -121,10 +137,13 @@ contract DKG is IDkg {
         return round1_received == n_comm;
     }
 
-    function get_round1_PK_for(uint participant_id) public view returns (uint, uint) {
+    function get_round1_PK_for(
+        uint participant_id
+    ) public view returns (uint, uint) {
         require(
             (0 < participant_id) && (participant_id <= n_comm),
-            "invalid participant_id");
+            "invalid participant_id"
+        );
         uint[2] storage r1_p_PK = round1_C_coeffs[participant_id][0];
         return (r1_p_PK[0], r1_p_PK[1]);
     }
@@ -137,16 +156,17 @@ contract DKG is IDkg {
         uint256[2] calldata proof_a,
         uint256[2][2] calldata proof_b,
         uint256[2] calldata proof_c
-        // bytes calldata proof
     ) public {
         require(
             (0 < recip_id) && (recip_id <= n_comm),
-            "unexpected validator id");
+            "unexpected validator id"
+        );
         uint sender_id = committee_ids[msg.sender];
         require(sender_id > 0, "invalid sender id");
         require(
             round2_shares_received[sender_id][recip_id] == false,
-            "round2 sender-receiver pair already submitted");
+            "round2 sender-receiver pair already submitted"
+        );
 
         uint[2] memory recip_pk = round1_C_coeffs[recip_id][0];
 
@@ -164,7 +184,7 @@ contract DKG is IDkg {
         pub[7] = eph_pk[1];
         // Copy the C_coeffs at the end of the public inputs.
         uint dest_idx = 8;
-        for (uint i = 0 ; i < threshold ; ++i) {
+        for (uint i = 0; i < threshold; ++i) {
             pub[dest_idx++] = round1_C_coeffs[sender_id][i][0];
             pub[dest_idx++] = round1_C_coeffs[sender_id][i][1];
         }
@@ -174,14 +194,21 @@ contract DKG is IDkg {
 
         uint[2] storage recip_pk_share = PK_shares[recip_id];
         (recip_pk_share[0], recip_pk_share[1]) = CurveBabyJubJub.pointAdd(
-            recip_pk_share[0], recip_pk_share[1], PK_i_l[0], PK_i_l[1]);
+            recip_pk_share[0],
+            recip_pk_share[1],
+            PK_i_l[0],
+            PK_i_l[1]
+        );
 
         round2_shares_received[sender_id][recip_id] = true;
         ++round2_num_shares;
         emit Round2Share(recip_id, sender_id, enc, eph_pk);
     }
 
-    function round2_share_received(uint sender_id, uint recip_id) public view returns (bool) {
+    function round2_share_received(
+        uint sender_id,
+        uint recip_id
+    ) public view returns (bool) {
         require((0 < sender_id) && (sender_id <= n_comm), "invalid sender_id");
         require((0 < recip_id) && (recip_id <= n_comm), "invalid recip_id");
         return round2_shares_received[sender_id][recip_id];
@@ -191,14 +218,19 @@ contract DKG is IDkg {
         return round2_num_shares == n_comm * n_comm;
     }
 
-    function get_PK_for(uint participant_id) public view returns(uint, uint) {
+    function get_PK_for(uint participant_id) public view returns (uint, uint) {
         require(round2_complete(), "round2 not complete");
-        require((0 < participant_id) && (participant_id <= n_comm), "invalid participant_id");
+        require(
+            (0 < participant_id) && (participant_id <= n_comm),
+            "invalid participant_id"
+        );
         uint[2] storage pk_share = PK_shares[participant_id];
         return (pk_share[0], pk_share[1]);
     }
 
-    function get_committee_id_from_address(address addr) public view returns (uint) {
+    function get_committee_id_from_address(
+        address addr
+    ) public view returns (uint) {
         return committee_ids[addr];
     }
 }

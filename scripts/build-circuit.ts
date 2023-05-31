@@ -5,13 +5,13 @@ const args = process.argv;
 
 let circuits = args.slice(2);
 if (circuits.length == 0) {
-  circuits = [ "round2", "nvote", "tally" ];
+  circuits = ["round2", "nvote", "tally"];
 }
 console.log("Building circuits: " + circuits);
 
 Promise.all(circuits.map(build_circuit))
-.then(() => process.exit(0))
-.catch(error => {
-  console.error(error);
-  process.exit(1);
-});
+  .then(() => process.exit(0))
+  .catch(error => {
+    console.error(error);
+    process.exit(1);
+  });

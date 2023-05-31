@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-pragma solidity >= 0.8.0;
+pragma solidity >=0.8.0;
 
 /**
  * @dev Contract module that helps prevent reentrant calls to a function.
@@ -24,7 +24,8 @@ pragma solidity >= 0.8.0;
 contract ReentrancyGuard {
     /// @dev Address of lock flag variable.
     /// @dev Flag is placed at random memory location to not interfere with Storage contract.
-    uint256 private constant LOCK_FLAG_ADDRESS = 0x8e94fed44239eb2314ab7a406345e6c5a8f0ccedf3b600de3d004e672c33abf4; // keccak256("ReentrancyGuard") - 1;
+    uint256 private constant LOCK_FLAG_ADDRESS =
+        0x8e94fed44239eb2314ab7a406345e6c5a8f0ccedf3b600de3d004e672c33abf4; // keccak256("ReentrancyGuard") - 1;
 
     // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/566a774222707e424896c0c390a84dc3c13bdcb2/contracts/security/ReentrancyGuard.sol
     // The values being non-zero value makes deployment a bit more expensive,

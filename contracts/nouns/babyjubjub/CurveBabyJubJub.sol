@@ -9,7 +9,8 @@ library CurveBabyJubJub {
     // D = 168696
     uint256 public constant D = 0x292F8;
     // Prime Q = 21888242871839275222246405745257275088548364400416034343698204186575808495617
-    uint256 public constant Q = 0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001;
+    uint256 public constant Q =
+        0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001;
 
     /**
      * @dev Add 2 points on baby jubjub curve
@@ -17,7 +18,12 @@ library CurveBabyJubJub {
      * x3 = (x1y2 + y1x2) / (1 + dx1x2y1y2)
      * y3 = (y1y2 - ax1x2) / (1 - dx1x2y1y2)
      */
-    function pointAdd(uint256 _x1, uint256 _y1, uint256 _x2, uint256 _y2) internal view returns (uint256 x3, uint256 y3) {
+    function pointAdd(
+        uint256 _x1,
+        uint256 _y1,
+        uint256 _x2,
+        uint256 _y2
+    ) internal view returns (uint256 x3, uint256 y3) {
         if (_x1 == 0 && _y1 == 0) {
             return (_x2, _y2);
         }
@@ -40,7 +46,10 @@ library CurveBabyJubJub {
      * @dev Double a point on baby jubjub curve
      * Doubling can be performed with the same formula as addition
      */
-    function pointDouble(uint256 _x1, uint256 _y1) internal view returns (uint256 x2, uint256 y2) {
+    function pointDouble(
+        uint256 _x1,
+        uint256 _y1
+    ) internal view returns (uint256 x2, uint256 y2) {
         return pointAdd(_x1, _y1, _x1, _y1);
     }
 
@@ -48,7 +57,11 @@ library CurveBabyJubJub {
      * @dev Multiply a point on baby jubjub curve by a scalar
      * Use the double and add algorithm
      */
-    function pointMul(uint256 _x1, uint256 _y1, uint256 _d) internal view returns (uint256 x2, uint256 y2) {
+    function pointMul(
+        uint256 _x1,
+        uint256 _y1,
+        uint256 _d
+    ) internal view returns (uint256 x2, uint256 y2) {
         uint256 remaining = _d;
 
         uint256 px = _x1;
@@ -86,7 +99,11 @@ library CurveBabyJubJub {
     /**
      * @dev Perform modular subtraction
      */
-    function submod(uint256 _a, uint256 _b, uint256 _mod) internal pure returns (uint256) {
+    function submod(
+        uint256 _a,
+        uint256 _b,
+        uint256 _mod
+    ) internal pure returns (uint256) {
         uint256 aNN = _a;
 
         if (_a <= _b) {
@@ -97,7 +114,12 @@ library CurveBabyJubJub {
     }
 
     // see page4 (l5) https://iden3-docs.readthedocs.io/en/latest/_downloads/33717d75ab84e11313cc0d8a090b636f/Baby-Jubjub.pdf
-    function pointSub(uint256 _x1, uint256 _y1, uint256 _x2, uint256 _y2) internal view returns (uint256 x3, uint256 y3) {
+    function pointSub(
+        uint256 _x1,
+        uint256 _y1,
+        uint256 _x2,
+        uint256 _y2
+    ) internal view returns (uint256 x3, uint256 y3) {
         return pointAdd(_x1, _y1, submod(0, _x2, Q), _y2);
     }
 
@@ -113,7 +135,11 @@ library CurveBabyJubJub {
     /**
      * @dev Helper function to call the bigModExp precompile
      */
-    function expmod(uint256 _b, uint256 _e, uint256 _m) internal view returns (uint256 o) {
+    function expmod(
+        uint256 _b,
+        uint256 _e,
+        uint256 _m
+    ) internal view returns (uint256 o) {
         assembly {
             let memPtr := mload(0x40)
             mstore(memPtr, 0x20) // Length of base _b
@@ -128,7 +154,8 @@ library CurveBabyJubJub {
             switch success
             case 0 {
                 revert(0x0, 0x0)
-            } default {
+            }
+            default {
                 o := mload(memPtr)
             }
         }

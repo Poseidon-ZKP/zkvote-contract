@@ -7,14 +7,14 @@ const app = command({
   name: 'setup_vote',
   args: {
     proposal_id: positional({
-        type: number,
-        displayName: 'proposal_id',
-        description: "Proposal ID to get tally for",
+      type: number,
+      displayName: 'proposal_id',
+      description: "Proposal ID to get tally for",
     }),
     end_block: positional({
-        type: number,
-        displayName: 'end_block',
-        description: "end block for proposal",
+      type: number,
+      displayName: 'end_block',
+      description: "end block for proposal",
     }),
     nc_descriptor_file: option({
       type: string,

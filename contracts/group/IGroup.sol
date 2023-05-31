@@ -9,10 +9,7 @@ interface IGroup {
         uint256 merkleTreeDepth;
     }
 
-    function updateGroupAdmin(
-        uint256 groupId,
-        address newAdmin)
-        external;
+    function updateGroupAdmin(uint256 groupId, address newAdmin) external;
 
     function createGroup(
         uint256 groupId,
@@ -20,10 +17,7 @@ interface IGroup {
         address admin
     ) external;
 
-    function addMember(
-        uint256 groupId,
-        uint256 identityCommitment)
-        external;
+    function addMember(uint256 groupId, uint256 identityCommitment) external;
 
     function updateMember(
         uint256 groupId,

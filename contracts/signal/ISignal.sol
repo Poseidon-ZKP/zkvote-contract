@@ -2,7 +2,6 @@
 pragma solidity 0.8.4;
 
 interface ISignal {
-
     /// @dev See {ISemaphoreVoting-castVote}.
     function signal(
         uint256 rc,

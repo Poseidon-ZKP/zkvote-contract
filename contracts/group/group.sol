@@ -21,17 +21,19 @@ contract Group is IGroup, SemaphoreGroups {
         require(admins[id] == _msgSender(), "only Admin!");
         _;
     }
+
     function updateGroupAdmin(
         uint256 groupId,
-        address newAdmin)
-        external override onlyAdmin(groupId)
-    {
+        address newAdmin
+    ) external override onlyAdmin(groupId) {
         admins[groupId] = newAdmin;
     }
 
     constructor(Verifier[] memory _verifiers) {
         for (uint8 i = 0; i < _verifiers.length; ) {
-            verifiers[_verifiers[i].merkleTreeDepth] = IVerifier(_verifiers[i].contractAddress);
+            verifiers[_verifiers[i].merkleTreeDepth] = IVerifier(
+                _verifiers[i].contractAddress
+            );
 
             unchecked {
                 ++i;
@@ -52,9 +54,8 @@ contract Group is IGroup, SemaphoreGroups {
 
     function addMember(
         uint256 groupId,
-        uint256 identityCommitment)
-        public override onlyAdmin(groupId)
-    {
+        uint256 identityCommitment
+    ) public override onlyAdmin(groupId) {
         _addMember(groupId, identityCommitment);
     }
 
@@ -65,7 +66,13 @@ contract Group is IGroup, SemaphoreGroups {
         uint256[] calldata proofSiblings,
         uint8[] calldata proofPathIndices
     ) public override onlyAdmin(groupId) {
-        _updateMember(groupId, identityCommitment, newIdentityCommitment, proofSiblings, proofPathIndices);
+        _updateMember(
+            groupId,
+            identityCommitment,
+            newIdentityCommitment,
+            proofSiblings,
+            proofPathIndices
+        );
     }
 
     function removeMember(
@@ -74,7 +81,12 @@ contract Group is IGroup, SemaphoreGroups {
         uint256[] calldata proofSiblings,
         uint8[] calldata proofPathIndices
     ) public override onlyAdmin(groupId) {
-        _removeMember(groupId, identityCommitment, proofSiblings, proofPathIndices);
+        _removeMember(
+            groupId,
+            identityCommitment,
+            proofSiblings,
+            proofPathIndices
+        );
     }
 
     function verifyProof(
@@ -94,5 +106,4 @@ contract Group is IGroup, SemaphoreGroups {
         );
         return true;
     }
-
 }

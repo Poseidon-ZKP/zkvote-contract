@@ -1,5 +1,7 @@
-import { groupOrder, pointFromScalar, polynomial_evaluate,
-         polynomial_evaluate_group } from "../scripts/crypto";
+import {
+  groupOrder, pointFromScalar, polynomial_evaluate,
+  polynomial_evaluate_group
+} from "../scripts/crypto";
 import { expect } from "chai";
 const { buildBabyjub } = require('circomlibjs');
 
@@ -15,7 +17,7 @@ describe("Committee Member", () => {
 
     it("works", async function() {
       // f(x) = 3 + 2x + x^2
-      const f = [ 3n, 2n, 1n ];
+      const f = [3n, 2n, 1n];
 
       // f(0) == 3
       expect(polynomial_evaluate(f, 0n, 1000000n)).to.equal(3n);
@@ -33,7 +35,7 @@ describe("Committee Member", () => {
       expect(polynomial_evaluate(f, 110n, 1000000n)).to.equal(12323n);
 
       // g(x) = 3 + 5*x^11
-      const g = [ 3n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 5n ];
+      const g = [3n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 5n];
 
       // g(17) == 34271896307633 == 406041 mod 1000007
       // g(17) == 171359481538168 == 30194 mod 1000007
@@ -46,7 +48,7 @@ describe("Committee Member", () => {
 
     it("works", async function() {
       // f(x) = 30 + 31x
-      const f = [ 30n, 31n ];
+      const f = [30n, 31n];
       const f_C = f.map(x => pointFromScalar(babyjub, x));
       const x = 2n;
 

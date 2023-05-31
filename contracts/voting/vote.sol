@@ -24,11 +24,14 @@ struct Poll {
 }
 
 // Compose group/signal primitive
-contract Vote is ReentrancyGuard{
+contract Vote is ReentrancyGuard {
     IGroup public group;
     ISignal public signal;
     event VoteAdded(uint256 indexed groupId, bytes32 voteMsg);
-    event JoinRequested(uint256 indexed groupId, uint256 indexed identityCommitment);
+    event JoinRequested(
+        uint256 indexed groupId,
+        uint256 indexed identityCommitment
+    );
 
     mapping(uint256 => mapping(bytes32 => uint256)) public voteStat;
     uint public GROUP_ID;
@@ -48,9 +51,9 @@ contract Vote is ReentrancyGuard{
     mapping(uint => string) public groupName;
 
     enum PRIVACY {
-        ANYONE,     // any one can join
-        NFT,        // could join group if owner of a NFT
-        TOKEN       // could join group if owner of token
+        ANYONE, // any one can join
+        NFT, // could join group if owner of a NFT
+        TOKEN // could join group if owner of token
     }
 
     struct groupInfo {
@@ -59,7 +62,7 @@ contract Vote is ReentrancyGuard{
         string desc;
         string icon;
         PRIVACY privacy;
-        address asset;  // asset (nft/token) contract address
+        address asset; // asset (nft/token) contract address
     }
 
     event GroupInfo(
@@ -75,17 +78,22 @@ contract Vote is ReentrancyGuard{
 
     mapping(uint => mapping(uint => Poll)) public groupPolls;
     mapping(uint => uint) public groupPollNum;
-    mapping(uint256 => mapping(uint256 => mapping(string => uint256))) public pollVoteStat;
-    event PoolVoteAdded(uint256 indexed groupId, uint256 indexed poolId, string voteMsg);
-    event MemberAdded(uint256 indexed groupId, uint256 indexed identityCommitment);
+    mapping(uint256 => mapping(uint256 => mapping(string => uint256)))
+        public pollVoteStat;
+    event PoolVoteAdded(
+        uint256 indexed groupId,
+        uint256 indexed poolId,
+        string voteMsg
+    );
+    event MemberAdded(
+        uint256 indexed groupId,
+        uint256 indexed identityCommitment
+    );
 
-    function initialize(
-        IGroup _group,
-        ISignal _signal
-	) external {
+    function initialize(IGroup _group, ISignal _signal) external {
         initializeReentrancyGuard();
 
-        group  = _group;
+        group = _group;
         signal = _signal;
         GROUP_ID = 0;
     }
@@ -125,29 +133,23 @@ contract Vote is ReentrancyGuard{
     ) public returns (uint groupId) {
         groupId = createGroup(merkleTreeDepth, admin);
         groups[groupId] = groupInfo({
-            id : groupId,
-            name : name,
-            desc : description,
-            icon : icon,
-            privacy : privacy,
-            asset : asset
+            id: groupId,
+            name: name,
+            desc: description,
+            icon: icon,
+            privacy: privacy,
+            asset: asset
         });
 
         emit GroupInfo(groupId, name, description, icon, privacy, asset);
     }
 
-    function JoinRequest(
-        uint256 groupId,
-        uint256 identityCommitment
-    ) public {
+    function JoinRequest(uint256 groupId, uint256 identityCommitment) public {
         emit JoinRequested(groupId, identityCommitment);
     }
 
     // TODO : Group frozen when vote start.
-    function addMember(
-        uint256 groupId,
-        uint256 identityCommitment
-    ) public {
+    function addMember(uint256 groupId, uint256 identityCommitment) public {
         require(!idInGroup[groupId][identityCommitment], "id exist in group!");
         checkPrivacy(groupId);
         group.addMember(groupId, identityCommitment);
@@ -155,31 +157,38 @@ contract Vote is ReentrancyGuard{
         emit MemberAdded(groupId, identityCommitment);
     }
 
-    function checkPrivacy(uint groupId) view public {
+    function checkPrivacy(uint groupId) public view {
         if (groups[groupId].privacy == PRIVACY.NFT) {
             IERC721 nft = IERC721(groups[groupId].asset);
             require(nft.balanceOf(msg.sender) > 0, "missing nft!");
         }
     }
 
-    event PollAdded(uint256 indexed groupId, uint256 indexed pollId, string title, string[] voteMsgs, string desc);
+    event PollAdded(
+        uint256 indexed groupId,
+        uint256 indexed pollId,
+        string title,
+        string[] voteMsgs,
+        string desc
+    );
+
     function createPollInGroup(
         uint256 groupId,
         string[] calldata voteMsgs,
         string calldata title,
         string calldata desc
-    ) public returns(uint pollId) {
+    ) public returns (uint pollId) {
         pollId = groupPollNum[groupId]++;
         groupPolls[groupId][pollId] = Poll({
-            group_id : groupId,
-            id : pollId,
-            msgs : new string[](voteMsgs.length),
-            state : PollState.Created,
-            title : title,
-            desc : desc
+            group_id: groupId,
+            id: pollId,
+            msgs: new string[](voteMsgs.length),
+            state: PollState.Created,
+            title: title,
+            desc: desc
         });
 
-        for (uint i=0; i < voteMsgs.length; ++i) {
+        for (uint i = 0; i < voteMsgs.length; ++i) {
             groupPolls[groupId][pollId].msgs[i] = voteMsgs[i];
         }
 
@@ -200,7 +209,15 @@ contract Vote is ReentrancyGuard{
     ) public {
         uint256 externalNullifier = (groupId << 128) + pollId;
 
-        vote(rc, groupId, group_proof, keccak256(abi.encode(voteMsg)), nullifierHash, externalNullifier, signal_proof);
+        vote(
+            rc,
+            groupId,
+            group_proof,
+            keccak256(abi.encode(voteMsg)),
+            nullifierHash,
+            externalNullifier,
+            signal_proof
+        );
         pollVoteStat[groupId][pollId][voteMsg]++;
         emit PoolVoteAdded(groupId, pollId, voteMsg);
     }
@@ -218,10 +235,18 @@ contract Vote is ReentrancyGuard{
         uint256[8] calldata signal_proof
     ) public {
         require(group.verifyProof(rc, groupId, group_proof), "group proof err");
-        require(signal.signal(rc, voteMsg, nullifierHash, externalNullifier, signal_proof), "signal fail");
+        require(
+            signal.signal(
+                rc,
+                voteMsg,
+                nullifierHash,
+                externalNullifier,
+                signal_proof
+            ),
+            "signal fail"
+        );
 
         emit VoteAdded(groupId, voteMsg);
         voteStat[groupId][voteMsg] += 1;
     }
-
 }

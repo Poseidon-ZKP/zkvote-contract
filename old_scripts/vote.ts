@@ -11,8 +11,8 @@ import { poseidon } from "../node_modules//@semaphore-protocol/identity/node_mod
 
 import { BigNumber, ContractFactory } from "ethers";
 
-import { default as generateGroupProof} from "../library/group/proof";
-import { default as generateSignalProof} from "../library/signal/proof";
+import { default as generateGroupProof } from "../library/group/proof";
+import { default as generateSignalProof } from "../library/signal/proof";
 import { PoseidonT3__factory, GroupVerifier__factory, Group__factory, SignalVerifier__factory, Signal__factory, Vote__factory, Vote, VoteNFT__factory, VoteNFT } from "./types";
 
 import * as fs from 'fs';
@@ -22,13 +22,13 @@ import { expect } from "chai"
 const hre = require('hardhat');
 
 async function deploy_nft(
-  owner :SignerWithAddress
-) : Promise<VoteNFT> {
+  owner: SignerWithAddress
+): Promise<VoteNFT> {
 
   // deploy nft
   const params = ["zkvote nft", "zkvote"]
   const vnft = await (new VoteNFT__factory(owner)).deploy(params[0], params[1])
-  console.log("vnft.address : " , vnft.address)
+  console.log("vnft.address : ", vnft.address)
   writeToEnv("VNFT", vnft.address)
   // await verify2(vnft.address, ["zkvote nft", "zkvote"])
 
@@ -37,13 +37,13 @@ async function deploy_nft(
 
 async function deploy(
   owner
-) : Promise<Vote> {
+): Promise<Vote> {
 
   // deploy contract 1/7 : group verifier
   const gvf = new GroupVerifier__factory(owner)
   const group_verifier = await upgrades.deployProxy(gvf);
   await group_verifier.deployed();
-  console.log("group_verifier.address : " , group_verifier.address)
+  console.log("group_verifier.address : ", group_verifier.address)
   await verify(group_verifier.address)
 
   // deploy contract 2/7 : poseidon(2)
@@ -54,7 +54,7 @@ async function deploy(
   const poseidonLib = await PoseidonLibFactory.deploy()
   await poseidonLib.deployed()
   const pt3 = PoseidonT3__factory.connect(poseidonLib.address, owner)
-  console.log("pt3.address : " , pt3.address)
+  console.log("pt3.address : ", pt3.address)
 
   // deploy contract 3/7 : M Tree
   const IncrementalBinaryTreeLibFactory = await ethers.getContractFactory("IncrementalBinaryTree", {
@@ -64,7 +64,7 @@ async function deploy(
   })
   const incrementalBinaryTreeLib = await IncrementalBinaryTreeLibFactory.deploy()
   await incrementalBinaryTreeLib.deployed()
-  console.log("incrementalBinaryTreeLib.address : " , incrementalBinaryTreeLib.address)
+  console.log("incrementalBinaryTreeLib.address : ", incrementalBinaryTreeLib.address)
 
   // deploy contract 4/4 : group
   const ContractFactory = await ethers.getContractFactory("Group", {
@@ -75,28 +75,28 @@ async function deploy(
 
   const groupArs = [
     {
-      contractAddress : group_verifier.address,
-      merkleTreeDepth : TREE_DEPTH
+      contractAddress: group_verifier.address,
+      merkleTreeDepth: TREE_DEPTH
     }]
   const gc = await (await ContractFactory.deploy(groupArs)).deployed()
-	// const gc = await upgrades.deployProxy(ContractFactory, [{
+  // const gc = await upgrades.deployProxy(ContractFactory, [{
   //     _verifiers : [group_verifier.address]
   // }]);
-	// await gc.deployed();
+  // await gc.deployed();
   const g = Group__factory.connect(gc.address, owner)
-  console.log("g.address : " , g.address)
+  console.log("g.address : ", g.address)
   await verify2(g.address, groupArs)
 
   // deploy contract 1/2 : signal verifier
   const svf = new SignalVerifier__factory(owner)
   const signal_verifier = await upgrades.deployProxy(svf);
-	await signal_verifier.deployed();
-  console.log("signal_verifier.address : " , signal_verifier.address)
+  await signal_verifier.deployed();
+  console.log("signal_verifier.address : ", signal_verifier.address)
   await verify(signal_verifier.address)
 
   // deploy contract 2/2 : Signal
   const s = await (new Signal__factory(owner)).deploy(signal_verifier.address)
-  console.log("signal.address : " , s.address)
+  console.log("signal.address : ", s.address)
   await verify2(s.address, [signal_verifier.address])
 
   // deploy contract  : Vote
@@ -104,18 +104,18 @@ async function deploy(
   const VoteInitParams = [g.address, s.address]
   const v = await upgrades.deployProxy(vf, VoteInitParams)
   await v.deployed()
-  console.log("vote.address : " , v.address)
+  console.log("vote.address : ", v.address)
   await verify2(v.address, VoteInitParams)
 
-	let deploy_flag = "\n\n# ++++++ depoly " + hre.hardhatArguments.network + " on " + new Date().toUTCString() + " ++++++++++++"
-	fs.appendFileSync('.env', deploy_flag)
-	writeToEnv("PT3", pt3.address)
-	writeToEnv("IBTree", incrementalBinaryTreeLib.address)
-	writeToEnv("GROUP", g.address)
-	writeToEnv("GROUP_VERIFIER", group_verifier.address)
-	writeToEnv("SIGNAL", s.address)
-	writeToEnv("SIGNAL_VERIFIER", signal_verifier.address)
-	writeToEnv("VOTE", v.address)
+  let deploy_flag = "\n\n# ++++++ depoly " + hre.hardhatArguments.network + " on " + new Date().toUTCString() + " ++++++++++++"
+  fs.appendFileSync('.env', deploy_flag)
+  writeToEnv("PT3", pt3.address)
+  writeToEnv("IBTree", incrementalBinaryTreeLib.address)
+  writeToEnv("GROUP", g.address)
+  writeToEnv("GROUP_VERIFIER", group_verifier.address)
+  writeToEnv("SIGNAL", s.address)
+  writeToEnv("SIGNAL_VERIFIER", signal_verifier.address)
+  writeToEnv("VOTE", v.address)
 
   // TODO(duncan): Added cast here.  Needs proper fix.
   return <Vote>v;
@@ -124,8 +124,8 @@ async function deploy(
 async function main(
 ) {
   const owners = await ethers.getSigners()
-  let owner : SignerWithAddress = owners[0]
-  let other : SignerWithAddress = owners[1]
+  let owner: SignerWithAddress = owners[0]
+  let other: SignerWithAddress = owners[1]
   console.log("owner : ", owner.address, " balance : ", await owner.getBalance())
 
   if (process.env.ONLY_DEPLOY_NFT) {
@@ -138,7 +138,7 @@ async function main(
     exit(0)
   }
 
-  const v : Vote = await deploy(owner)
+  const v: Vote = await deploy(owner)
   if (process.env.ONLY_DEPLOY) {
     exit(0)
   }
@@ -151,7 +151,7 @@ async function main(
     TOKEN       // could join group if owner of token
   }
 
-  const vnft : VoteNFT = await deploy_nft(owner)
+  const vnft: VoteNFT = await deploy_nft(owner)
   expect(await vnft.balanceOf(owner.address)).equal(0)
 
   await (await (v.CreateGroupWithAssetDemand(
@@ -199,10 +199,10 @@ async function main(
   group.addMembers([identityCommitment])
 
   // same r/rc
-  const rand : bigint = BigNumber.from(123456).toBigInt()
+  const rand: bigint = BigNumber.from(123456).toBigInt()
   const rc = poseidon([rand, identity.getNullifier()])
 
-  const groupProof =  await generateGroupProof(
+  const groupProof = await generateGroupProof(
     identity,
     group,
     rand,
@@ -237,7 +237,7 @@ async function main(
       [msg]
     )
   )
-  const signalProof =  await generateSignalProof(
+  const signalProof = await generateSignalProof(
     identity,
     rand,
     externalNullifier.toBigInt(),
@@ -282,8 +282,8 @@ async function main(
 }
 
 async function _upgrade(
-  PROXY_ADDR : string,
-  cf : ContractFactory
+  PROXY_ADDR: string,
+  cf: ContractFactory
 ) {
   let old_target = await upgrades.erc1967.getImplementationAddress(PROXY_ADDR)
   const c = await upgrades.upgradeProxy(PROXY_ADDR, cf)
@@ -293,13 +293,13 @@ async function _upgrade(
   let upgrade_flag = "\n# ++++++ upgrade " + hre.hardhatArguments.network + " on " + new Date().toUTCString() + " ++++++++++++"
   fs.appendFileSync('.env', upgrade_flag)
   if (old_target.toLowerCase() != new_target.toLowerCase()) {
-	  writeToEnv("# PROXY " + PROXY_ADDR + " NEW_TARGET", new_target)
+    writeToEnv("# PROXY " + PROXY_ADDR + " NEW_TARGET", new_target)
     await verify(new_target)
   }
 }
 
 async function upgrade(
-  owner : SignerWithAddress
+  owner: SignerWithAddress
 ) {
   const GROUP_VERIFIER_PROXY_ADDR = process.env.GROUP_VERIFIER
   const GROUP_PROXY_ADDR = process.env.GROUP

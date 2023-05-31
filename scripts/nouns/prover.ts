@@ -3,9 +3,9 @@ import { expect } from "chai";
 import { BigNumberish } from "ethers";
 import * as snarkjs from "snarkjs"
 
-function circuit_paths(circuit_name: string): {wasm: string, zkey: string} {
+function circuit_paths(circuit_name: string): { wasm: string, zkey: string } {
   const pwd = process.cwd();
-  const artifact_dir  = pwd + "/artifacts/circuits/" + circuit_name  + "/";
+  const artifact_dir = pwd + "/artifacts/circuits/" + circuit_name + "/";
   return {
     wasm: artifact_dir + circuit_name + "_js/" + circuit_name + ".wasm",
     zkey: artifact_dir + circuit_name + ".zkey.16",
@@ -27,14 +27,14 @@ export type PlonkSolidityProof = [
 
 export default function packPlonkProofToSolidityProof(proof): PlonkSolidityProof {
   return [
-      proof.pi_a[0],
-      proof.pi_a[1],
-      proof.pi_b[0][1],
-      proof.pi_b[0][0],
-      proof.pi_b[1][1],
-      proof.pi_b[1][0],
-      proof.pi_c[0],
-      proof.pi_c[1]
+    proof.pi_a[0],
+    proof.pi_a[1],
+    proof.pi_b[0][1],
+    proof.pi_b[0][0],
+    proof.pi_b[1][1],
+    proof.pi_b[1][0],
+    proof.pi_c[0],
+    proof.pi_c[1]
   ]
 }
 
@@ -48,7 +48,7 @@ export type Groth16Proof = {
 
 export type Groth16SolidityProof = {
   a: [BigNumberish, BigNumberish];
-  b: [[BigNumberish, BigNumberish],[BigNumberish, BigNumberish]];
+  b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]];
   c: [BigNumberish, BigNumberish];
 }
 
@@ -57,8 +57,8 @@ export function packGroth16ProofToSolidityProof(proof: Groth16Proof): Groth16Sol
   return {
     a: [proof.pi_a[0], proof.pi_a[1]],
     b: [
-      [proof.pi_b[0][1],proof.pi_b[0][0]],
-      [proof.pi_b[1][1],proof.pi_b[1][0]],
+      [proof.pi_b[0][1], proof.pi_b[0][0]],
+      [proof.pi_b[1][1], proof.pi_b[1][0]],
     ],
     c: [proof.pi_c[0], proof.pi_c[1]],
   }
@@ -110,7 +110,7 @@ export async function generate_zkp_round2(
   eph_sk: bigint,
   enc: bigint,
   eph_pk: PublicKey,
-): Promise<{ proof: Groth16SolidityProof}> {
+): Promise<{ proof: Groth16SolidityProof }> {
   const { wasm, zkey } = circuit_paths("round2");
 
   // const vKey_promise = snarkjs.zKey.exportVerificationKey(zkey);
@@ -125,8 +125,8 @@ export async function generate_zkp_round2(
       eph_pk: eph_pk,
       C: C,
       // Secret
-      f_l : f_l,
-      eph_sk : eph_sk,
+      f_l: f_l,
+      eph_sk: eph_sk,
     },
     wasm,
     zkey
@@ -231,18 +231,18 @@ export async function generate_zkp_nvote(
 
   const { proof, publicSignals } = await snarkjs.groth16.fullProve(
     {
-      PK : PK,
-      votePower : votePower,
-      R : Rs,
+      PK: PK,
+      votePower: votePower,
+      R: Rs,
       M: Ms,
-      o : o,
+      o: o,
       r: rs,
     },
     wasm,
     zkey
   )
 
-  const expect_num_inputs = 2 + 1 + 2*3 + 2*3;
+  const expect_num_inputs = 2 + 1 + 2 * 3 + 2 * 3;
   expect(publicSignals.length).to.equal(expect_num_inputs);
   expect(await snarkjs.groth16.verify(
     await vKey_promise,
@@ -265,7 +265,7 @@ export async function generate_zkp_nvote(
 
   console.log("nvote prover done!")
 
-  return { proof : packGroth16ProofToSolidityProof(proof) }
+  return { proof: packGroth16ProofToSolidityProof(proof) }
 }
 
 
@@ -281,16 +281,16 @@ export async function generate_zkp_tally(
 
   const { proof, publicSignals } = await snarkjs.groth16.fullProve(
     {
-      PK_i : PK_i,
-      R : R,
+      PK_i: PK_i,
+      R: R,
       D_i: D_i,
-      sk_i : sk_i,
+      sk_i: sk_i,
     },
     wasm,
     zkey
   )
 
-  const expect_num_inputs = 2 + 2*3 + 2*3; // PK_i, R, D_i
+  const expect_num_inputs = 2 + 2 * 3 + 2 * 3; // PK_i, R, D_i
   expect(publicSignals.length).to.equal(expect_num_inputs);
   expect(await snarkjs.groth16.verify(
     await vKey_promise,
@@ -300,5 +300,5 @@ export async function generate_zkp_tally(
 
   console.log("tally prover done!")
 
-  return { proof : packGroth16ProofToSolidityProof(proof) }
+  return { proof: packGroth16ProofToSolidityProof(proof) }
 }

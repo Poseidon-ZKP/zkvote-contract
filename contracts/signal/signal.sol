@@ -44,5 +44,4 @@ contract Signal is ISignal {
         nullifierHashes[nullifierHash] = true;
         return true;
     }
-
 }

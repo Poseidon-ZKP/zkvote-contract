@@ -6,7 +6,7 @@ import * as nouns_contract from "./nouns_contract";
 import * as dkg_contract from "./dkg_contract";
 import * as zkvote_contract from "./zkvote_contract";
 import {
-    Nouns__factory, Round2Verifier__factory, NvoteVerifier__factory, TallyVerifier__factory,
+  Nouns__factory, Round2Verifier__factory, NvoteVerifier__factory, TallyVerifier__factory,
 } from "../types";
 import { Vote, Voter, VoteRecord } from "./voter";
 import { CommitteeMemberDKG } from "./committee_member";
@@ -23,7 +23,7 @@ async function main(
   const babyjub = await buildBabyjub()
   const poseidon = await buildPoseidonReference();
   const owners = await ethers.getSigners()
-  let deployer : SignerWithAddress = owners[0]
+  let deployer: SignerWithAddress = owners[0]
 
   // Parameters
   // voting power per user
@@ -39,7 +39,7 @@ async function main(
   }
 
   let USERS: SignerWithAddress[] = [];
-  for (let i = 0 ; i < N_USER ; i++) {
+  for (let i = 0; i < N_USER; i++) {
     USERS.push(owners[N_COMM + i]);
   }
 
@@ -95,7 +95,7 @@ async function main(
   // Get expected PK by querying committee members
   const expect_PK = (() => {
     let PK_sum = committee_dkg[0].C_coeff_commitments[0];
-    for (let i = 1 ; i < committee_dkg.length ; ++i) {
+    for (let i = 1; i < committee_dkg.length; ++i) {
       const member_C_0 = committee_dkg[i].C_coeff_commitments[0];
       PK_sum = pointAdd(babyjub, PK_sum, member_C_0);
     }
@@ -185,14 +185,14 @@ async function main(
   // }));
 
   const vote_records: VoteRecord[] = [];
-  for (let i = 0 ; i < voters.length; ++i) {
+  for (let i = 0; i < voters.length; ++i) {
     const voter = voters[i];
     const my_vote = votes[i % votes.length];
     const vote_record = await voter.cast_vote(dummyProposalId, my_vote);
 
     console.log(
       "Voter " + (await voter.signer.getAddress()) + ": " +
-        JSON.stringify(vote_record));
+      JSON.stringify(vote_record));
     const Ms = (await zkv.get_M(dummyProposalId)).map(pointFromSolidity);
     const Rs = (await zkv.get_R(dummyProposalId)).map(pointFromSolidity);
     console.log("M[0]: " + Ms[0]);
@@ -291,8 +291,8 @@ async function main(
 
 
 main()
-.then(() => process.exit(0))
-.catch(error => {
-  console.error(error);
-  process.exit(1);
-});
+  .then(() => process.exit(0))
+  .catch(error => {
+    console.error(error);
+    process.exit(1);
+  });

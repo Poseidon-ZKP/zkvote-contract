@@ -97,7 +97,7 @@ export class CommitteeMember {
           proof.a,
           proof.b,
           proof.c);
-        
+
         await tx.wait();
       } catch (e) {
         console.log("retry: " + retry + "error: " + e)
@@ -177,7 +177,7 @@ export class CommitteeMemberDKG {
     let as: bigint[] = [];
     let Cs: PublicKey[] = [];
 
-    for (let i = 0 ; i < dc_descriptor.threshold ; ++i) {
+    for (let i = 0; i < dc_descriptor.threshold; ++i) {
       const a = BigInt(hexlify(randomBytes(32))) % groupOrder(babyjub);
       as.push(a);
       Cs.push(pointFromScalar(babyjub, a));
@@ -232,7 +232,7 @@ export class CommitteeMemberDKG {
     try {
       const tx = await this.dc.round1(<[BigNumberish, BigNumberish][]>(this.C_coeff_commitments));
       await tx.wait();
-    } catch(e) {
+    } catch (e) {
       if (retry <= 0) {
         throw e;
       }
@@ -270,7 +270,7 @@ export class CommitteeMemberDKG {
     const expect_f_i_l_commit = polynomial_evaluate_group(
       this.babyjub, this.getCoefficientCommitments(), BigInt(recipient_id));
     expect(PK_i_l).eql(expect_f_i_l_commit);
-    return {f_i_l, PK_i_l};
+    return { f_i_l, PK_i_l };
   }
 
   public encryptRound2ShareFor(share: bigint, recip_PK: PublicKey): EncryptedWithEphSK {
@@ -286,22 +286,23 @@ export class CommitteeMemberDKG {
     const our_id = this.id;
     const that = this;
 
-    await Promise.all(Array.from({length: this.n_comm}).map(async (_, idx) => {
+    await Promise.all(Array.from({ length: this.n_comm }).map(async (_, idx) => {
       const recip_id = idx + 1;
 
       const recip_PK = pointFromSolidity(
         await this.dc.get_round1_PK_for(recip_id));
 
       this.log("round2: computing share for " + JSON.stringify({
-        id: recip_id, pk: recip_PK}));
+        id: recip_id, pk: recip_PK
+      }));
 
-      const {f_i_l, PK_i_l} = this.computeRound2ShareFor(recip_id);
+      const { f_i_l, PK_i_l } = this.computeRound2ShareFor(recip_id);
       this.log("       PK_i_l: " + PK_i_l);
 
-      const {eph_sk, eph_pk, enc} = this.encryptRound2ShareFor(f_i_l, recip_PK);
+      const { eph_sk, eph_pk, enc } = this.encryptRound2ShareFor(f_i_l, recip_PK);
 
       // Generate the proof of encryption
-      const {proof} = await generate_zkp_round2(
+      const { proof } = await generate_zkp_round2(
         recip_id,
         recip_PK,
         that.C_coeff_commitments,
@@ -320,14 +321,14 @@ export class CommitteeMemberDKG {
           const tx = await that.dc.round2(
             recip_id,
             enc,
-              <[BigNumberish, BigNumberish]>eph_pk,
-              <[BigNumberish, BigNumberish]>PK_i_l,
+            <[BigNumberish, BigNumberish]>eph_pk,
+            <[BigNumberish, BigNumberish]>PK_i_l,
             proof.a,
             proof.b,
             proof.c,
           );
           await tx.wait();
-        } catch(e) {
+        } catch (e) {
           if (retry <= 0) {
             throw e;
           }
@@ -351,7 +352,7 @@ export class CommitteeMemberDKG {
 
   public decryptRound2Share(enc: bigint, eph_pk: PublicKey): bigint {
     return poseidonDecEx(
-      this.babyjub, this.poseidon, {eph_pk, enc}, this.getRound2SecretKey())
+      this.babyjub, this.poseidon, { eph_pk, enc }, this.getRound2SecretKey())
   }
 
   public async constructSecretShare(): Promise<CommitteeMember> | null {

@@ -4,18 +4,17 @@
 pragma solidity >=0.8.4;
 
 interface IZKVote {
-    function setupVote(
-            uint256 proposalId, 
-            uint256 endBlock
-    ) external;
+    function setupVote(uint256 proposalId, uint256 endBlock) external;
+
     function castPrivateVote(
-            uint256 proposalId, 
-            uint256 votingWeight,
-            uint[2][3] calldata voter_R_i, 
-            uint[2][3] calldata voter_M_i,
-            uint256[2] calldata proof_a,
-            uint256[2][2] calldata proof_b,
-            uint256[2] calldata proof_c
+        uint256 proposalId,
+        uint256 votingWeight,
+        uint[2][3] calldata voter_R_i,
+        uint[2][3] calldata voter_M_i,
+        uint256[2] calldata proof_a,
+        uint256[2][2] calldata proof_b,
+        uint256[2] calldata proof_c
     ) external;
+
     function maxTotalVotingWeight() external view returns (uint256);
 }
