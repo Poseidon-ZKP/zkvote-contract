@@ -58,6 +58,7 @@ contract Nouns is IDAOProxy {
         address voter = msg.sender;
         require(!voted[proposalId][voter], "already voted!");
         uint256 votingWeight = get_voting_weight(proposalId, voter);
+        require(votingWeight > 0, "voter has 0 weight");
         zkVote.castPrivateVote(proposalId, votingWeight, voter_R_i, voter_M_i, proof_a, proof_b, proof_c);
         // Mark the voter as having voted
         voted[proposalId][voter] = true;

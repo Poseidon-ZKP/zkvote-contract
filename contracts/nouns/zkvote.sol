@@ -37,8 +37,9 @@ contract ZKVote is IZKVote {
     //
     // Voting state
     //
+    // TODO: Would be nice to have a map from prop ID to a struct and avoid a lookup for each element.
 
-    mapping (uint256 => address) setupVoteCaller;
+    mapping (uint256 => IDAOProxy) setupVoteCaller;
     mapping (uint256 => uint[2][3]) public R;
     mapping (uint256 => uint[2][3]) public M;
     mapping (uint256 => uint[2][3][]) DI;
@@ -48,9 +49,6 @@ contract ZKVote is IZKVote {
     mapping (uint256 => uint[3]) public vote_totals;
 
     mapping (uint => uint) public proposalIdToEndBlock;
-
-    // DEBUG
-    mapping (uint256 => uint[]) lambdas;
 
     //
     // DKG
@@ -75,15 +73,9 @@ contract ZKVote is IZKVote {
         address[] memory _verifiers
     ) {
         dkg = IDkg(_dkg_address);
-        // require(_verifiers.length == 3, "invalid verifiers!");
+        require(_verifiers.length == 2, "invalid verifiers!");
         nvote_verifier = IVerifierNvote(_verifiers[0]);
         tally_verifier = IVerifierTally(_verifiers[1]);
-
-        // uint VOTE_POWER_TOTAL = 0;
-        // for (uint i=0; i < _user.length; ++i) {
-        //     votePower[_user[i]] = _votePower[i];
-        //     VOTE_POWER_TOTAL += _votePower[i];
-        // }
 
         maxTotalVotingWeight = _maxTotalVotingWeight;
 
@@ -113,7 +105,7 @@ contract ZKVote is IZKVote {
             M[proposalId][i][1] = 1;
         }
         proposalIdToEndBlock[proposalId] = endBlock;
-        setupVoteCaller[proposalId] = msg.sender;
+        setupVoteCaller[proposalId] = IDAOProxy(msg.sender);
         emit SetupVote(proposalId, endBlock);
     }
 
@@ -288,8 +280,6 @@ contract ZKVote is IZKVote {
             uint[2][3] storage D_t = DI[proposalId][i];
 
             uint lambda = Lagrange_coeff(proposalId, cid);
-            // DEBUG:
-            lambdas[proposalId].push(lambda);
             require(lambda >= 0, "invalid lambda");
 
             for (uint k = 0 ; k < 3 ; ++k) {
@@ -314,15 +304,11 @@ contract ZKVote is IZKVote {
             vote_totals[proposalId][k] = lookup_table[VG[0]][VG[1]];
         }
 
-        IDAOProxy(setupVoteCaller[proposalId]).receiveVoteTally(proposalId, vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
+        setupVoteCaller[proposalId].receiveVoteTally(proposalId, vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
         emit TallyComplete(proposalId, vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
     }
 
     function get_vote_totals(uint256 proposalId) public view returns (uint[3] memory) {
         return vote_totals[proposalId];
-    }
-
-    function get_tally_committee_debug(uint256 proposalId) public view returns(uint[] memory, uint[] memory, uint[2][3][] memory) {
-        return (tally_cid[proposalId], lambdas[proposalId], DI[proposalId]);
     }
 }
