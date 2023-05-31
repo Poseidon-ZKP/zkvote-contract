@@ -239,46 +239,46 @@ async function main(
     await committee[0].tallyVotes(dummyProposalId);
     await committee[1].tallyVotes(dummyProposalId);
 
-    {
-      const [cids, lambdas, DIs] = await zkv.get_tally_committee_debug(dummyProposalId);
-      const R: PublicKey[] = (await zkv.get_R(dummyProposalId)).map(pointFromSolidity);
-      const M: PublicKey[] = (await zkv.get_M(dummyProposalId)).map(pointFromSolidity);
-      console.log("cids: " + cids);
-      console.log("lambdas: " + lambdas);
-      console.log("DIs: " + DIs);
-      console.log("R[0]: " + R[0]);
-      console.log("M[0]: " + M[0]);
+    // {
+    //   const [cids, lambdas, DIs] = await zkv.get_tally_committee_debug(dummyProposalId);
+    //   const R: PublicKey[] = (await zkv.get_R(dummyProposalId)).map(pointFromSolidity);
+    //   const M: PublicKey[] = (await zkv.get_M(dummyProposalId)).map(pointFromSolidity);
+    //   // console.log("cids: " + cids);
+    //   // console.log("lambdas: " + lambdas);
+    //   console.log("DIs: " + DIs);
+    //   console.log("R[0]: " + R[0]);
+    //   console.log("M[0]: " + M[0]);
 
-      // Attempt to decrypt M[0] using R[0] and the DIs[i][0]s.
+    //   // Attempt to decrypt M[0] using R[0] and the DIs[i][0]s.
 
-      expect(cids.length).to.equal(2);
-      expect(lambdas.length).to.equal(2);
-      expect(DIs.length).to.equal(2);
-      expect(cids).to.eql([BigNumber.from(1),BigNumber.from(2)]);
+    //   expect(cids.length).to.equal(2);
+    //   expect(lambdas.length).to.equal(2);
+    //   expect(DIs.length).to.equal(2);
+    //   expect(cids).to.eql([BigNumber.from(1),BigNumber.from(2)]);
 
-      const lambda_1 = BigInt(lambdas[0].toString());
-      const DI_1_0 = pointFromSolidity(DIs[0][0]);
-      const lambda_1_DI_1_0 = pointMul(babyjub, DI_1_0, lambda_1);
-      console.log("lambda_1_DI_1_0: " + lambda_1_DI_1_0);
+    //   const lambda_1 = BigInt(lambdas[0].toString());
+    //   const DI_1_0 = pointFromSolidity(DIs[0][0]);
+    //   const lambda_1_DI_1_0 = pointMul(babyjub, DI_1_0, lambda_1);
+    //   console.log("lambda_1_DI_1_0: " + lambda_1_DI_1_0);
 
-      const lambda_2 = BigInt(lambdas[1].toString());
-      const DI_2_0 = pointFromSolidity(DIs[1][0]);
-      const lambda_2_DI_2_0 = pointMul(babyjub, DI_2_0, lambda_2);
-      console.log("lambda_2_DI_2_0: " + lambda_2_DI_2_0);
+    //   const lambda_2 = BigInt(lambdas[1].toString());
+    //   const DI_2_0 = pointFromSolidity(DIs[1][0]);
+    //   const lambda_2_DI_2_0 = pointMul(babyjub, DI_2_0, lambda_2);
+    //   console.log("lambda_2_DI_2_0: " + lambda_2_DI_2_0);
 
-      const D = pointAdd(babyjub, lambda_1_DI_1_0, lambda_2_DI_2_0);
-      console.log("D: " + D);
+    //   const D = pointAdd(babyjub, lambda_1_DI_1_0, lambda_2_DI_2_0);
+    //   console.log("D: " + D);
 
-      const F = babyjub.F;
-      const minus_D = [D[0], F.toString(F.sub(F.e("0"), babyjub.F.e(D[1])))];
-      console.log("minus_D: " + minus_D);
+    //   const F = babyjub.F;
+    //   const minus_D = [D[0], F.toString(F.sub(F.e("0"), babyjub.F.e(D[1])))];
+    //   console.log("minus_D: " + minus_D);
 
-      const M_sub_D = pointAdd(babyjub, M[0], minus_D);
-      console.log("M_sub_D: " + M_sub_D);
+    //   const M_sub_D = pointAdd(babyjub, M[0], minus_D);
+    //   console.log("M_sub_D: " + M_sub_D);
 
-      const expect_M_sub_D = pointFromScalar(babyjub, 5n);
-      console.log("expect_M_sub_D: " + expect_M_sub_D);
-    }
+    //   const expect_M_sub_D = pointFromScalar(babyjub, 5n);
+    //   console.log("expect_M_sub_D: " + expect_M_sub_D);
+    // }
   }
 
   // 5. Recover the decrypted vote counts
