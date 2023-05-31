@@ -49,4 +49,3 @@ export function from_address(
 ): ZKVote {
   return ZKVote__factory.connect(address, signer);
 }
-  

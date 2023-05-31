@@ -121,6 +121,8 @@ const app = command({
       // wait_for_vote_and_tally
       for (const [proposalId, endBlock] of proposalIdToEndBlock.entries()) {
         if (currentBlockNumber >= endBlock) {
+          await member.tallyVotes(proposalId);
+          console.log("Tally complete for proposalId: " + proposalId.toString());
           proposalIdToEndBlock.delete(proposalId);
         } else {
           const cur_vote_weight_str = (await zkv.voting_weight_used(proposalId)).toString();
