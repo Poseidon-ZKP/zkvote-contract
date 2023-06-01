@@ -53,6 +53,14 @@ jobs:
         run: |
           yarn install
 
+      - name: Syntax checkers
+        run: |
+          yarn run check
+          yarn run format
+          git diff --no-ext-diff --ignore-cr-at-eol > format.diff
+          echo "DIFF:" && cat format.diff
+          ! [ -s format.diff ]
+
       - name: Build circuits and contracts
         run: |
           yarn build

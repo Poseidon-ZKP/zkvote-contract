@@ -72,7 +72,7 @@ const app = command({
     const zkv_descriptor: zkvote_contract.ZKVoteContractDescriptor = JSON.parse(
       fs.readFileSync(zkv_descriptor_file, 'utf8'));
 
-    const dkg_descriptor: dkg_contract.DKGContractDescriptor  = JSON.parse(
+    const dkg_descriptor: dkg_contract.DKGContractDescriptor = JSON.parse(
       fs.readFileSync(dc_descriptor_file, 'utf8'));
 
     expect(my_id).is.lessThanOrEqual(dkg_descriptor.n_comm);
@@ -98,7 +98,7 @@ const app = command({
 
     // Run the vote tallier
     console.log("Running vote tallier...");
-    
+
     let lastBlockFiltered = 0;
     const intfc = zkv.interface;
     let proposalIdToEndBlock: Map<number, number> = new Map<number, number>();

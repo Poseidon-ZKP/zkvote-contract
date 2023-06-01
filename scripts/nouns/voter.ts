@@ -79,7 +79,7 @@ export class Voter {
     const tx = await this.nc.add_voter(proposalId, await this.signer.getAddress(), voting_weight);
     await tx.wait();
   }
-  
+
   /// Cast an (encrypted) vote in one direction, using the voting weight.  The
   /// returned structure is intended to be recorded by the caller, and should
   /// not be made public
@@ -126,7 +126,7 @@ export class Voter {
     encrypt_vote(Vote.Nay);     // 010
     encrypt_vote(Vote.Yay);     // 100
 
-    const {proof /*, publicSignals */} = await generate_zkp_nvote(
+    const { proof /*, publicSignals */ } = await generate_zkp_nvote(
       PK, voting_weight, Rs, Ms, o, rs);
 
     const address = await this.signer.getAddress();
@@ -145,7 +145,7 @@ export class Voter {
   }
 
   static voteToO(v: Vote): bigint {
-    switch(v) {
+    switch (v) {
       case Vote.Yay: return 0b100n;
       case Vote.Nay: return 0b010n;
       case Vote.Abstain: return 0b001n;

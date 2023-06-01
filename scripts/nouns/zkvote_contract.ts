@@ -1,11 +1,11 @@
 import {
   ZKVote, ZKVote__factory, NvoteVerifier__factory,
-  TallyVerifier__factory, 
+  TallyVerifier__factory,
 } from "../types";
 import { Signer, Contract } from "ethers";
 import { Provider } from "@ethersproject/providers";
 export { ZKVote } from "../types";
-  
+
 export type ZKVoteContractDescriptor = {
   address: string;
 };
@@ -28,7 +28,7 @@ export async function deploy(
     verifiers,
   );
 }
-  
+
 export async function get_descriptor(zkVote: ZKVote): Promise<ZKVoteContractDescriptor> {
   console.log("address: " + zkVote.address);
   return {

@@ -3,10 +3,9 @@ pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./babyjubjub/CurveBabyJubJub.sol";
-import "../interfaces/IDkg.sol";
-import "../interfaces/IZKVote.sol";
-import "../interfaces/IDAOProxy.sol";
-
+import "./IDkg.sol";
+import "./IZKVote.sol";
+import "./IDAOProxy.sol";
 
 interface IVerifierNvote {
     function verifyProof(
@@ -27,28 +26,28 @@ interface IVerifierTally {
 }
 
 contract ZKVote is IZKVote {
-
-    uint constant babyjub_sub_order = 2736030358979909402780800718157159386076813972158567259200215660948447373041;
+    uint constant babyjub_sub_order =
+        2736030358979909402780800718157159386076813972158567259200215660948447373041;
 
     IDkg public dkg;
-    IVerifierNvote  nvote_verifier;
-    IVerifierTally  tally_verifier;
+    IVerifierNvote nvote_verifier;
+    IVerifierTally tally_verifier;
 
     //
     // Voting state
     //
     // TODO: Would be nice to have a map from prop ID to a struct and avoid a lookup for each element.
 
-    mapping (uint256 => IDAOProxy) setupVoteCaller;
-    mapping (uint256 => uint[2][3]) public R;
-    mapping (uint256 => uint[2][3]) public M;
-    mapping (uint256 => uint[2][3][]) DI;
-    mapping (uint256 => uint[]) tally_cid;
-    mapping (uint256 => uint256) public voting_weight_used;
-    mapping (uint256 => uint256) public tallied_committee;
-    mapping (uint256 => uint[3]) public vote_totals;
+    mapping(uint256 => IDAOProxy) setupVoteCaller;
+    mapping(uint256 => uint[2][3]) public R;
+    mapping(uint256 => uint[2][3]) public M;
+    mapping(uint256 => uint[2][3][]) DI;
+    mapping(uint256 => uint[]) tally_cid;
+    mapping(uint256 => uint256) public voting_weight_used;
+    mapping(uint256 => uint256) public tallied_committee;
+    mapping(uint256 => uint[3]) public vote_totals;
 
-    mapping (uint => uint) public proposalIdToEndBlock;
+    mapping(uint => uint) public proposalIdToEndBlock;
 
     //
     // DKG
@@ -59,11 +58,18 @@ contract ZKVote is IZKVote {
 
     event SetupVote(uint indexed proposalId, uint256 endBlock);
 
-    event TallyComplete(uint indexed proposalId, uint yay, uint nay, uint abstain);
+    event TallyComplete(
+        uint indexed proposalId,
+        uint yay,
+        uint nay,
+        uint abstain
+    );
 
     // Generator Point
-    uint public constant Gx = 5299619240641551281634865583518297030282874472190772894086521144482721001553;
-    uint public constant Gy = 16950150798460657717958625567821834550301663161624707787222815936182638968203;
+    uint public constant Gx =
+        5299619240641551281634865583518297030282874472190772894086521144482721001553;
+    uint public constant Gy =
+        16950150798460657717958625567821834550301663161624707787222815936182638968203;
 
     uint256 public maxTotalVotingWeight;
 
@@ -89,14 +95,14 @@ contract ZKVote is IZKVote {
     }
 
     modifier onlySetupVoteCaller(uint256 proposalId) {
-        require(msg.sender == address(setupVoteCaller[proposalId]), "only setupVoteCaller");
+        require(
+            msg.sender == address(setupVoteCaller[proposalId]),
+            "only setupVoteCaller"
+        );
         _;
     }
 
-    function setupVote(
-        uint256 proposalId, 
-        uint256 endBlock
-    ) public override {
+    function setupVote(uint256 proposalId, uint256 endBlock) public override {
         require(proposalIdToEndBlock[proposalId] == 0, "vote already setup");
         for (uint256 i = 0; i < 3; i++) {
             R[proposalId][i][0] = 0;
@@ -110,19 +116,22 @@ contract ZKVote is IZKVote {
     }
 
     function castPrivateVote(
-        uint256 proposalId, 
+        uint256 proposalId,
         uint256 votingWeight,
-        uint[2][3] calldata voter_R_i, 
+        uint[2][3] calldata voter_R_i,
         uint[2][3] calldata voter_M_i,
         uint256[2] calldata proof_a,
         uint256[2][2] calldata proof_b,
         uint256[2] calldata proof_c
-    ) public onlySetupVoteCaller(proposalId) override {
+    ) public override onlySetupVoteCaller(proposalId) {
         {
             require(votingWeight > 0, "invalid voter!");
             require(proposalIdToEndBlock[proposalId] > 0, "vote not setup");
-            require(block.number <= proposalIdToEndBlock[proposalId], "vote ended");
-            
+            require(
+                block.number <= proposalIdToEndBlock[proposalId],
+                "vote ended"
+            );
+
             (uint pk_coeff_0_0, uint pk_coeff_0_1) = dkg.get_PK();
             // Verify ZKP
             uint[15] memory inputs = [
@@ -149,10 +158,21 @@ contract ZKVote is IZKVote {
         // Sum the M and R values for each vote type.
         for (uint256 k = 0; k < 3; k++) {
             // R_k = R_k + R_{i,k}
-            (R[proposalId][k][0], R[proposalId][k][1]) = CurveBabyJubJub.pointAdd(
-                R[proposalId][k][0], R[proposalId][k][1], voter_R_i[k][0], voter_R_i[k][1]);
+            (R[proposalId][k][0], R[proposalId][k][1]) = CurveBabyJubJub
+                .pointAdd(
+                    R[proposalId][k][0],
+                    R[proposalId][k][1],
+                    voter_R_i[k][0],
+                    voter_R_i[k][1]
+                );
             // M_k = M_k + M_{i,k}
-            (M[proposalId][k][0], M[proposalId][k][1]) = CurveBabyJubJub.pointAdd(M[proposalId][k][0], M[proposalId][k][1], voter_M_i[k][0], voter_M_i[k][1]);
+            (M[proposalId][k][0], M[proposalId][k][1]) = CurveBabyJubJub
+                .pointAdd(
+                    M[proposalId][k][0],
+                    M[proposalId][k][1],
+                    voter_M_i[k][0],
+                    voter_M_i[k][1]
+                );
         }
 
         voting_weight_used[proposalId] += votingWeight;
@@ -166,10 +186,6 @@ contract ZKVote is IZKVote {
         return M[proposalId];
     }
 
-    // function pointSub(uint256 _x1, uint256 _y1, uint256 _x2, uint256 _y2) public view returns (uint256 x3, uint256 y3) {
-    //     return CurveBabyJubJub.pointSub(_x1, _y1, _x2, _y2);
-    // }
-
     function tally(
         uint256 proposalId,
         uint[2][3] calldata DI_,
@@ -182,7 +198,10 @@ contract ZKVote is IZKVote {
         }
         uint cid = dkg.get_committee_id_from_address(msg.sender);
         require((0 < cid) && (cid <= dkg.n_comm()), "invalid participant id");
-        require(tally_cid[proposalId].length < dkg.threshold(), "votes already tallied");
+        require(
+            tally_cid[proposalId].length < dkg.threshold(),
+            "votes already tallied"
+        );
 
         (uint PK_i_0, uint PK_i_1) = dkg.get_PK_for(cid);
 
@@ -217,8 +236,10 @@ contract ZKVote is IZKVote {
         }
     }
 
-    function Lagrange_coeff(uint proposalId, uint i) internal view returns (uint lamda) {
-
+    function Lagrange_coeff(
+        uint proposalId,
+        uint i
+    ) internal view returns (uint lamda) {
         // For denominator we may have -ve factors. Track the number of
         // +ve / -ve factors and perform modulo at the end.
 
@@ -246,7 +267,10 @@ contract ZKVote is IZKVote {
             denominator = babyjub_sub_order - denominator;
         }
         uint denominator_inv = CurveBabyJubJub.expmod(
-            denominator, babyjub_sub_order - 2, babyjub_sub_order);
+            denominator,
+            babyjub_sub_order - 2,
+            babyjub_sub_order
+        );
         return mulmod(numerator, denominator_inv, babyjub_sub_order);
     }
 
@@ -282,11 +306,19 @@ contract ZKVote is IZKVote {
             uint lambda = Lagrange_coeff(proposalId, cid);
             require(lambda >= 0, "invalid lambda");
 
-            for (uint k = 0 ; k < 3 ; ++k) {
-
+            for (uint k = 0; k < 3; ++k) {
                 uint[2] storage D_t_k = D_t[k];
-                (uint x, uint y) = CurveBabyJubJub.pointMul(D_t_k[0], D_t_k[1], lambda);
-                (D[k][0], D[k][1]) = CurveBabyJubJub.pointAdd(D[k][0], D[k][1], x, y);
+                (uint x, uint y) = CurveBabyJubJub.pointMul(
+                    D_t_k[0],
+                    D_t_k[1],
+                    lambda
+                );
+                (D[k][0], D[k][1]) = CurveBabyJubJub.pointAdd(
+                    D[k][0],
+                    D[k][1],
+                    x,
+                    y
+                );
 
                 // if (lamda < 0) {
                 //     (d[0], d[1]) = CurveBabyJubJub.pointMul(DI[t][0], DI[t][1], uint(0 - lamda));
@@ -300,15 +332,32 @@ contract ZKVote is IZKVote {
 
         for (uint256 k = 0; k < 3; k++) {
             uint[2] memory VG;
-            (VG[0], VG[1]) = CurveBabyJubJub.pointSub(M[proposalId][k][0], M[proposalId][k][1], D[k][0], D[k][1]);
+            (VG[0], VG[1]) = CurveBabyJubJub.pointSub(
+                M[proposalId][k][0],
+                M[proposalId][k][1],
+                D[k][0],
+                D[k][1]
+            );
             vote_totals[proposalId][k] = lookup_table[VG[0]][VG[1]];
         }
 
-        setupVoteCaller[proposalId].receiveVoteTally(proposalId, vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
-        emit TallyComplete(proposalId, vote_totals[proposalId][0], vote_totals[proposalId][1], vote_totals[proposalId][2]);
+        setupVoteCaller[proposalId].receiveVoteTally(
+            proposalId,
+            vote_totals[proposalId][0],
+            vote_totals[proposalId][1],
+            vote_totals[proposalId][2]
+        );
+        emit TallyComplete(
+            proposalId,
+            vote_totals[proposalId][0],
+            vote_totals[proposalId][1],
+            vote_totals[proposalId][2]
+        );
     }
 
-    function get_vote_totals(uint256 proposalId) public view returns (uint[3] memory) {
+    function get_vote_totals(
+        uint256 proposalId
+    ) public view returns (uint[3] memory) {
         return vote_totals[proposalId];
     }
 }

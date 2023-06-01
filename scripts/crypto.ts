@@ -46,8 +46,8 @@ export function pointMul(babyjub: any, P: PublicKey, scalar: bigint): PublicKey 
 
 export function polynomial_evaluate(coefficients: bigint[], x: bigint, mod: bigint): bigint {
   // Horners method.
-  let val = coefficients[coefficients.length-1];
-  for (let i = coefficients.length - 2; i >= 0 ; --i) {
+  let val = coefficients[coefficients.length - 1];
+  for (let i = coefficients.length - 2; i >= 0; --i) {
     val = (val * x + coefficients[i]) % mod;
   }
   return val;
@@ -58,8 +58,8 @@ export function polynomial_evaluate_group(
   babyjub: any, coefficients: PublicKey[], x: bigint
 ): PublicKey {
   // Horners method.
-  let val = pointToNative(babyjub, coefficients[coefficients.length-1]);
-  for (let i = coefficients.length - 2; i >= 0 ; --i) {
+  let val = pointToNative(babyjub, coefficients[coefficients.length - 1]);
+  for (let i = coefficients.length - 2; i >= 0; --i) {
     const c_native = pointToNative(babyjub, coefficients[i]);
     val = babyjub.mulPointEscalar(val, x);
     val = babyjub.addPoint(val, c_native);
