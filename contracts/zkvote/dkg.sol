@@ -2,8 +2,8 @@
 pragma solidity >=0.8.4;
 
 import "./babyjubjub/CurveBabyJubJub.sol";
-import "../interfaces/IVerifierRound2.sol";
-import "../interfaces/IDkg.sol";
+import "./IVerifierRound2.sol";
+import "./IDkg.sol";
 
 contract DKG is IDkg {
     uint constant babyjub_sub_order =

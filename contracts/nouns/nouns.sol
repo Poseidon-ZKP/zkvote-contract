@@ -1,8 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "../interfaces/IDAOProxy.sol";
-import "../interfaces/IZKVote.sol";
+import "../zkvote/IDAOProxy.sol";
+import "../zkvote/IZKVote.sol";
 
 contract Nouns is IDAOProxy {
     IZKVote public zkVote;

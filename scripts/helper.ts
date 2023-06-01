@@ -134,7 +134,8 @@ export async function build_circuit(circuit: string): Promise<void> {
 
   const src_dir = pwd + "/circuits/" + circuit + "/"
   const circuit_dest_dir = pwd + "/artifacts/circuits/" + circuit + "/"
-  const sol_dest_dir = pwd + "/contracts/" + circuit + "/"
+  // const sol_dest_dir = pwd + "/contracts/" + circuit + "/"
+  const sol_dest_dir = pwd + "/contracts/zkvote/";
   ensure_dir(circuit_dest_dir);
   ensure_dir(sol_dest_dir);
 

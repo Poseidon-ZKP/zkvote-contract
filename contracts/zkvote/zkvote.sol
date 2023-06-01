@@ -3,9 +3,9 @@ pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./babyjubjub/CurveBabyJubJub.sol";
-import "../interfaces/IDkg.sol";
-import "../interfaces/IZKVote.sol";
-import "../interfaces/IDAOProxy.sol";
+import "./IDkg.sol";
+import "./IZKVote.sol";
+import "./IDAOProxy.sol";
 
 interface IVerifierNvote {
     function verifyProof(
