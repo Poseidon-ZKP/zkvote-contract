@@ -1,13 +1,12 @@
 import * as zkvote_contract from "./nouns/zkvote_contract";
 import * as dkg_contract from "./nouns/dkg_contract";
-import { ZKVote } from "./nouns/zkvote_contract";
 import { CommitteeMemberDKG, CommitteeMember } from "./nouns/committee_member";
 import { command, run, number, string, positional, option } from 'cmd-ts';
 import * as fs from 'fs';
 import * as ethers from "ethers";
 import { expect } from "chai";
+import { Filter } from "@ethersproject/providers";
 const { buildBabyjub, buildPoseidonReference } = require('circomlibjs');
-import { Provider, Filter, Log } from "@ethersproject/providers";
 
 async function run_DKG(member: CommitteeMemberDKG): Promise<CommitteeMember> {
   member.round1();
@@ -49,10 +48,10 @@ const app = command({
     }),
     vote_threshold: option({
       type: number,
-      description: "Vote weight required to trigger tally protocol",
+      description: "Vote weight required to trigger tally protocol (-1: unused)",
       long: 'vote-threshold',
       short: 'v',
-      defaultValue: () => 10,
+      defaultValue: () => -1,
       defaultValueIsSerializable: true,
     }),
     endpoint: option({
@@ -118,13 +117,17 @@ const app = command({
           proposalIdToEndBlock.set(proposalId, endBlock);
         }
       }
-      // wait_for_vote_and_tally
+
+      // For each active proposal, check if the endBlock has elapsed.  If so,
+      // trigger the tally process and remove the proposal from the active
+      // list.  If vote_threshold > 0, the tally can be triggered early if the
+      // vote weight goes above vote_threshold.
       for (const [proposalId, endBlock] of proposalIdToEndBlock.entries()) {
         if (currentBlockNumber >= endBlock) {
           await member.tallyVotes(proposalId);
           console.log("Tally complete for proposalId: " + proposalId.toString());
           proposalIdToEndBlock.delete(proposalId);
-        } else {
+        } else if (vote_threshold > 0) {
           const cur_vote_weight_str = (await zkv.voting_weight_used(proposalId)).toString();
           const cur_vote_weight = BigInt(cur_vote_weight_str);
           console.log("cur vote weight_str: " + cur_vote_weight_str, "proposalId: " + proposalId.toString());
