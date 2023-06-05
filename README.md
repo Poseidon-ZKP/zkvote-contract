@@ -50,16 +50,17 @@ $ yarn ts-node scripts/deploy.ts
 ```
 
 Launch 3 committee daemons (each in it's own terminal, as the process will not
-terminate until votes are tallied)
+terminate until votes are tallied).  For demo purposes, we set the tally to be
+triggered when the total voting weight reaches 10.
 
 ```console
-$ yarn ts-node scripts/committee.ts 1
+$ yarn ts-node scripts/committee.ts -v 10 1
 ```
 ```console
-$ yarn ts-node scripts/committee.ts 2
+$ yarn ts-node scripts/committee.ts -v 10 2
 ```
 ```console
-$ yarn ts-node scripts/committee.ts 3
+$ yarn ts-node scripts/committee.ts -v 10 3
 ```
 
 In a new terminal, setup a vote with proposal Id 1 and end block 12345678, register some dummy voters and cast votes up to a total voting weight above 10
