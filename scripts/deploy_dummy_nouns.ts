@@ -42,7 +42,7 @@ const app = command({
     console.log("DEPLOYER: " + await deployer.getAddress());
 
     const zkv_descriptor: zkvote_contract.ZKVoteContractDescriptor = JSON.parse(
-        fs.readFileSync(zkv_descriptor_file, 'utf8'));
+      fs.readFileSync(zkv_descriptor_file, 'utf8'));
 
     const nouns = await nouns_contract.deploy(
       deployer, zkv_descriptor.address);
