@@ -42,11 +42,12 @@ Launch a development blockchain node:
 $ yarn hardhat node
 ```
 
-Deploy the contract and write the configuration to a file `nouns.config.json`.
+Deploy the contracts and write the configuration to a file `nouns.config.json`, `zkv.config.json`, `dkg.config.json`.
 This file is read by later commands to connect to the contract.
 
 ```console
-$ yarn ts-node scripts/deploy.ts
+$ yarn ts-node scripts/deploy_dkg_zkvote.ts
+$ yarn ts-node scripts/deploy_dummy_nouns.ts
 ```
 
 Launch 3 committee daemons (each in it's own terminal, as the process will not
