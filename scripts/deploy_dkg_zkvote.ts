@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import * as ethers from "ethers";
 
 const app = command({
-  name: 'deploy',
+  name: 'deploy_dkg_zkvote',
   args: {
     n_comm: option({
       type: number,
@@ -48,14 +48,6 @@ const app = command({
       defaultValue: () => "./zkv.config.json",
       defaultValueIsSerializable: true,
     }),
-    nc_descriptor_file: option({
-      type: string,
-      description: "Nounds descriptor file location to write",
-      long: 'descriptor',
-      short: 'd',
-      defaultValue: () => "./nouns.config.json",
-      defaultValueIsSerializable: true,
-    }),
     endpoint: option({
       type: string,
       description: "RPC endpoint to connect to",
@@ -66,7 +58,7 @@ const app = command({
     }),
   },
   handler: async (
-    { n_comm, threshold, max_total_voting_weight, dc_descriptor_file, zkv_descriptor_file, nc_descriptor_file, endpoint }
+    { n_comm, threshold, max_total_voting_weight, dc_descriptor_file, zkv_descriptor_file, endpoint }
   ) => {
     console.log("CONFIG: " + JSON.stringify({ n_comm, threshold, endpoint }));
 
@@ -100,16 +92,6 @@ const app = command({
     console.log("zkv_desc=" + JSON.stringify(zkv_desc));
     fs.writeFileSync(zkv_descriptor_file, JSON.stringify(zkv_desc));
     console.log("Descriptor written at: " + zkv_descriptor_file);
-
-    const nouns = await nouns_contract.deploy(
-      deployer, zkv.address);
-    console.log("Nouns deployed at: " + nouns.address);
-
-    // Write the description
-    const nouns_desc = await nouns_contract.get_descriptor(nouns);
-    console.log("nouns_desc=" + JSON.stringify(nouns_desc));
-    fs.writeFileSync(nc_descriptor_file, JSON.stringify(nouns_desc));
-    console.log("Descriptor written at: " + nc_descriptor_file);
   },
 });
 
