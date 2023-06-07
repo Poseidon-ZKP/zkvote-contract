@@ -10,7 +10,8 @@
     "test": "yarn ts-node scripts/nouns/nouns.ts",
     "postinstall": "patch-package",
     "check": "yarn run solhint 'contracts/interfaces/*.sol' 'contracts/nouns/*.sol'",
-    "format": "./node_modules/.bin/prettier --write 'contracts/**/*.sol' && ./node_modules/.bin/tsfmt -r `git ls-files '*.ts'`"
+    "format": "./node_modules/.bin/prettier --write 'contracts/**/*.sol' && ./node_modules/.bin/tsfmt -r `git ls-files '*.ts'`",
+    "advance-time": "yarn ts-node scripts/advanceBlocks.ts"
   },
   "keywords": [],
   "author": "",
