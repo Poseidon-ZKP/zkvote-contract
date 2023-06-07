@@ -3,7 +3,7 @@ import {
   } from  "./utils/common";
 
 async function log() {
-    await logCurrentBlockNumber();
+  await logCurrentBlockNumber();
 }
 
 log();
