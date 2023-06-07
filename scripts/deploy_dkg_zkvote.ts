@@ -85,10 +85,13 @@ const app = command({
     fs.writeFileSync(dc_descriptor_file, JSON.stringify(dkg_desc));
     console.log("Descriptor written at: " + dc_descriptor_file);
 
+    // A reasonable lower bound on the block number from which committee members can start filtering for events.
+    const block_number_before_zkvote_deploy = await provider.getBlockNumber();
+
     const zkv = await zkvote_contract.deploy(deployer, dkg.address, BigInt(max_total_voting_weight));
     console.log("ZKVote deployed at: " + zkv.address);
 
-    const zkv_desc = await zkvote_contract.get_descriptor(zkv);
+    const zkv_desc = await zkvote_contract.get_descriptor(zkv, block_number_before_zkvote_deploy);
     console.log("zkv_desc=" + JSON.stringify(zkv_desc));
     fs.writeFileSync(zkv_descriptor_file, JSON.stringify(zkv_desc));
     console.log("Descriptor written at: " + zkv_descriptor_file);
