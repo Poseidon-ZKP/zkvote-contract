@@ -98,7 +98,7 @@ const app = command({
     // Run the vote tallier
     console.log("Running vote tallier...");
 
-    let lastBlockFiltered = 0;
+    let lastBlockFiltered = zkv_descriptor.block_number_before_zkvote_deploy;
     const intfc = zkv.interface;
     let proposalIdToEndBlock: Map<number, number> = new Map<number, number>();
     while (true) {

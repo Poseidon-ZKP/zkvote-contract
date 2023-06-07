@@ -8,6 +8,7 @@ export { ZKVote } from "../types";
 
 export type ZKVoteContractDescriptor = {
   address: string;
+  block_number_before_zkvote_deploy: number;
 };
 
 export async function deploy(
@@ -29,10 +30,12 @@ export async function deploy(
   );
 }
 
-export async function get_descriptor(zkVote: ZKVote): Promise<ZKVoteContractDescriptor> {
+export async function get_descriptor(zkVote: ZKVote, block_number_before_zkvote_deploy: number): Promise<ZKVoteContractDescriptor> {
   console.log("address: " + zkVote.address);
+  console.log("block_number_before_zkvote_deploy: " + block_number_before_zkvote_deploy);
   return {
     address: zkVote.address,
+    block_number_before_zkvote_deploy,
   };
 }
 
