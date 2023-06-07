@@ -112,3 +112,25 @@ export async function verify2(addr: string, args) {
     }
   }
 }
+
+export const advanceBlocks = async (blocks: number): Promise<void> => {
+  for (let i = 0; i < blocks; i++) {
+    await mineBlock();
+  }
+};
+
+export const mineBlock = async (): Promise<void> => {
+  try {
+    const provider = new ethers.providers.JsonRpcProvider('http://127.0.0.1:8545/');
+    await provider.send('evm_mine', []);
+    //console.log('Block mined successfully');
+  } catch (error) {
+    console.error('Error mining block:', error);
+  }
+};
+
+export const logCurrentBlockNumber = async (): Promise<void> => {
+  const provider = new ethers.providers.JsonRpcProvider('http://127.0.0.1:8545/');
+  const blockNumber = await provider.send('eth_blockNumber', []);
+  console.log('Current block number:', parseInt(blockNumber, 16));
+};
