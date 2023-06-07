@@ -61,7 +61,8 @@ async function main(
     10n, // total voting power
   );
 
-  const zkv_descriptor = await zkvote_contract.get_descriptor(zkv);
+  const dummy_block_number_before_zkvote_deploy = 10;
+  const zkv_descriptor = await zkvote_contract.get_descriptor(zkv, 10);
 
   // Deploy contract, and register voters
   const nc = await nouns_contract.deploy(
