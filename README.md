@@ -43,7 +43,7 @@ $ yarn hardhat node
 ```
 
 Deploy the contracts and write the configuration to files `nouns.config.json`, `zkv.config.json`, `dkg.config.json`.
-This file is read by later commands to connect to the contract.
+These files are read by later commands to connect to the contract.
 
 ```console
 $ yarn ts-node scripts/deploy_dkg_zkvote.ts
