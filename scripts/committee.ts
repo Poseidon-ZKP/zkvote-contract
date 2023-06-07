@@ -101,20 +101,34 @@ const app = command({
     let lastBlockFiltered = 0;
     const intfc = zkv.interface;
     let proposalIdToEndBlock: Map<number, number> = new Map<number, number>();
+    let onStartup = true;
     while (true) {
       // Query for new setup proposal events
       const currentBlockNumber = await provider.getBlockNumber();
       if (currentBlockNumber > lastBlockFiltered) {
-        const filter: Filter = zkv.filters.SetupVote();
-        filter.fromBlock = lastBlockFiltered + 1;
-        filter.toBlock = currentBlockNumber;
-        const logs = await provider.getLogs(filter);
+        const setupVoteFilter: Filter = zkv.filters.SetupVote();
+        setupVoteFilter.fromBlock = lastBlockFiltered + 1;
+        setupVoteFilter.toBlock = currentBlockNumber;
+        const logs = await provider.getLogs(setupVoteFilter);
         lastBlockFiltered = currentBlockNumber;
         for (const log of logs) {
           const parsedLog = intfc.parseLog(log);
           const proposalId = parsedLog.args.proposalId;
           const endBlock = parsedLog.args.endBlock;
           proposalIdToEndBlock.set(proposalId, endBlock);
+        }
+        // Upon restarting the tallier, we need to check if there are any proposals that have been setup but already tallied. If so, we delete them from our map, since the proposals are no longer active.
+        if (onStartup) {
+          const tallyCompleteFilter: Filter = zkv.filters.TallyComplete();
+          tallyCompleteFilter.fromBlock = lastBlockFiltered + 1;
+          tallyCompleteFilter.toBlock = currentBlockNumber;
+          const logs = await provider.getLogs(tallyCompleteFilter);
+          for (const log of logs) {
+            const parsedLog = intfc.parseLog(log);
+            const proposalId = parsedLog.args.proposalId;
+            proposalIdToEndBlock.delete(proposalId);
+          }
+          onStartup = false;
         }
       }
 
