@@ -1,4 +1,4 @@
-zkVote demo
+ZKVote demo
 ===========
 
 ## Developer Setup
