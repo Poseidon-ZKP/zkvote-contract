@@ -42,7 +42,7 @@ Launch a development blockchain node:
 $ yarn hardhat node
 ```
 
-Deploy the contracts and write the configuration to a file `nouns.config.json`, `zkv.config.json`, `dkg.config.json`.
+Deploy the contracts and write the configuration to files `nouns.config.json`, `zkv.config.json`, `dkg.config.json`.
 This file is read by later commands to connect to the contract.
 
 ```console
