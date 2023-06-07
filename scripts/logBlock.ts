@@ -1,4 +1,4 @@
-import { logCurrentBlockNumber } from  "./utils/common";
+import { logCurrentBlockNumber } from "./utils/common";
 
 async function log() {
   await logCurrentBlockNumber();
