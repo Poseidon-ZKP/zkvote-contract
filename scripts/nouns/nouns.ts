@@ -1,6 +1,6 @@
 import {
   PublicKey, pointFromSolidity, pointFromScalar, pointAdd, pointMul,
-  polynomial_evaluate_group,
+  polynomial_evaluate_group, groupOrder
 } from "../crypto";
 import * as nouns_contract from "./nouns_contract";
 import * as dkg_contract from "./dkg_contract";
@@ -9,7 +9,7 @@ import {
   Nouns__factory, Round2Verifier__factory, NvoteVerifier__factory, TallyVerifier__factory,
 } from "../types";
 import { Vote, Voter, VoteRecord } from "./voter";
-import { CommitteeMemberDKG } from "./committee_member";
+import { CommitteeMemberDKG, deriveDKGSecret, recoverCommitteeMember } from "./committee_member";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "ethers";
 import { expect } from "chai";
@@ -61,7 +61,6 @@ async function main(
     10n, // total voting power
   );
 
-  const dummy_block_number_before_zkvote_deploy = 10;
   const zkv_descriptor = await zkvote_contract.get_descriptor(zkv, 10);
 
   // Deploy contract, and register voters
@@ -72,11 +71,32 @@ async function main(
 
   const nc_descriptor = await nouns_contract.get_descriptor(nc);
 
+  //
   // 0. Create committee members
+  //
+
   const committee_dkg: CommitteeMemberDKG[] = await Promise.all(COMMITEE.map(
-    async (signer, i) => CommitteeMemberDKG.initialize(
-      babyjub, poseidon, dc_descriptor, zkv_descriptor, signer, i + 1)
+    async (signer, i) => {
+      const a_0 = await deriveDKGSecret(babyjub, signer);
+      return await CommitteeMemberDKG.initialize(
+        babyjub, poseidon, dc_descriptor, zkv_descriptor, signer, i + 1, a_0)
+    }
   ));
+
+  {
+    // Attempt to reconstruct each members secrets.  This should return null at
+    // this stage.
+    await Promise.all(committee_dkg.map(async dkg_member => {
+      const member = await recoverCommitteeMember(
+        babyjub,
+        poseidon,
+        dc,
+        zkv,
+        dkg_member.signer,
+        dkg_member.getRound2SecretKey());
+      expect(member).to.be.null;
+    }));
+  }
 
   //
   // 1. Key Generation Round 1 (Committee)

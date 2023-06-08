@@ -4,6 +4,7 @@ import {
   PublicKey, groupOrder, pointFromScalar, pointFromSolidity, pointMul,
   polynomial_evaluate, polynomial_evaluate_group
 } from "../crypto";
+import { deriveSecret } from "./key_derivation";
 import { generate_zkp_round2, generate_zkp_tally } from "./prover";
 import { ZKVoteContractDescriptor } from "./zkvote_contract";
 import * as zkvote_contract from "./zkvote_contract";
@@ -58,8 +59,8 @@ export class CommitteeMember {
     PK_i: PublicKey) {
     this.babyjub = babyjub;
     this.poseidon = poseidon;
-    this.dc = dc;
-    this.zkv = zkv;
+    this.dc = dc.connect(signer);
+    this.zkv = zkv.connect(signer);
     this.signer = signer;
     this.n_comm = n_comm;
     this.threshold = threshold;
@@ -120,6 +121,131 @@ export class CommitteeMember {
 }
 
 
+/// Deterministically derive the a_0 secret using an Ethereum secret key.
+export async function deriveDKGSecret(
+  babyjub: any,
+  signer: Signer
+): Promise<bigint> {
+  const { secret } = await deriveSecret(
+    "zkVote Committee Member DKG secret",
+    signer,
+    groupOrder(babyjub));
+  return secret;
+}
+
+
+/// Read the on-chain
+export async function recoverCommitteeMember(
+  babyjub: any,
+  poseidon: any,
+  dkg: DKG,
+  zkv: ZKVote,
+  signer: Signer,
+  a_0: bigint
+): Promise<CommitteeMember | null> {
+
+  const provider: Provider = signer.provider;
+  const address: string = await signer.getAddress();
+  const n_comm: number = (await dkg.n_comm()).toNumber();
+  const threshold: number = (await dkg.threshold()).toNumber();
+
+  const cur_block: number = await provider.getBlockNumber();
+
+  console.log("Recovering committee member.  addr=" + address + ", n_comm=" + n_comm);
+
+  // Get my ID.
+  const my_id = (await dkg.get_committee_id_from_address(address)).toNumber();
+  if (my_id == 0) {
+    console.log("  unknown address.");
+    return null;
+  }
+
+  // We want to pull all Round2Share events which recip_id == my_id:
+  //
+  //   event Round2Share(
+  //     uint indexed recip_id, uint sender_id, uint enc_sk_share, uint[2] enc_eph_PK);
+
+  // TODO: Pull in batches.
+
+  const filter: Filter = dkg.filters.Round2Share(my_id);
+  filter.fromBlock = 0;
+  filter.toBlock = cur_block;
+  const logs = await provider.getLogs(filter);
+  if (logs.length != n_comm) {
+    console.log(" insufficient shares to reconstruct committee key");
+    return null;
+  }
+
+  // Parse
+  const intfc = dkg.interface;
+  function parseLog(log: Log): ParsedRound2Event {
+    const parsed = intfc.parseLog(log);
+    const args = parsed.args
+    const event: ParsedRound2Event = {
+      recip_id: BigInt(args[0]),
+      sender_id: BigInt(args[1]),
+      enc_sk_share: BigInt(args[2]),
+      enc_eph_pk: [
+        args[3][0].toString(),
+        args[3][1].toString()],
+    };
+    console.log("  event: " + JSON.stringify({
+      recip_id: event.recip_id.toString(),
+      sender_id: event.sender_id.toString(),
+      enc_sk_share: event.enc_sk_share.toString(),
+      enc_eph_pk: event.enc_eph_pk,
+    }));
+
+    return event;
+  };
+  const parsedEvents: ParsedRound2Event[] = logs.map(parseLog);
+
+  // Decrypt and sum event values to compute our share of the final secret.
+  let sk_i = 0n;
+
+  const order = groupOrder(babyjub);
+  parsedEvents.forEach(ev => {
+    const encrypted = { eph_pk: ev.enc_eph_pk, enc: ev.enc_sk_share };
+    const dec = poseidonDecEx(babyjub, poseidon, encrypted, a_0);
+    console.log("!!  decrypted (from " + ev.sender_id + ") = " + dec.toString());
+    sk_i = (sk_i + dec) % order;
+  });
+
+  // PK = f_i * G
+  const PK_i = pointFromScalar(babyjub, sk_i);
+
+  console.log("!!sk_i: " + sk_i.toString());
+  console.log("  PK_i: " + PK_i);
+
+  // Check that PK matches the eval of the (encoded) polynomial, given the
+  // coefficient sums.
+  {
+    const PK_coeffs_sol = await dkg.PK_coefficients();
+    const PK_coeffs = PK_coeffs_sol.map(pointFromSolidity);
+    const PK_i_expect = polynomial_evaluate_group(babyjub, PK_coeffs, BigInt(my_id));
+    expect(PK_i).to.eql(PK_i_expect, "secret shares don't match polynomial eval");
+  };
+
+  // Check that PK matches the sum of all public secret shares.
+  {
+    const pk_i = pointFromSolidity(await dkg.get_PK_for(my_id));
+    expect(pk_i).to.eql(PK_i);
+  }
+
+  return new CommitteeMember(
+    babyjub,
+    poseidon,
+    dkg,
+    zkv,
+    signer,
+    n_comm,
+    threshold,
+    my_id,
+    sk_i,
+    PK_i);
+}
+
+
 /// Committee member participating in Distributed Key Generation.
 export class CommitteeMemberDKG {
 
@@ -166,22 +292,21 @@ export class CommitteeMemberDKG {
     dc_descriptor: dkg_contract.DKGContractDescriptor,
     zkv_descriptor: ZKVoteContractDescriptor,
     signer: Signer,
-    // n_comm: number,
-    // threshold: number,
-    id: number
+    id: number,
+    a_0: bigint
   ): Promise<CommitteeMemberDKG> {
     expect(dc_descriptor.n_comm).to.be.greaterThanOrEqual(dc_descriptor.threshold);
 
-    // TODO: determine a_0 from the eth private key
 
-    let as: bigint[] = [];
-    let Cs: PublicKey[] = [];
+    let as: bigint[] = [a_0];
+    let Cs: PublicKey[] = [pointFromScalar(babyjub, a_0)];
 
-    for (let i = 0; i < dc_descriptor.threshold; ++i) {
+    for (let i = 1; i < dc_descriptor.threshold; ++i) {
       const a = BigInt(hexlify(randomBytes(32))) % groupOrder(babyjub);
       as.push(a);
       Cs.push(pointFromScalar(babyjub, a));
     }
+    expect(as.length).to.equal(dc_descriptor.threshold);
 
     const dc = dkg_contract.from_descriptor(signer.provider, dc_descriptor);
     const zkv = zkvote_contract.from_descriptor(signer.provider, zkv_descriptor);
@@ -350,108 +475,15 @@ export class CommitteeMemberDKG {
     }
   }
 
-  public decryptRound2Share(enc: bigint, eph_pk: PublicKey): bigint {
-    return poseidonDecEx(
-      this.babyjub, this.poseidon, { eph_pk, enc }, this.getRound2SecretKey())
-  }
-
-  public async constructSecretShare(): Promise<CommitteeMember> | null {
-
-    const provider: Provider = this.signer.provider;
-
-    //
-    const cur_block: number = await provider.getBlockNumber();
-
-    // We want to pull all events:
-    //
-    //   event Round2Share(
-    //     uint indexed recip_id, uint sender_id, uint enc_sk_share, uint[2] enc_eph_PK);
-    //
-    // where recip_id is equal to our id.
-
-    this.log("reading shares:");
-
-    // TODO: Pull in batches.
-
-    const filter: Filter = this.dc.filters.Round2Share(this.id);
-    filter.fromBlock = 0;
-    filter.toBlock = cur_block;
-    const logs = await provider.getLogs(filter);
-    expect(logs.length).to.equal(this.n_comm);
-
-    // Parse
-    const intfc = this.dc.interface;
-    const that = this;
-    function parseLog(log: Log): ParsedRound2Event {
-      const parsed = intfc.parseLog(log);
-      const args = parsed.args
-      // console.log("  parsed args: " + JSON.stringify(args));
-      const event: ParsedRound2Event = {
-        recip_id: BigInt(args[0]),
-        sender_id: BigInt(args[1]),
-        enc_sk_share: BigInt(args[2]),
-        enc_eph_pk: [
-          args[3][0].toString(),
-          args[3][1].toString()],
-      };
-      that.log("    event: " + JSON.stringify({
-        recip_id: event.recip_id.toString(),
-        sender_id: event.sender_id.toString(),
-        enc_sk_share: event.enc_sk_share.toString(),
-        enc_eph_pk: event.enc_eph_pk,
-      }));
-
-      return event;
-    };
-    const parsedEvents: ParsedRound2Event[] = logs.map(parseLog);
-
-    // Decrypt and sum event values to compute our share of the final secret.
-    let sk_i = 0n;
-
-    const order = groupOrder(this.babyjub);
-    parsedEvents.forEach(ev => {
-      const dec = this.decryptRound2Share(ev.enc_sk_share, ev.enc_eph_pk);
-      this.log("    decrypted (from " + ev.sender_id + ") = " + dec.toString());
-      sk_i = (sk_i + dec) % order;
-    });
-
-    // PK = f_i * G
-    const PK_i = pointFromScalar(this.babyjub, sk_i);
-
-    this.log("  sk_i: " + sk_i.toString());
-    this.log("  PK_i: " + PK_i);
-
-    // Check that PK matches the eval of the (encoded) polynomial, given the
-    // coefficient sums.
-    {
-      const PK_coeffs_sol = (await this.dc.PK_coefficients());
-      const PK_coeffs = PK_coeffs_sol.map(pointFromSolidity);
-      const PK_i_expect = polynomial_evaluate_group(
-        this.babyjub, PK_coeffs, BigInt(this.id));
-      expect(PK_i).to.eql(PK_i_expect);
-    };
-
-    // Check that PK matches the sum of all public secret shares.
-    {
-      const pk_i = pointFromSolidity(await this.dc.get_PK_for(this.id));
-      expect(pk_i).to.eql(PK_i);
-    }
-
-    // TODO(duncan): in principle, a CommitteeMember could initialize itself
-    // given only its id and the round2 secret key a_coeff[0], entirely from
-    // the chain.
-
-    return new CommitteeMember(
+  public async constructSecretShare(): Promise<CommitteeMember> {
+    const member = await recoverCommitteeMember(
       this.babyjub,
       this.poseidon,
       this.dc,
       this.zkv,
       this.signer,
-      this.n_comm,
-      this.threshold,
-      this.id,
-      sk_i,
-      PK_i);
+      this.getRound2SecretKey());
+    expect(member).not.null;
+    return member;
   }
-
 };
