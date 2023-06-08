@@ -9,7 +9,7 @@ import {
   Nouns__factory, Round2Verifier__factory, NvoteVerifier__factory, TallyVerifier__factory,
 } from "../types";
 import { Vote, Voter, VoteRecord } from "./voter";
-import { CommitteeMemberDKG } from "./committee_member";
+import { CommitteeMemberDKG, recoverCommitteeMember } from "./committee_member";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "ethers";
 import { expect } from "chai";
@@ -77,6 +77,19 @@ async function main(
     async (signer, i) => CommitteeMemberDKG.initialize(
       babyjub, poseidon, dc_descriptor, zkv_descriptor, signer, i + 1)
   ));
+
+  // Attempt to reconstruct each members secrets.  This should return null at
+  // this stage.
+  await Promise.all(committee_dkg.map(async dkg_member => {
+    const member = await recoverCommitteeMember(
+      babyjub,
+      poseidon,
+      dc,
+      zkv,
+      dkg_member.signer,
+      dkg_member.getRound2SecretKey());
+    expect(member).to.be.null;
+  }));
 
   //
   // 1. Key Generation Round 1 (Committee)
