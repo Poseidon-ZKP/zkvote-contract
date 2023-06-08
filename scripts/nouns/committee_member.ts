@@ -4,6 +4,7 @@ import {
   PublicKey, groupOrder, pointFromScalar, pointFromSolidity, pointMul,
   polynomial_evaluate, polynomial_evaluate_group
 } from "../crypto";
+import { deriveSecret } from "./key_derivation";
 import { generate_zkp_round2, generate_zkp_tally } from "./prover";
 import { ZKVoteContractDescriptor } from "./zkvote_contract";
 import * as zkvote_contract from "./zkvote_contract";
@@ -58,8 +59,8 @@ export class CommitteeMember {
     PK_i: PublicKey) {
     this.babyjub = babyjub;
     this.poseidon = poseidon;
-    this.dc = dc;
-    this.zkv = zkv;
+    this.dc = dc.connect(signer);
+    this.zkv = zkv.connect(signer);
     this.signer = signer;
     this.n_comm = n_comm;
     this.threshold = threshold;
@@ -117,6 +118,19 @@ export class CommitteeMember {
   log(msg: string) {
     console.log("[C:" + this.id + "] " + msg);
   }
+}
+
+
+/// Deterministically derive the a_0 secret using an Ethereum secret key.
+export async function deriveDKGSecret(
+  babyjub: any,
+  signer: Signer
+): Promise<bigint> {
+  const { secret } = await deriveSecret(
+    "zkVote Committee Member DKG secret",
+    signer,
+    groupOrder(babyjub));
+  return secret;
 }
 
 
@@ -278,22 +292,21 @@ export class CommitteeMemberDKG {
     dc_descriptor: dkg_contract.DKGContractDescriptor,
     zkv_descriptor: ZKVoteContractDescriptor,
     signer: Signer,
-    // n_comm: number,
-    // threshold: number,
-    id: number
+    id: number,
+    a_0: bigint
   ): Promise<CommitteeMemberDKG> {
     expect(dc_descriptor.n_comm).to.be.greaterThanOrEqual(dc_descriptor.threshold);
 
-    // TODO: determine a_0 from the eth private key
 
-    let as: bigint[] = [];
-    let Cs: PublicKey[] = [];
+    let as: bigint[] = [a_0];
+    let Cs: PublicKey[] = [pointFromScalar(babyjub, a_0)];
 
-    for (let i = 0; i < dc_descriptor.threshold; ++i) {
+    for (let i = 1; i < dc_descriptor.threshold; ++i) {
       const a = BigInt(hexlify(randomBytes(32))) % groupOrder(babyjub);
       as.push(a);
       Cs.push(pointFromScalar(babyjub, a));
     }
+    expect(as.length).to.equal(dc_descriptor.threshold);
 
     const dc = dkg_contract.from_descriptor(signer.provider, dc_descriptor);
     const zkv = zkvote_contract.from_descriptor(signer.provider, zkv_descriptor);

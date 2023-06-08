@@ -1,6 +1,6 @@
 import * as zkvote_contract from "./nouns/zkvote_contract";
 import * as dkg_contract from "./nouns/dkg_contract";
-import { CommitteeMemberDKG, CommitteeMember } from "./nouns/committee_member";
+import { deriveDKGSecret, recoverCommitteeMember, CommitteeMemberDKG, CommitteeMember } from "./nouns/committee_member";
 import { command, run, number, string, positional, option } from 'cmd-ts';
 import * as fs from 'fs';
 import * as ethers from "ethers";
@@ -78,22 +78,41 @@ const app = command({
 
     // Connect
     const provider = new ethers.providers.JsonRpcProvider(endpoint);
-
-    // Initialize the committee member object
-    const dkg_member = await CommitteeMemberDKG.initialize(
-      await buildBabyjub(),
-      await buildPoseidonReference(),
-      dkg_descriptor,
-      zkv_descriptor,
-      provider.getSigner(my_id),
-      my_id,
-    );
-
-    // Run the DKG
-    const member = await run_DKG(dkg_member);
-    console.log("DKG complete.");
-
+    const dkg = dkg_contract.from_descriptor(provider, dkg_descriptor);
     const zkv = zkvote_contract.from_descriptor(provider, zkv_descriptor);
+
+    const babyjub = await buildBabyjub();
+    const poseidon = await buildPoseidonReference();
+
+    // Get the signer for this committee member and generate the DKG secret
+    // key.
+    const signer = provider.getSigner(my_id);
+    const a_0 = await deriveDKGSecret(babyjub, signer)
+
+    // Attempt to recover our committee secret, otherwise assume we need to
+    // run the DKG.
+    console.log("attempting to recover committee secret from chain ...");
+    let member = await recoverCommitteeMember(
+      babyjub, poseidon, dkg, zkv, signer, a_0);
+    if (member === null) {
+      console.log("failed to recover from chain.  Running DKG ...");
+      // Initialize the committee member object
+      const dkg_member = await CommitteeMemberDKG.initialize(
+        babyjub,
+        poseidon,
+        dkg_descriptor,
+        zkv_descriptor,
+        signer,
+        my_id,
+        a_0
+      );
+
+      // Run the DKG
+      member = await run_DKG(dkg_member);
+      console.log("DKG complete.");
+    } else {
+      console.log("Recovery succeeded.");
+    }
 
     // Run the vote tallier
     console.log("Running vote tallier...");
