@@ -71,13 +71,13 @@ terminate until votes are tallied).  For demo purposes, we set the tally to be
 triggered when the total voting weight reaches 10. Alternatively, it can be run with no `-v` flag and only committee member number parameter. In this case, tally will trigger when `endBlock` is reached.
 
 ```sh
-yarn ts-node scripts/committee.ts 1 alice.keyfile.json -v 10
+yarn ts-node scripts/committee.ts alice.keyfile.json -v 10
 ```
 ```sh
-yarn ts-node scripts/committee.ts 2 bob.keyfile.json -v 10
+yarn ts-node scripts/committee.ts bob.keyfile.json -v 10
 ```
 ```sh
-yarn ts-node scripts/committee.ts 3 carol.keyfile.json -v 10
+yarn ts-node scripts/committee.ts carol.keyfile.json -v 10
 ```
 
 In a new terminal, setup a vote with proposal Id 1 and end block 1234, register some dummy voters and cast votes up to a total voting weight above 10
@@ -87,13 +87,13 @@ yarn ts-node scripts/setup_vote.ts 1 1234 signer.keyfile.json
 ```
 
 ```sh
-yarn ts-node scripts/vote.ts 1 1 yay 6 alice.keyfile.json
+yarn ts-node scripts/vote.ts 1 yay 6 alice.keyfile.json
 ```
 ```sh
-yarn ts-node scripts/vote.ts 1 2 nay 3 bob.keyfile.json
+yarn ts-node scripts/vote.ts 1 nay 3 bob.keyfile.json
 ```
 ```sh
-yarn ts-node scripts/vote.ts 1 3 yay 5 carol.keyfile.json
+yarn ts-node scripts/vote.ts 1 yay 5 carol.keyfile.json
 ```
 
 When the committee commands notice that the total voting weight used is at
