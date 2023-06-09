@@ -1,4 +1,4 @@
-import { PublicKey, pointFromScalar, pointMul } from "../crypto";
+import { PublicKey, pointFromScalar, pointMul, groupOrder } from "../crypto";
 
 import { randomBytes } from "@ethersproject/random";
 import { hexlify } from "@ethersproject/bytes";
@@ -37,8 +37,7 @@ export function poseidonEncEx(
 
   const F = babyjub.F;
 
-  // const eph_sk = BigInt(hexlify(randomBytes(32))) % babyjub.order;
-  const eph_sk = BigInt(3);
+  const eph_sk = BigInt(hexlify(randomBytes(32))) % groupOrder(babyjub);
   const eph_pk = pointFromScalar(babyjub, eph_sk);
   const KS = pointMul(babyjub, KA, eph_sk);
   const KS_0 = F.e(KS[0]);
