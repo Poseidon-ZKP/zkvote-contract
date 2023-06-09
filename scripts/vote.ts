@@ -61,11 +61,6 @@ const app = command({
       defaultValue: () => 'http://127.0.0.1:8545/',
       defaultValueIsSerializable: true,
     }),
-    my_id: positional({
-      type: number,
-      displayName: "my_id",
-      description: "ID (from 1 upwards) of this voter (used to select a hosted wallet)",
-    }),
     vote_str: positional({
       type: string,
       displayName: "vote",
@@ -82,10 +77,7 @@ const app = command({
       description: "JSON file with encrypted private key.",
     }),
   },
-  handler: async ({ keyfile, proposal_id, dc_descriptor_file, nc_descriptor_file, endpoint, my_id, vote_str, vote_weight }) => {
-
-    expect(my_id).is.greaterThan(0);
-
+  handler: async ({ keyfile, proposal_id, dc_descriptor_file, nc_descriptor_file, endpoint, vote_str, vote_weight }) => {
     const vote = parse_vote(vote_str);
     console.log("vote: " + vote);
 
@@ -95,7 +87,6 @@ const app = command({
 
     const nouns_descriptor: nouns_contract.NounsContractDescriptor = JSON.parse(
       fs.readFileSync(nc_descriptor_file, 'utf8'));
-    expect(my_id).is.lessThanOrEqual(dkg_descriptor.n_comm);
 
     const password = process.env.KEYFILE_PASSWORD;
 

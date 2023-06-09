@@ -26,11 +26,6 @@ async function run_DKG(member: CommitteeMemberDKG): Promise<CommitteeMember> {
 const app = command({
   name: 'committee',
   args: {
-    my_id: positional({
-      type: number,
-      displayName: "my_id",
-      description: "ID (from 1 up to n_voters) of this committee member",
-    }),
     keyfile: positional({
       type: string,
       displayName: 'keyfile',
@@ -69,10 +64,7 @@ const app = command({
       defaultValueIsSerializable: true,
     }),
   },
-  handler: async ({ my_id, keyfile, dc_descriptor_file, zkv_descriptor_file, vote_threshold, endpoint }) => {
-
-    expect(my_id).is.greaterThan(0);
-
+  handler: async ({ keyfile, dc_descriptor_file, zkv_descriptor_file, vote_threshold, endpoint }) => {
     // Load descriptor file
     const zkv_descriptor: zkvote_contract.ZKVoteContractDescriptor = JSON.parse(
       fs.readFileSync(zkv_descriptor_file, 'utf8'));
@@ -80,15 +72,10 @@ const app = command({
     const dkg_descriptor: dkg_contract.DKGContractDescriptor = JSON.parse(
       fs.readFileSync(dc_descriptor_file, 'utf8'));
 
-    expect(my_id).is.lessThanOrEqual(dkg_descriptor.n_comm);
-
     // Connect
     const provider = new ethers.providers.JsonRpcProvider(endpoint);
     const dkg = dkg_contract.from_descriptor(provider, dkg_descriptor);
     const zkv = zkvote_contract.from_descriptor(provider, zkv_descriptor);
-
-    const babyjub = await buildBabyjub();
-    const poseidon = await buildPoseidonReference();
 
     // Get the signer for this committee member and generate the DKG secret
     // key.
@@ -96,6 +83,14 @@ const app = command({
     const encrypted_json = fs.readFileSync(keyfile, 'utf8');
     let signer = await ethers.Wallet.fromEncryptedJson(encrypted_json, password);
     signer = signer.connect(provider);
+
+    const my_id = await dkg.get_committee_id_from_address(signer.address);
+    expect(my_id).is.greaterThan(0);
+    expect(my_id).is.lessThanOrEqual(dkg_descriptor.n_comm);
+
+    const babyjub = await buildBabyjub();
+    const poseidon = await buildPoseidonReference();
+
     const a_0 = await deriveDKGSecret(babyjub, signer)
 
     // Attempt to recover our committee secret, otherwise assume we need to
@@ -112,7 +107,7 @@ const app = command({
         dkg_descriptor,
         zkv_descriptor,
         signer,
-        my_id,
+        Number(my_id),
         a_0
       );
 
