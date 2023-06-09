@@ -1,13 +1,18 @@
 import * as nouns_contract from "./nouns/nouns_contract";
-import * as dkg_contract from "./nouns/dkg_contract";
 import * as zkvote_contract from "./nouns/zkvote_contract";
-import { command, run, number, string, option } from 'cmd-ts';
+import { command, run, string, option, positional } from 'cmd-ts';
 import * as fs from 'fs';
-import * as ethers from "ethers";
+import { Wallet, ethers } from "ethers";
+require('dotenv').config();
 
 const app = command({
   name: 'deploy_dummy_nouns',
   args: {
+    keyfile: positional({
+      type: string,
+      displayName: 'keyfile',
+      description: "JSON file with encrypted private key.",
+    }),
     zkv_descriptor_file: option({
       type: string,
       description: "ZKVote contract descriptor file location",
@@ -34,11 +39,14 @@ const app = command({
     }),
   },
   handler: async (
-    { zkv_descriptor_file, nc_descriptor_file, endpoint }
+    { keyfile, zkv_descriptor_file, nc_descriptor_file, endpoint }
   ) => {
-    const provider = new ethers.providers.JsonRpcProvider(endpoint);
+    const password = process.env.KEYFILE_PASSWORD;
 
-    const deployer = provider.getSigner(0);
+    const provider = new ethers.providers.JsonRpcProvider(endpoint);
+    const encrypted_json = fs.readFileSync(keyfile, 'utf8');
+    let deployer = await ethers.Wallet.fromEncryptedJson(encrypted_json, password);
+    deployer = deployer.connect(provider);
     console.log("DEPLOYER: " + await deployer.getAddress());
 
     const zkv_descriptor: zkvote_contract.ZKVoteContractDescriptor = JSON.parse(

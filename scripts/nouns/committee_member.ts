@@ -1,4 +1,3 @@
-
 import { EncryptedWithEphSK, poseidonEncEx, poseidonDecEx } from "./encryption";
 import {
   PublicKey, groupOrder, pointFromScalar, pointFromSolidity, pointMul,

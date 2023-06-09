@@ -17,10 +17,9 @@ export async function deploy(
   max_total_voting_weight: bigint,
 ): Promise<ZKVote> {
 
-  const verifier_contracts: Contract[] = await Promise.all([
-    (new NvoteVerifier__factory(deployer)).deploy(),
-    (new TallyVerifier__factory(deployer)).deploy(),
-  ]);
+  const verifier_contracts: Contract[] = [];
+  verifier_contracts.push(await new NvoteVerifier__factory(deployer).deploy());
+  verifier_contracts.push(await (new TallyVerifier__factory(deployer)).deploy());
   const verifiers = verifier_contracts.map(c => c.address);
 
   return await (new ZKVote__factory(deployer)).deploy(

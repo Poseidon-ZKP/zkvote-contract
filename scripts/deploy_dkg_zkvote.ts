@@ -1,13 +1,23 @@
-import * as nouns_contract from "./nouns/nouns_contract";
 import * as dkg_contract from "./nouns/dkg_contract";
 import * as zkvote_contract from "./nouns/zkvote_contract";
-import { command, run, number, string, option } from 'cmd-ts';
+import { command, run, number, string, positional, option } from 'cmd-ts';
 import * as fs from 'fs';
 import * as ethers from "ethers";
+require('dotenv').config();
 
 const app = command({
   name: 'deploy_dkg_zkvote',
   args: {
+    keyfile: positional({
+      type: string,
+      displayName: 'keyfile',
+      description: "JSON file with encrypted private key.",
+    }),
+    committee_file: positional({
+      type: string,
+      displayName: 'committee_file',
+      description: "JSON file with addresses of committee members.",
+    }),
     n_comm: option({
       type: number,
       description: "Total number of committee members",
@@ -58,22 +68,21 @@ const app = command({
     }),
   },
   handler: async (
-    { n_comm, threshold, max_total_voting_weight, dc_descriptor_file, zkv_descriptor_file, endpoint }
+    { keyfile, committee_file, n_comm, threshold, max_total_voting_weight, dc_descriptor_file, zkv_descriptor_file, endpoint }
   ) => {
     console.log("CONFIG: " + JSON.stringify({ n_comm, threshold, endpoint }));
 
     if (threshold > n_comm) { throw "invalid threshold"; }
-
-    // For now, assume the endpoint has some managed wallets.  Use 0 as the
-    // deployer and 1 ~ N as the committee members.
+    const password = process.env.KEYFILE_PASSWORD;
 
     const provider = new ethers.providers.JsonRpcProvider(endpoint);
-    const accounts = await provider.listAccounts();
-
-    const deployer = provider.getSigner(0);
+    const encrypted_json = fs.readFileSync(keyfile, 'utf8');
+    let deployer = await ethers.Wallet.fromEncryptedJson(encrypted_json, password);
+    deployer = deployer.connect(provider);
     console.log("DEPLOYER: " + await deployer.getAddress());
 
-    const committee = accounts.slice(1, n_comm + 1);
+    const committee_json = JSON.parse(fs.readFileSync(committee_file, 'utf8'));
+    const committee = committee_json.committee;
     console.log("COMMITTEE:");
     committee.forEach((c, i) => console.log("  " + i + ": " + c));
 

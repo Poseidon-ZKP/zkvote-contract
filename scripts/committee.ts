@@ -7,6 +7,7 @@ import * as ethers from "ethers";
 import { expect } from "chai";
 import { Filter } from "@ethersproject/providers";
 const { buildBabyjub, buildPoseidonReference } = require('circomlibjs');
+require('dotenv').config();
 
 async function run_DKG(member: CommitteeMemberDKG): Promise<CommitteeMember> {
   member.round1();
@@ -29,6 +30,11 @@ const app = command({
       type: number,
       displayName: "my_id",
       description: "ID (from 1 up to n_voters) of this committee member",
+    }),
+    keyfile: positional({
+      type: string,
+      displayName: 'keyfile',
+      description: "JSON file with encrypted private key.",
     }),
     dc_descriptor_file: option({
       type: string,
@@ -63,7 +69,7 @@ const app = command({
       defaultValueIsSerializable: true,
     }),
   },
-  handler: async ({ my_id, dc_descriptor_file, zkv_descriptor_file, vote_threshold, endpoint }) => {
+  handler: async ({ my_id, keyfile, dc_descriptor_file, zkv_descriptor_file, vote_threshold, endpoint }) => {
 
     expect(my_id).is.greaterThan(0);
 
@@ -86,7 +92,10 @@ const app = command({
 
     // Get the signer for this committee member and generate the DKG secret
     // key.
-    const signer = provider.getSigner(my_id);
+    const password = process.env.KEYFILE_PASSWORD;
+    const encrypted_json = fs.readFileSync(keyfile, 'utf8');
+    let signer = await ethers.Wallet.fromEncryptedJson(encrypted_json, password);
+    signer = signer.connect(provider);
     const a_0 = await deriveDKGSecret(babyjub, signer)
 
     // Attempt to recover our committee secret, otherwise assume we need to

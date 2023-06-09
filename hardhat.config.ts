@@ -6,8 +6,6 @@ import "hardhat-docgen"
 import '@nomiclabs/hardhat-etherscan'
 import "hardhat-contract-sizer"
 
-require('dotenv').config()
-
 import { extendConfig, task, subtask } from "hardhat/config";
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   const accounts = await hre.ethers.getSigners();
@@ -51,15 +49,15 @@ const customAccounts = [
   `0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e`,
 ]
 
-let hardhatAccounts = []
-customAccounts.forEach(a => {
-  hardhatAccounts.push(
-    {
-      privateKey: a,
-      balance: "10000000000000000000000"
-    }
-  )
-});
+// let hardhatAccounts = []
+// customAccounts.forEach(a => {
+//   hardhatAccounts.push(
+//     {
+//       privateKey: a,
+//       balance: "10000000000000000000000"
+//     }
+//   )
+// });
 
 
 /**
@@ -93,13 +91,6 @@ module.exports = {
     dontOverrideCompile: false // defaults to false
   },
   networks: {
-    localhost: {
-      accounts: customAccounts
-    },
-    hardhat: {
-      accounts: hardhatAccounts,
-    },
-
     l1: {
       url: "http://127.0.0.1:9545",
       accounts: customAccounts

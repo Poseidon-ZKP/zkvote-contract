@@ -42,12 +42,28 @@ Launch a development blockchain node:
 yarn hardhat node
 ```
 
+Create a `.env` file with the following content:
+```env
+KEYFILE_PASSWORD = abc123
+```
+
+Create 4 keyfiles with the following commands:
+```sh
+yarn ts-node scripts/encrypt_private_key.ts ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 abc123 -k signer.keyfile.json
+
+yarn ts-node scripts/encrypt_private_key.ts 59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d abc123 -k alice.keyfile.json
+
+yarn ts-node scripts/encrypt_private_key.ts 5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a abc123 -k bob.keyfile.json
+
+yarn ts-node scripts/encrypt_private_key.ts 7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6 abc123 -k carol.keyfile.json
+```
+
 Deploy the contracts and write the configuration to files `nouns.config.json`, `zkv.config.json`, `dkg.config.json`.
 These files are read by later commands to connect to the contract.
 
 ```console
-$ yarn ts-node scripts/deploy_dkg_zkvote.ts
-$ yarn ts-node scripts/deploy_dummy_nouns.ts
+$ yarn ts-node scripts/deploy_dkg_zkvote.ts signer.keyfile.json
+$ yarn ts-node scripts/deploy_dummy_nouns.ts signer.keyfile.json
 ```
 
 Launch 3 committee daemons (each in it's own terminal, as the process will not
@@ -55,29 +71,29 @@ terminate until votes are tallied).  For demo purposes, we set the tally to be
 triggered when the total voting weight reaches 10. Alternatively, it can be run with no `-v` flag and only committee member number parameter. In this case, tally will trigger when `endBlock` is reached.
 
 ```sh
-yarn ts-node scripts/committee.ts -v 10 1
+yarn ts-node scripts/committee.ts 1 alice.keyfile.json -v 10
 ```
 ```sh
-yarn ts-node scripts/committee.ts -v 10 2
+yarn ts-node scripts/committee.ts 2 bob.keyfile.json -v 10
 ```
 ```sh
-yarn ts-node scripts/committee.ts -v 10 3
+yarn ts-node scripts/committee.ts 3 carol.keyfile.json -v 10
 ```
 
 In a new terminal, setup a vote with proposal Id 1 and end block 1234, register some dummy voters and cast votes up to a total voting weight above 10
 (max total voting weight is 20).  For example:
 ```sh
-yarn ts-node scripts/setup_vote.ts 1 1234
+yarn ts-node scripts/setup_vote.ts 1 1234 signer.keyfile.json
 ```
 
 ```sh
-yarn ts-node scripts/vote.ts 1 1 yay 6
+yarn ts-node scripts/vote.ts 1 1 yay 6 alice.keyfile.json
 ```
 ```sh
-yarn ts-node scripts/vote.ts 1 2 nay 3
+yarn ts-node scripts/vote.ts 1 2 nay 3 bob.keyfile.json
 ```
 ```sh
-yarn ts-node scripts/vote.ts 1 3 yay 5
+yarn ts-node scripts/vote.ts 1 3 yay 5 carol.keyfile.json
 ```
 
 When the committee commands notice that the total voting weight used is at

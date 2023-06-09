@@ -3,7 +3,6 @@ import { command, run, string, option, positional, number } from 'cmd-ts';
 import * as fs from 'fs';
 import * as ethers from "ethers";
 
-
 const app = command({
   name: 'get_vote_tally',
   args: {
