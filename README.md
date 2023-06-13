@@ -49,20 +49,20 @@ KEYFILE_PASSWORD = abc123
 
 Create 4 keyfiles with the following commands:
 ```sh
-yarn ts-node scripts/encrypt_private_key.ts ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 abc123 -k signer.keyfile.json
+yarn ts-node scripts/encrypt_private_key.ts ./demo/signer_private_key.txt abc123 -k signer.keyfile.json
 
-yarn ts-node scripts/encrypt_private_key.ts 59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d abc123 -k alice.keyfile.json
+yarn ts-node scripts/encrypt_private_key.ts ./demo/alice_private_key.txt abc123 -k alice.keyfile.json
 
-yarn ts-node scripts/encrypt_private_key.ts 5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a abc123 -k bob.keyfile.json
+yarn ts-node scripts/encrypt_private_key.ts ./demo/bob_private_key.txt abc123 -k bob.keyfile.json
 
-yarn ts-node scripts/encrypt_private_key.ts 7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6 abc123 -k carol.keyfile.json
+yarn ts-node scripts/encrypt_private_key.ts ./demo/carol_private_key.txt abc123 -k carol.keyfile.json
 ```
 
 Deploy the contracts and write the configuration to files `nouns.config.json`, `zkv.config.json`, `dkg.config.json`.
 These files are read by later commands to connect to the contract.
 
 ```console
-$ yarn ts-node scripts/deploy_dkg_zkvote.ts signer.keyfile.json
+$ yarn ts-node scripts/deploy_dkg_zkvote.ts signer.keyfile.json ./demo/committee_file_demo.json
 $ yarn ts-node scripts/deploy_dummy_nouns.ts signer.keyfile.json
 ```
 

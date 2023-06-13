@@ -84,7 +84,7 @@ const app = command({
     let signer = await ethers.Wallet.fromEncryptedJson(encrypted_json, password);
     signer = signer.connect(provider);
 
-    const my_id = await dkg.get_committee_id_from_address(signer.address);
+    const my_id = Number(await dkg.get_committee_id_from_address(signer.address));
     expect(my_id).is.greaterThan(0);
     expect(my_id).is.lessThanOrEqual(dkg_descriptor.n_comm);
 

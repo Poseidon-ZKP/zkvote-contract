@@ -6,10 +6,10 @@ const wallet = require("ethereumjs-wallet").default
 const app = command({
   name: 'encrypt_private_key',
   args: {
-    private_key: positional({
+    private_key_text_file: positional({
       type: string,
-      displayName: 'private_key',
-      description: "Your ethereum private key.",
+      displayName: 'private_key_text_file',
+      description: "Text file with ethereum private key.",
     }),
     password: positional({
       type: string,
@@ -24,7 +24,10 @@ const app = command({
       long: 'keyfile_name',
     }),
   },
-  handler: async ({ private_key, password, keyfile_name }) => {
+  handler: async ({ private_key_text_file, password, keyfile_name }) => {
+    const data = fs.readFileSync(private_key_text_file, 'utf8');
+    const private_key = data.split(/\r?\n/)[0].trim();
+
     const privateKeyAsUint8Array = Buffer.from(private_key, 'hex');
     const account = wallet.fromPrivateKey(privateKeyAsUint8Array);
 
