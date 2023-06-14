@@ -49,13 +49,13 @@ KEYFILE_PASSWORD = abc123
 
 Create 4 keyfiles with the following commands:
 ```sh
-yarn ts-node scripts/encrypt_private_key.ts ./demo/signer_private_key.txt abc123 -k signer.keyfile.json
+yarn ts-node scripts/encrypt_private_key.ts ./demo/signer_private_key.txt -p abc123 -k signer.keyfile.json
 
-yarn ts-node scripts/encrypt_private_key.ts ./demo/alice_private_key.txt abc123 -k alice.keyfile.json
+yarn ts-node scripts/encrypt_private_key.ts ./demo/alice_private_key.txt -p abc123 -k alice.keyfile.json
 
-yarn ts-node scripts/encrypt_private_key.ts ./demo/bob_private_key.txt abc123 -k bob.keyfile.json
+yarn ts-node scripts/encrypt_private_key.ts ./demo/bob_private_key.txt -p abc123 -k bob.keyfile.json
 
-yarn ts-node scripts/encrypt_private_key.ts ./demo/carol_private_key.txt abc123 -k carol.keyfile.json
+yarn ts-node scripts/encrypt_private_key.ts ./demo/carol_private_key.txt -p abc123 -k carol.keyfile.json
 ```
 
 Deploy the contracts and write the configuration to files `nouns.config.json`, `zkv.config.json`, `dkg.config.json`.

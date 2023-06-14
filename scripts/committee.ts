@@ -79,7 +79,7 @@ const app = command({
 
     // Get the signer for this committee member and generate the DKG secret
     // key.
-    const password = process.env.KEYFILE_PASSWORD;
+    const password = process.env.KEYFILE_PASSWORD || '';
     const encrypted_json = fs.readFileSync(keyfile, 'utf8');
     let signer = await ethers.Wallet.fromEncryptedJson(encrypted_json, password);
     signer = signer.connect(provider);

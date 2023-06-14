@@ -41,7 +41,7 @@ const app = command({
   },
   handler: async ({ proposal_id, end_block, keyfile, nc_descriptor_file, endpoint }) => {
     // Load descriptor file
-    const password = process.env.KEYFILE_PASSWORD;
+    const password = process.env.KEYFILE_PASSWORD || '';
 
     const nc_descriptor: nouns_contract.NounsContractDescriptor = JSON.parse(
       fs.readFileSync(nc_descriptor_file, 'utf8'));

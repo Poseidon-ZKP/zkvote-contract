@@ -82,13 +82,10 @@ const app = command({
     console.log("vote: " + vote);
 
     // Load descriptor file
-    const dkg_descriptor: dkg_contract.DKGContractDescriptor = JSON.parse(
-      fs.readFileSync(dc_descriptor_file, 'utf8'));
-
     const nouns_descriptor: nouns_contract.NounsContractDescriptor = JSON.parse(
       fs.readFileSync(nc_descriptor_file, 'utf8'));
 
-    const password = process.env.KEYFILE_PASSWORD;
+    const password = process.env.KEYFILE_PASSWORD || '';
 
     const provider = new ethers.providers.JsonRpcProvider(endpoint);
     const encrypted_json = fs.readFileSync(keyfile, 'utf8');

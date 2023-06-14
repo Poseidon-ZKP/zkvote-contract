@@ -11,10 +11,12 @@ const app = command({
       displayName: 'private_key_text_file',
       description: "Text file with ethereum private key.",
     }),
-    password: positional({
+    password: option({
       type: string,
-      displayName: 'password',
       description: "Password used to decrypt encrypted private key.",
+      defaultValue: () => '',
+      short: 'p',
+      long: 'password',
     }),
     keyfile_name: option({
       type: string,

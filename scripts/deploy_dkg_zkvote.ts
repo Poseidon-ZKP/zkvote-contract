@@ -73,7 +73,7 @@ const app = command({
     console.log("CONFIG: " + JSON.stringify({ n_comm, threshold, endpoint }));
 
     if (threshold > n_comm) { throw "invalid threshold"; }
-    const password = process.env.KEYFILE_PASSWORD;
+    const password = process.env.KEYFILE_PASSWORD || '';
 
     const provider = new ethers.providers.JsonRpcProvider(endpoint);
     const encrypted_json = fs.readFileSync(keyfile, 'utf8');
