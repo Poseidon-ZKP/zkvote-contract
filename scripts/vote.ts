@@ -7,6 +7,7 @@ import { command, run, number, string, positional, option } from 'cmd-ts';
 import * as fs from 'fs';
 import * as ethers from "ethers";
 import { expect } from "chai";
+require('dotenv').config();
 
 
 function parse_vote(vote: string): Vote {
@@ -19,8 +20,6 @@ function parse_vote(vote: string): Vote {
 
   throw "unrecognized vote: " + vote + ".  Use yay, nay or abstain.";
 }
-
-
 
 const app = command({
   name: 'voter',
@@ -62,11 +61,6 @@ const app = command({
       defaultValue: () => 'http://127.0.0.1:8545/',
       defaultValueIsSerializable: true,
     }),
-    my_id: positional({
-      type: number,
-      displayName: "my_id",
-      description: "ID (from 1 upwards) of this voter (used to select a hosted wallet)",
-    }),
     vote_str: positional({
       type: string,
       displayName: "vote",
@@ -77,30 +71,26 @@ const app = command({
       displayName: "vote_weight",
       description: "Voting weight"
     }),
+    keyfile: positional({
+      type: string,
+      displayName: 'keyfile',
+      description: "JSON file with encrypted private key.",
+    }),
   },
-  handler: async ({ proposal_id, dc_descriptor_file, nc_descriptor_file, endpoint, my_id, vote_str, vote_weight }) => {
-
-    expect(my_id).is.greaterThan(0);
-
+  handler: async ({ keyfile, proposal_id, dc_descriptor_file, nc_descriptor_file, endpoint, vote_str, vote_weight }) => {
     const vote = parse_vote(vote_str);
     console.log("vote: " + vote);
 
     // Load descriptor file
-    const dkg_descriptor: dkg_contract.DKGContractDescriptor = JSON.parse(
-      fs.readFileSync(dc_descriptor_file, 'utf8'));
-
     const nouns_descriptor: nouns_contract.NounsContractDescriptor = JSON.parse(
       fs.readFileSync(nc_descriptor_file, 'utf8'));
-    expect(my_id).is.lessThanOrEqual(dkg_descriptor.n_comm);
 
-    // Connect
+    const password = process.env.KEYFILE_PASSWORD || '';
+
     const provider = new ethers.providers.JsonRpcProvider(endpoint);
-
-    // Initialize the voter.  Assume committee members use accounts with index
-    // 1 through n_comm (0 used for deployer).  Since voter indices are also
-    // 1-based, voter 1 uses the signer with index n_comm + my_id.
-    const signer_idx = dkg_descriptor.n_comm + my_id;
-    const signer = provider.getSigner(signer_idx);
+    const encrypted_json = fs.readFileSync(keyfile, 'utf8');
+    let signer = await ethers.Wallet.fromEncryptedJson(encrypted_json, password);
+    signer = signer.connect(provider);
     const voter = await Voter.initialize(signer, nouns_descriptor);
 
     // Register the voter

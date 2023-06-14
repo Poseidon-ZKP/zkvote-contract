@@ -13,3 +13,4 @@ scripts/types/
 *~
 /build-db
 *.config.json
+*.keyfile.json
