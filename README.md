@@ -34,6 +34,8 @@ yarn hardhat test
 
 ### Command-line Demo
 
+<img width="836" alt="image" src="https://github.com/Poseidon-ZKP/zkvote-contract/assets/7463414/0ef2c924-053b-411b-8126-805c353f41d5">
+
 (Note, many of these commands are long-running and must be launched in their
 own terminal).
 
