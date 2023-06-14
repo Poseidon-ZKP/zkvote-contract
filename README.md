@@ -50,20 +50,25 @@ KEYFILE_PASSWORD = abc123
 Create 4 keyfiles with the following commands:
 ```sh
 yarn ts-node scripts/encrypt_private_key.ts ./cli-demo/signer_private_key.txt -p abc123 -k ./cli-demo/signer.keyfile.json
-
+```
+```sh
 yarn ts-node scripts/encrypt_private_key.ts ./cli-demo/alice_private_key.txt -p abc123 -k ./cli-demo/alice.keyfile.json
-
+```
+```sh
 yarn ts-node scripts/encrypt_private_key.ts ./cli-demo/bob_private_key.txt -p abc123 -k ./cli-demo/bob.keyfile.json
-
+```
+```sh
 yarn ts-node scripts/encrypt_private_key.ts ./cli-demo/carol_private_key.txt -p abc123 -k ./cli-demo/carol.keyfile.json
 ```
 
 Deploy the contracts and write the configuration to files `nouns.config.json`, `zkv.config.json`, `dkg.config.json`.
 These files are read by later commands to connect to the contract.
 
-```console
-$ yarn ts-node scripts/deploy_dkg_zkvote.ts ./cli-demo/signer.keyfile.json ./cli-demo/committee_file_demo.json
-$ yarn ts-node scripts/deploy_dummy_nouns.ts ./cli-demo/signer.keyfile.json
+```sh
+yarn ts-node scripts/deploy_dkg_zkvote.ts ./cli-demo/signer.keyfile.json ./cli-demo/committee_file_demo.json
+```
+```sh
+yarn ts-node scripts/deploy_dummy_nouns.ts ./cli-demo/signer.keyfile.json
 ```
 
 Launch 3 committee daemons (each in it's own terminal, as the process will not
