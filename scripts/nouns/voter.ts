@@ -73,6 +73,7 @@ export class Voter {
     // TODO: For now, we just keep this on locally on the class.  Later, query
     // the chain or some snapshot for this info.
     const weight = 1;//await this.nc.get_voting_weight(proposalId, await this.signer.getAddress());
+    // TODO: parameterize voting_weight
     return BigInt(weight.toString());
   }
 
@@ -91,7 +92,7 @@ export class Voter {
     //   voting_weight * G +
 
     const voting_weight = BigInt(1);//await this.get_voting_weight(proposalId);
-
+    // TODO: parameterize voting_weight
     const zkVote = zkvote_contract.from_address(this.signer, data.address);//await this.nc.zkVote());
 
     const dc = dkg_contract.from_address(this.signer, await zkVote.dkg());
@@ -106,6 +107,7 @@ export class Voter {
 
     const babyjub = this.babyjub;
     const vw = BigInt(1);//await this.get_voting_weight(proposalId);
+    // TODO: parameterize voting_weight
     function encrypt_vote(v: Vote) {
       // r_i <- random
       // R_i = r_i*G
