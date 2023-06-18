@@ -343,15 +343,15 @@ contract ZKVote is IZKVote {
 
         setupVoteCaller[proposalId].receiveVoteTally(
             proposalId,
-            vote_totals[proposalId][0],
+            vote_totals[proposalId][2],
             vote_totals[proposalId][1],
-            vote_totals[proposalId][2]
+            vote_totals[proposalId][0]
         );
         emit TallyComplete(
             proposalId,
-            vote_totals[proposalId][0],
+            vote_totals[proposalId][2],
             vote_totals[proposalId][1],
-            vote_totals[proposalId][2]
+            vote_totals[proposalId][0]
         );
     }
 

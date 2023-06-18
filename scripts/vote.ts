@@ -99,12 +99,12 @@ const app = command({
     // Initialize the voter.  Assume committee members use accounts with index
     // 1 through n_comm (0 used for deployer).  Since voter indices are also
     // 1-based, voter 1 uses the signer with index n_comm + my_id.
-    const signer_idx = dkg_descriptor.n_comm + my_id;
+    const signer_idx = 0;//dkg_descriptor.n_comm + my_id; -- setting temporarily to 0 because this account has a noun minted
     const signer = provider.getSigner(signer_idx);
     const voter = await Voter.initialize(signer, nouns_descriptor);
 
     // Register the voter
-    await voter.dummy_register(proposal_id, BigInt(vote_weight));
+    //await voter.dummy_register(proposal_id, BigInt(vote_weight));
 
     // Vote and wait
     const vote_record = await voter.cast_vote(proposal_id, vote);
