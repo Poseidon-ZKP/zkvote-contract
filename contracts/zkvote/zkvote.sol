@@ -342,7 +342,7 @@ contract ZKVote is IZKVote {
         }
 
         // We send in reverse order of the vote_totals mapping so that we match
-        // the order of the VoteTally struct in zkvote.sol as well as the
+        // the for, against, abstain, order of the VoteTally struct in zkvote.sol as well as the
         // receiveVoteTally function in IDAOProxy.sol.
         setupVoteCaller[proposalId].receiveVoteTally(
             proposalId,
