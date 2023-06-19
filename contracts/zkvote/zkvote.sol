@@ -341,17 +341,20 @@ contract ZKVote is IZKVote {
             vote_totals[proposalId][k] = lookup_table[VG[0]][VG[1]];
         }
 
+        // We send in reverse order of the vote_totals mapping so that we match
+        // the for, against, abstain, order of the VoteTally struct in zkvote.sol as well as the
+        // receiveVoteTally function in IDAOProxy.sol.
         setupVoteCaller[proposalId].receiveVoteTally(
             proposalId,
-            vote_totals[proposalId][0],
+            vote_totals[proposalId][2],
             vote_totals[proposalId][1],
-            vote_totals[proposalId][2]
+            vote_totals[proposalId][0]
         );
         emit TallyComplete(
             proposalId,
-            vote_totals[proposalId][0],
+            vote_totals[proposalId][2],
             vote_totals[proposalId][1],
-            vote_totals[proposalId][2]
+            vote_totals[proposalId][0]
         );
     }
 
