@@ -1,5 +1,5 @@
 import * as nouns_contract from "./nouns/nouns_contract";
-import { Vote, Voter } from "./nouns/voter";
+import { Vote, Voter } from "./nouns/voterDAO";
 import * as dkg_contract from "./nouns/dkg_contract";
 import { Nouns } from "./nouns/nouns_contract";
 import { CommitteeMemberDKG, CommitteeMember } from "./nouns/committee_member";
@@ -43,7 +43,7 @@ const app = command({
       description: "Nouns descriptor file location",
       long: 'descriptor',
       short: 'd',
-      defaultValue: () => "./nouns.config.json",
+      defaultValue: () => "./nounsdao.config.json",
       defaultValueIsSerializable: true,
     }),
     // vote_threshold: option({
@@ -104,7 +104,7 @@ const app = command({
     const voter = await Voter.initialize(signer, nouns_descriptor);
 
     // Register the voter
-    await voter.dummy_register(proposal_id, BigInt(vote_weight));
+    //await voter.dummy_register(proposal_id, BigInt(vote_weight));
 
     // Vote and wait
     const vote_record = await voter.cast_vote(proposal_id, vote);

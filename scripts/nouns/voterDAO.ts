@@ -12,6 +12,13 @@ import { randomBytes } from "@ethersproject/random";
 import { Signer, BigNumberish } from "ethers";
 import { expect } from "chai";
 const { buildBabyjub } = require('circomlibjs');
+const data = require('../../zkv.config.json');
+const ethers = require('ethers');
+const nouns_token_contract_data = require('../../nounstoken.config.json');
+const nouns_dao_contract_data = require('../../nounsdao.config.json');
+const nouns_token_abi = require('./abi/NounsToken.json');
+const nouns_dao_abi = require('./abi/NounsDAOLogicV2.json');
+
 
 
 export enum Vote {
@@ -47,6 +54,8 @@ export class Voter {
   babyjub: any;
   signer: Signer;
   nc: Nouns;
+  ntc: any;
+  ncd: any;
 
   private constructor(
     babyjub: any,
@@ -56,6 +65,10 @@ export class Voter {
     this.signer = signer;
     this.nc = nouns_contract.from_descriptor(signer.provider, nouns_desc)
       .connect(signer);
+    const nounstoken_contract_address = nouns_token_contract_data.address;
+    this.ntc = new ethers.Contract(nounstoken_contract_address, nouns_token_abi, signer);
+    const nouns_contract_address = nouns_dao_contract_data.address;
+    this.ncd = new ethers.Contract(nouns_contract_address, nouns_dao_abi, signer);
   }
 
   public static async initialize(
@@ -68,9 +81,9 @@ export class Voter {
   }
 
   public async get_voting_weight(proposalId: BigNumberish): Promise<bigint> {
-    // TODO: For now, we just keep this on locally on the class.  Later, query
-    // the chain or some snapshot for this info.
-    const weight = await this.nc.get_voting_weight(proposalId, await this.signer.getAddress());
+    const proposal = await this.ncd.proposals(proposalId);
+    const weight = await this.ntc.getPriorVotes(await this.signer.getAddress(), proposal.creationBlock);
+    //console.log('voting_weight: ', weight.toString());
     return BigInt(weight.toString());
   }
 
@@ -89,8 +102,9 @@ export class Voter {
     //   voting_weight * G +
 
     const voting_weight = await this.get_voting_weight(proposalId);
+    console.log('voting_weight: ', voting_weight.toString());
 
-    const zkVote = zkvote_contract.from_address(this.signer, await this.nc.zkVote());
+    const zkVote = zkvote_contract.from_address(this.signer, data.address);//await this.nc.zkVote());
 
     const dc = dkg_contract.from_address(this.signer, await zkVote.dkg());
 
@@ -104,6 +118,7 @@ export class Voter {
 
     const babyjub = this.babyjub;
     const vw = await this.get_voting_weight(proposalId);
+
     function encrypt_vote(v: Vote) {
       // r_i <- random
       // R_i = r_i*G
@@ -130,8 +145,9 @@ export class Voter {
       PK, voting_weight, Rs, Ms, o, rs);
 
     const address = await this.signer.getAddress();
-    expect(await this.nc.has_voted(proposalId, address)).to.be.false;
-    const tx = await this.nc.castPrivateVote(
+    //expect(await this.nc.has_voted(proposalId, address)).to.be.false;
+    //console.log(this.nc);
+    const tx = await this.ncd.castVote(
       proposalId,
       <SolidityEncryptedVotes>Rs,
       <SolidityEncryptedVotes>Ms,
@@ -139,7 +155,7 @@ export class Voter {
       proof.b,
       proof.c);
     await tx.wait();
-    expect(await this.nc.has_voted(proposalId, address)).to.be.true;
+    //expect(await this.nc.has_voted(proposalId, address)).to.be.true;
 
     return { vote, R: Rs, M: Ms };
   }
