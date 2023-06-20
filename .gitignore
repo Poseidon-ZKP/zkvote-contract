@@ -13,5 +13,5 @@ scripts/types/
 *~
 /build-db
 *.config.json
-!nouns.config.json
+!nounsdao.config.json
 !nounstoken.config.json
