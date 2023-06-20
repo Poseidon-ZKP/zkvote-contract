@@ -1,6 +1,9 @@
 zkVote demo
 ===========
 
+## Background
+This branch exists to integration with the [Nouns DAO Private Voting front-end](https://github.com/0xDigitalOil/nounsdao-privatevoting#nounsdao-privatevoting) and needs to be running in parallel to the Nouns UI and contracts in that repo.
+
 ## Developer Setup
 
 ### Install dependencies
@@ -47,7 +50,6 @@ These files are read by later commands to connect to the contract.
 
 ```console
 $ yarn ts-node scripts/deploy_dkg_zkvote.ts
-$ yarn ts-node scripts/deploy_dummy_nouns.ts
 ```
 
 Launch 3 committee daemons (each in it's own terminal, as the process will not
@@ -64,11 +66,7 @@ yarn ts-node scripts/committee.ts -v 10 2
 yarn ts-node scripts/committee.ts -v 10 3
 ```
 
-In a new terminal, setup a vote with proposal Id 1 and end block 1234, register some dummy voters and cast votes up to a total voting weight above 10
-(max total voting weight is 20).  For example:
-```sh
-yarn ts-node scripts/setup_vote.ts 1 1234
-```
+Using the Nouns Private Voting UI create a new proposal (#1). Ensure that voters 1, 2, 3 hold at least 1 Noun. Then execute each of the voters' votes like so:
 
 ```sh
 yarn ts-node scripts/vote.ts 1 1 yay 6
