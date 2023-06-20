@@ -2,7 +2,7 @@ zkVote demo
 ===========
 
 ## Background
-This branch exists to integration with the [Nouns DAO Private Voting front-end](https://github.com/0xDigitalOil/nounsdao-privatevoting#nounsdao-privatevoting) and needs to be running in parallel to the Nouns UI and contracts in that repo.
+This branch exists to integrate with the [Nouns DAO Private Voting front-end](https://github.com/0xDigitalOil/nounsdao-privatevoting#nounsdao-privatevoting) and needs to be running in parallel to the Nouns UI and contracts in that repo.
 
 ## Developer Setup
 
