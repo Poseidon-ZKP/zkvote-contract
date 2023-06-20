@@ -83,7 +83,7 @@ export class Voter {
   public async get_voting_weight(proposalId: BigNumberish): Promise<bigint> {
     const proposal = await this.ncd.proposals(proposalId);
     const weight = await this.ntc.getPriorVotes(await this.signer.getAddress(), proposal.creationBlock);
-    console.log('voting_weight: ', weight.toString());
+    //console.log('voting_weight: ', weight.toString());
     return BigInt(weight.toString());
   }
 
@@ -102,6 +102,7 @@ export class Voter {
     //   voting_weight * G +
 
     const voting_weight = await this.get_voting_weight(proposalId);
+    console.log('voting_weight: ', voting_weight.toString());
 
     const zkVote = zkvote_contract.from_address(this.signer, data.address);//await this.nc.zkVote());
 
