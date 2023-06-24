@@ -6,7 +6,7 @@ This branch exists to integrate with the [Nouns DAO Private Voting front-end](ht
 
 For more info and to get that repo running first (necessary), [see here](https://github.com/0xDigitalOil/nounsdao-privatevoting).
 
-## Developer Setup
+## Setup
 
 ### Install dependencies
 
@@ -37,7 +37,7 @@ Note that these tests use a dummy instantiation of the nouns governance contract
 yarn hardhat test
 ```
 
-### Command-line Demo
+## Command-line Demo
 This command-line demo is optional (not necessary to run the full proof of concept). It's fully contained (i.e. doesn't presume a running instance of the nounsdao-monorepo).
 
 Its purpose is to isolate a proof of concept of the Private Voting contracts by testing with a dummy Nouns governance contract and no GUI.
@@ -111,7 +111,7 @@ To query the contract for the vote totals for proposal Id 1, run:
 yarn ts-node scripts/get_vote_tally.ts 1
 ```
 
-### Full Demo
+## Full Demo
 The full demo presumes that the nounsdao-mono repo instance is fully running and that the setup described above (with exception of the Command-line demo) was completed.
 
 > **Note**
@@ -142,7 +142,11 @@ yarn ts-node scripts/committee.ts -v 10 2
 yarn ts-node scripts/committee.ts -v 10 3
 ```
 
-Using the Nouns Private Voting UI create a new proposal (#1). Ensure that voters 1, 2, 3 (defined in the nounsdao-monorepo) hold at least 1 Noun. Then execute each of the voters' votes like so:
+Ensure that voters 1, 2, 3 (defined in the nounsdao-monorepo) hold at least 1 Noun (via auction). 
+
+Using the Nouns Private Voting UI create a new proposal (#1). 
+
+Then execute each of the voters' votes like so:
 
 ```sh
 yarn ts-node scripts/voteDAO.ts 1 1 yay 6
