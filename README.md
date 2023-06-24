@@ -4,6 +4,8 @@ zkVote demo
 ## Background
 This branch exists to integrate with the [Nouns DAO Private Voting front-end](https://github.com/0xDigitalOil/nounsdao-privatevoting#nounsdao-privatevoting) and needs to be running in parallel to the Nouns UI and contracts in that repo.
 
+For more info and to get that repo running first (necessary), [see here](https://github.com/0xDigitalOil/nounsdao-privatevoting).
+
 ## Developer Setup
 
 ### Install dependencies
@@ -95,7 +97,7 @@ To query the contract for the vote totals for proposal Id 1, run:
 ```sh
 yarn ts-node scripts/get_vote_tally.ts 1
 ```
-
+<?
 ## Development
 
 Run syntax checkers and linters:
@@ -107,3 +109,4 @@ Use `tsfmt` and `prettier-plugin-solidity` to format all code.  Run these manual
 ```sh
 yarn run format
 ```
+?>
