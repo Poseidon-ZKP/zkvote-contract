@@ -32,31 +32,41 @@ yarn test
 ```
 
 ### Unit tests
-
+Note that these tests use a dummy instantiation of the nouns governance contract. Not a fork of the NounsDAOLogicV2 contract from the nounsdao-monorepo.
 ```sh
 yarn hardhat test
 ```
 
 ### Command-line Demo
+This command-line demo is optional (not necessary to run the full proof of concept). It's fully contained (i.e. doesn't presume a running instance of the nounsdao-monorepo).
 
-(Note, many of these commands are long-running and must be launched in their
-own terminal).
+Its purpose is to isolate a proof of concept of the Private Voting contracts by testing with a dummy Nouns governance contract and no GUI.
+
+The demo might break the proof of concept workflow which starts in the nounsdao-monorepo because its prefferable to run it with a new hardhat node instance.
+
+> **Note**
+>
+> Many of these commands are long-running and must be launched in their own terminal.
 
 Launch a development blockchain node:
 ```sh
 yarn hardhat node
 ```
 
-Deploy the contracts and write the configuration to files `zkv.config.json`, `dkg.config.json`.
+Deploy the contracts and write the configuration to files `zkv.config.json`, `dkg.config.json`, `nouns.config.json`.
 These files are read by later commands to connect to the contract.
 
+In a new terminal:
 ```console
 yarn ts-node scripts/deploy_dkg_zkvote.ts
 ```
+```console
+yarn ts-node scripts/deploy_dummy_nouns.ts
+```
 
-Launch 3 committee daemons (each in it's own terminal, as the process will not
+Launch 3 committee daemons (each in its own terminal, as the process for each will not
 terminate until votes are tallied).  For demo purposes, we set the tally to be
-triggered when the total voting weight reaches 10. Alternatively, it can be run with no `-v` flag and only committee member number parameter. In this case, tally will trigger when `endBlock` is reached.
+triggered when the total voting weight reaches `10`. Alternatively, it can be run with no `-v` flag and only committee member number parameter. In both cases, tally can trigger when the proposal's `endBlock` is reached.
 
 ```sh
 yarn ts-node scripts/committee.ts -v 10 1
@@ -68,8 +78,11 @@ yarn ts-node scripts/committee.ts -v 10 2
 yarn ts-node scripts/committee.ts -v 10 3
 ```
 
-Using the Nouns Private Voting UI create a new proposal (#1). Ensure that voters 1, 2, 3 hold at least 1 Noun. Then execute each of the voters' votes like so:
+In a new terminal, setup a vote with proposal Id 1 and end block 1234, register some dummy voters and cast votes up to a total voting weight above 10 (max total voting weight is 20). For example:
 
+```sh
+yarn ts-node scripts/setup_vote.ts 1 1234
+```
 ```sh
 yarn ts-node scripts/vote.ts 1 1 yay 6
 ```
@@ -80,7 +93,7 @@ yarn ts-node scripts/vote.ts 1 2 nay 3
 yarn ts-node scripts/vote.ts 1 3 yay 5
 ```
 
-When the committee commands notice that the total voting weight used is at
+When the committee daemons notice that the total voting weight used is at
 least 10, they begin the tallying, and will exit after the tallying process is
 complete.  
 
@@ -97,6 +110,58 @@ To query the contract for the vote totals for proposal Id 1, run:
 ```sh
 yarn ts-node scripts/get_vote_tally.ts 1
 ```
+
+### Full Demo
+The full demo presumes that the nounsdao-mono repo instance is fully running and that the setup described above (with exception of the Command-line demo) was completed.
+
+> **Note**
+>
+> Many of these commands are long-running and must be launched in their own terminal.
+
+Remember that a local hardhat node is already running (from the nounsdao-monorepo setup).
+
+Deploy the contracts and write the configuration to files `zkv.config.json`, `dkg.config.json`.
+These files are read by later commands to connect to the contracts.
+
+In a new terminal:
+```console
+yarn ts-node scripts/deploy_dkg_zkvote.ts
+```
+
+Launch 3 committee daemons (each in its own terminal, as the process for each will not
+terminate until votes are tallied).  For demo purposes, we set the tally to be
+triggered when the total voting weight reaches `10`. Alternatively, it can be run with no `-v` flag and only committee member number parameter. In both cases, tally will trigger anyway when the proposal's `endBlock` is reached.
+
+```sh
+yarn ts-node scripts/committee.ts -v 10 1
+```
+```sh
+yarn ts-node scripts/committee.ts -v 10 2
+```
+```sh
+yarn ts-node scripts/committee.ts -v 10 3
+```
+
+Using the Nouns Private Voting UI create a new proposal (#1). Ensure that voters 1, 2, 3 (defined in the nounsdao-monorepo) hold at least 1 Noun. Then execute each of the voters' votes like so:
+
+```sh
+yarn ts-node scripts/voteDAO.ts 1 1 yay 6
+```
+```sh
+yarn ts-node scripts/voteDAO.ts 1 2 nay 3
+```
+```sh
+yarn ts-node scripts/voteDAO.ts 1 3 yay 5
+```
+
+When the committee daemons notice that the total voting weight used is at
+least 10, they begin the tallying, and will exit after the tallying process is
+complete.  
+
+However, since the nounsdao-monorepo is set up for very short voting periods, the vote tally will be triggered in only a couple minutes anyway when the proposal's `endBlock` is reached.
+
+Once the voting period is done, view tally results in the Nouns DAO UI. If the proposal passed, try queueing and executing it.
+
 <?
 ## Development
 
