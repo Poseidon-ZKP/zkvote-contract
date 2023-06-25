@@ -54,7 +54,7 @@ yarn hardhat node
 ```
 
 Deploy the contracts and write the configuration to files `zkv.config.json`, `dkg.config.json`, `nouns.config.json`.
-These files are read by later commands to connect to the contract.
+These files are read by later scripts to connect to the contract.
 
 In a new terminal:
 ```console
@@ -121,7 +121,7 @@ The full demo presumes that the [nounsdao-mono repo instance](https://github.com
 Remember that a local hardhat node is already running (from the nounsdao-monorepo setup).
 
 Deploy the contracts and write the configuration to files `zkv.config.json`, `dkg.config.json`.
-These files are read by later commands to connect to the contracts.
+These files are read by later scripts to connect to the contracts.
 
 In a new terminal:
 ```console
