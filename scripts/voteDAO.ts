@@ -72,13 +72,8 @@ const app = command({
       displayName: "vote",
       description: "Vote (yay, nay or abstain)",
     }),
-    vote_weight: positional({
-      type: number,
-      displayName: "vote_weight",
-      description: "Voting weight"
-    }),
   },
-  handler: async ({ proposal_id, dc_descriptor_file, nc_descriptor_file, endpoint, my_id, vote_str, vote_weight }) => {
+  handler: async ({ proposal_id, dc_descriptor_file, nc_descriptor_file, endpoint, my_id, vote_str }) => {
 
     expect(my_id).is.greaterThan(0);
 

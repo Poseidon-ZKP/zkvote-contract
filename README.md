@@ -112,7 +112,7 @@ yarn ts-node scripts/get_vote_tally.ts 1
 ```
 
 ## Full Demo
-The full demo presumes that the nounsdao-mono repo instance is fully running and that the setup described above (with exception of the Command-line demo) was completed.
+The full demo presumes that the [nounsdao-mono repo instance](https://github.com/0xDigitalOil/nounsdao-privatevoting#nounsdao-privatevoting) has been run all the way through and that the setup described here above (with exception of the Command-line demo) was completed.
 
 > **Note**
 >
