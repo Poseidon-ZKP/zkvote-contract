@@ -111,8 +111,8 @@ To query the contract for the vote totals for proposal Id 1, run:
 yarn ts-node scripts/get_vote_tally.ts 1
 ```
 
-## Full Demo
-The full demo presumes that the [nounsdao-mono repo instance](https://github.com/0xDigitalOil/nounsdao-privatevoting#nounsdao-privatevoting) has been run all the way through and that the setup described here above (with exception of the Command-line demo) was completed.
+## Near Full Demo (command-line voting)
+The near full demo presumes that the [nounsdao-mono repo instance](https://github.com/0xDigitalOil/nounsdao-privatevoting#nounsdao-privatevoting) has been run all the way through and that the setup described here above (with exception of the Command-line demo) was completed.
 
 > **Note**
 >
@@ -149,13 +149,13 @@ Using the Nouns Private Voting UI create a new proposal (#1).
 Then execute each of the voters' votes like so:
 
 ```sh
-yarn ts-node scripts/voteDAO.ts 1 1 yay 6
+yarn ts-node scripts/voteDAO.ts 1 1 yay
 ```
 ```sh
-yarn ts-node scripts/voteDAO.ts 1 2 nay 3
+yarn ts-node scripts/voteDAO.ts 1 2 nay
 ```
 ```sh
-yarn ts-node scripts/voteDAO.ts 1 3 yay 5
+yarn ts-node scripts/voteDAO.ts 1 3 yay
 ```
 
 When the committee daemons notice that the total voting weight used is at
