@@ -22,6 +22,8 @@ curl -o circuits/ptau.16 https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28
 
 ```sh
 yarn build
+```
+```sh
 yarn tsc
 ```
 
