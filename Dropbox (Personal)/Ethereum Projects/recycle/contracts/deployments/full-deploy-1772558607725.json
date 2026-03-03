@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-03-03T17:23:27.587Z",
+  "network": "mainnet",
+  "chainId": 1,
+  "deployer": "0x18189287bFBdf3BF5C6Dc33052B764893C59c7cc",
+  "turingToken": "0xe8001DC781B66D5ccb189AC0429978fc48c6cf5E",
+  "turingHook": "0xe02B0b5739E7C64f41d3295c191635E680bE40C4",
+  "hookDeployer": "0x863D92cF9769349A1c72fb9007981463BFA8e642",
+  "liquidityLoader": "0x9C0f9f541C49d454c8C7403816D05eD6aA3FAC37",
+  "poolManager": "0x000000000004444c5dc75cB358380D2e3dE08A90",
+  "positionManager": "0xbd216513d74c8cf14cf4747e6aaa6420ff64ee9e",
+  "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+  "verifier": "0xf93cd08E0D8e5465ec7Fa1E8b46362911C5CB691",
+  "salt": "0x0000000000000000000000000000000000000000000000000000000000002c9a",
+  "requiredFlags": "0xc4",
+  "liquidityTxHash": "0xc26213052f9285419de796523cf4c58e359dedc3ae5490bb15e1cc4e22b6273f",
+  "poolKey": {
+    "currency0": "0x0000000000000000000000000000000000000000",
+    "currency1": "0xe8001DC781B66D5ccb189AC0429978fc48c6cf5E",
+    "fee": 0,
+    "tickSpacing": 10,
+    "hooks": "0xe02B0b5739E7C64f41d3295c191635E680bE40C4"
+  },
+  "sqrtPriceX96": "79228162514264337593543950336000",
+  "tickLower": -887270,
+  "tickUpper": 138170,
+  "priceDescription": "1M TURING per ETH"
+}
